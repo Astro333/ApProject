@@ -1,0 +1,9 @@
+{
+  "Egg":10 , "Wool":100 , "Plume":100 ,"Milk":1000 , "Horn":1000 , "DriedEggs":50 ,
+  "Cake":100 , "FlouryCake":200 , "Sewing":150 , "Fabric":300 , "CarnivalDress":1300,
+  "SourCream":1500 , "Curd":2000 , "Cheese":2500 , "ColoredPlume":150 , "Adornment":300 ,
+  "BrightHorn":3000 , "Intermediate":4000 , "Souvenir":5000 , "Flour":20 , "CheeseFerment":15,
+  "Varnish":15 , "MegaPie":10000 , "SpruceGrizzly":7000 , "SpruceLion":7000 , "SpruceBrownBear":7000 ,
+  "SpruceJaguar":7000 , "SpruceWhiteBear":7000 , "CagedGrizzly":80 , "CagedLion":150 , "CagedBrownBear":100,
+  "CagedJaguar":200 , "CagedWhiteBear":100
+}

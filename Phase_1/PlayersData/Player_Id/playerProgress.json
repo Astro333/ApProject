@@ -1,0 +1,31 @@
+{
+  "goldMoney" : 0,
+  "money" : 0,
+  "levels": [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+  "gameElementsLevel": {
+    "AdornmentHouse":0,
+    "Airplane":0,
+    "Cage":0,
+    "CakeHouse":0,
+    "Car":0,
+    "CarnivalDressHouse":0,
+    "Cat":0,
+    "CheeseHouse":0,
+    "CurdHouse":0,
+    "Depot":0,
+    "Dog":0,
+    "DriedEggsHouse":0,
+    "FittingRoom":0,
+    "FlouryCakeHouse":0,
+    "GrindingHouse":0,
+    "IncubatorHouse":0,
+    "MegaPieHouse":0,
+    "PlumeHouse":0,
+    "ProcessingHouse":0,
+    "SourCreamHouse":0,
+    "SouvenirHouse":0,
+    "SpinneryHouse":0,
+    "WeavingHouse":0,
+    "Well":0
+  }
+}
