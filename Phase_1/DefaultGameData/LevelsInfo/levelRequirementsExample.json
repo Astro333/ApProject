@@ -1,0 +1,17 @@
+{
+  "goals":["COIN","EGG","GUINEA"],
+  "goalsAmount":[1000,10,5],
+
+  "workshops":["Egg Powder Plant", "Cookie Bakery"],
+  "workshopsLevel":[2,1],
+  "workshopsPosition":[2,6],
+
+  "startingAnimals":["GUINEA", "COW"],
+  "startingAnimalsAmount":[2,1],
+
+  "startMoney":1000,
+
+  "goldenTime":120,
+  "silverTime":240,
+  "bronzeTime":360
+}

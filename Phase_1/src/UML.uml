@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement />
+  <nodes>
+    <node x="0.0" y="321.0">Animals.Wild.Wild</node>
+    <node x="62.5" y="1089.0">Interfaces.Processable</node>
+    <node x="0.0" y="949.0">Transportation.Helicopter</node>
+    <node x="156.0" y="584.0">Transportation.TransportationTool</node>
+    <node x="201.0" y="354.0">Animals.Pet.Pet</node>
+    <node x="54.5" y="510.0">Animals.Wild.Bear</node>
+    <node x="0.0" y="1168.0">Animals.Animal.AnimalType</node>
+    <node x="341.5" y="110.0">Interfaces.Productive</node>
+    <node x="567.0" y="584.0">Structures.Workshop</node>
+    <node x="28.25" y="0.0">Animals.Animal</node>
+    <node x="131.0" y="1168.0">Items.Item.ItemType</node>
+    <node x="317.0" y="949.0">Transportation.Truck</node>
+    <node x="868.0" y="584.0">Items.Item</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="Animals.Animal.AnimalType" target="Interfaces.Processable">
+      <point x="0.0" y="-14.5" />
+      <point x="55.5" y="1143.0" />
+      <point x="90.0" y="1143.0" />
+      <point x="-27.5" y="14.5" />
+    </edge>
+    <edge source="Animals.Pet.Pet" target="Animals.Animal">
+      <point x="-71.5" y="-36.5" />
+      <point x="272.5" y="296.0" />
+      <point x="215.0" y="296.0" />
+      <point x="62.25" y="135.5" />
+    </edge>
+    <edge source="Animals.Wild.Bear" target="Animals.Wild.Wild">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="69.5" />
+    </edge>
+    <edge source="Animals.Pet.Pet" target="Interfaces.Productive">
+      <point x="71.5" y="-36.5" />
+      <point x="0.0" y="25.5" />
+    </edge>
+    <edge source="Transportation.Truck" target="Transportation.TransportationTool">
+      <point x="0.0" y="-47.5" />
+      <point x="419.5" y="924.0" />
+      <point x="348.0" y="924.0" />
+      <point x="64.0" y="157.5" />
+    </edge>
+    <edge source="Animals.Wild.Wild" target="Animals.Animal">
+      <point x="0.0" y="-69.5" />
+      <point x="-62.25" y="135.5" />
+    </edge>
+    <edge source="Items.Item.ItemType" target="Interfaces.Processable">
+      <point x="0.0" y="-14.5" />
+      <point x="179.5" y="1143.0" />
+      <point x="145.0" y="1143.0" />
+      <point x="27.5" y="14.5" />
+    </edge>
+    <edge source="Transportation.Helicopter" target="Transportation.TransportationTool">
+      <point x="0.0" y="-47.5" />
+      <point x="148.5" y="924.0" />
+      <point x="220.0" y="924.0" />
+      <point x="-64.0" y="157.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.5741231488698364" x="805.265718172118" y="503.24717916826614" />
+  <SelectedNodes>
+    <node>Animals.Animal</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>Methods</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
