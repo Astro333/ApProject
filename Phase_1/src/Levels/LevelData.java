@@ -2,6 +2,35 @@ package Levels;
 
 public class LevelData {
 
+    private final String[] goals = null;
+    private final int[]  goalsAmount = null;
+
+    private final String[] workshops = null;
+    private final int[] workshopsLevel = null;
+    private final int[] workshopsPosition = null;
+
+    private final String[] startingPets = null;
+    private final int[] startingPetsAmount = null;
+
+    private final String continent = null;
+
+    private final Integer initialCoin = null;
+
+    private final Integer goldenTime = null;
+    private final Integer goldenPrize = null;
+
+    private final Integer silverTime = null;
+    private final Integer silverPrize = null;
+
+    private final Integer bronzeTime = null;
+    private final Integer bronzePrize = null;
+
+    private final Integer prize = null;
+
+    private LevelData()
+    {
+    }
+
     public String[] getGoals() {
         return goals;
     }
@@ -62,60 +91,7 @@ public class LevelData {
         return prize;
     }
 
-    private final String[] goals;
-    private final int[]  goalsAmount;
-
-    private final String[] workshops;
-    private final int[] workshopsLevel;
-    private final int[] workshopsPosition;
-
-    private final String[] startingPets;
-    private final int[] startingPetsAmount;
-
-
-    private final int initialCoin;
-
-    private final int goldenTime;
-    private final int goldenPrize;
-
-    private final int silverTime;
-    private final int silverPrize;
-
-    private final int bronzeTime;
-    private final int bronzePrize;
-
-    private final int prize;
-
-    private LevelData(String[] goals,
-                      int[] goalsAmount,
-                      String[] workshops,
-                      int[] workshopsLevel,
-                      int[] workshopsPosition,
-                      String[] startingAnimals,
-                      int[] startingAnimalsAmount,
-                      int initialCoin,
-                      int goldenTime,
-                      int goldenPrize,
-                      int silverTime,
-                      int silverPrize,
-                      int bronzeTime,
-                      int bronzePrize,
-                      int prize)
-    {
-        this.goals= goals;
-        this.goalsAmount = goalsAmount;
-        this.workshops = workshops;
-        this.workshopsLevel = workshopsLevel;
-        this.workshopsPosition = workshopsPosition;
-        this.startingPets = startingAnimals;
-        this.startingPetsAmount = startingAnimalsAmount;
-        this.initialCoin = initialCoin;
-        this.goldenTime =goldenTime;
-        this.goldenPrize = goldenPrize;
-        this.silverTime = silverTime;
-        this.silverPrize = silverPrize;
-        this.bronzeTime = bronzeTime;
-        this.bronzePrize = bronzePrize;
-        this.prize = prize;
+    public String getContinent() {
+        return continent;
     }
 }

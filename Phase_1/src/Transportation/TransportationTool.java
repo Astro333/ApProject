@@ -7,7 +7,7 @@ import Utilities.Constants;
 import java.util.HashMap;
 
 public abstract class TransportationTool {
-    private final byte maxLevel;
+    private final Byte maxLevel = null;
     private byte level;
     private int capacity;
     private int timeRemainedToFinishTask = -1;
@@ -16,8 +16,7 @@ public abstract class TransportationTool {
     int itemsInsidePrices = 0;
     private int itemsInsideSize = 0;
 
-    protected TransportationTool(byte maxLevel){
-        this.maxLevel = maxLevel;
+    TransportationTool(){
         itemsInside = new HashMap<>();
         isAtTask = new SimpleBooleanProperty(this, "isAtTask", false);
     }

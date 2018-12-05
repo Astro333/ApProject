@@ -22,6 +22,7 @@ import Transportation.Helicopter;
 import Transportation.TransportationTool;
 import Transportation.Truck;
 import Utilities.Constants;
+import Utilities.Pair;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.beans.property.BooleanProperty;
@@ -61,7 +62,7 @@ public class LevelController {
     }
 
     private int coinsCollected = 0;
-    private final int BUY_PRICE_MULTIPLIER = 2;
+    private final LevelData levelData;
     private final Map map;
     private final HashMap<String, Workshop> workshops;
     private final TransportationTool helicopter;
@@ -97,7 +98,12 @@ public class LevelController {
                 int amountProcessed = workshop.getAmountProcessed();
                 Integer[] amounts = workshop.getOutputsAmount();
                 Processable[] outputs = workshop.getOutputs();
-                Cell mapCell = map.getCell(workshop.getDropZoneX(), workshop.getDropZoneY());
+                Pair<Integer, Integer> dropZone =
+                        Constants.getWorkshopDropZone(levelData.getContinent(), workshop.getPosition());
+
+                assert dropZone != null;
+
+                Cell mapCell = map.getCell(dropZone.getKey(), dropZone.getValue());
                 for(int i = 0; i < amounts.length; ++i){
                     int j = 0;
                     if(outputs[i] instanceof Animal.AnimalType){
@@ -105,8 +111,8 @@ public class LevelController {
                             Animal animal = getRandomlyLocatedAnimalInstance(outputs[i].toString().toLowerCase());
                             if(animal == null)
                                 break;
-                            animal.setX(workshop.getDropZoneX());
-                            animal.setY(workshop.getDropZoneY());
+                            animal.setX(dropZone.getKey());
+                            animal.setY(dropZone.getValue());
                             mapCell.addAnimal(animal);
                             ++j;
                         }
@@ -133,7 +139,7 @@ public class LevelController {
          * */
         Reader reader = new BufferedReader(new FileReader(pathToLevelJsonFile));
         Gson gson = new GsonBuilder().create();
-        LevelData levelData = gson.fromJson(reader, LevelData.class);
+        levelData = gson.fromJson(reader, LevelData.class);
         this.player = player;
         HashMap<String, Workshop> workshops = null;
         Map map = null;
@@ -183,9 +189,10 @@ public class LevelController {
 
     public LevelController(SaveData saveData, Player player){
         this.player = player;
+        levelData = null;
         map = null;
         well = null;
-        truck = new Truck((byte) 5);
+        truck = null;
         helicopter = null;
         workshops = null;
         levelLog = new StringBuilder();
@@ -216,7 +223,7 @@ public class LevelController {
 
             } else if (input.matches(BUY_REGEX)) {
                 String s = input.replaceFirst("buy\\s+", "");
-                int cost = Constants.getProductBuyCost(s)*BUY_PRICE_MULTIPLIER;
+                int cost = Constants.getProductBuyCost(s);
                 if(cost < 0) {
                     System.err.println("No Such Animal In Existence.");
                 }
@@ -515,7 +522,7 @@ public class LevelController {
 
     private boolean addItemsToHelicopter(String type, int amount) {
         if (helicopter.hasCapacityFor(type, amount)) {
-            if (coinsCollected >= Constants.getProductBuyCost(type) * amount * BUY_PRICE_MULTIPLIER) {
+            if (coinsCollected >= Constants.getProductBuyCost(type) * amount) {
                 helicopter.addAll(type, amount);
                 System.out.println(amount+" of "+type+" was added to helicopter buy list.");
                 return true;

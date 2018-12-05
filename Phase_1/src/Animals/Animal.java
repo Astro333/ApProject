@@ -1,6 +1,9 @@
 package Animals;
 
+import Animals.Pet.SouthAmerica.Chicken;
 import Interfaces.Processable;
+import Interfaces.Productive;
+import Items.Item;
 import Utilities.SUID;
 import javafx.beans.property.BooleanProperty;
 

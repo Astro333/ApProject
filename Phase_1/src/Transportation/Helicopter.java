@@ -4,8 +4,8 @@ import java.util.HashMap;
 
 public class Helicopter extends TransportationTool{
 
-    public Helicopter(byte maxLevel){
-        super(maxLevel);
+    private Helicopter(){
+        super();
     }
 
     @Override

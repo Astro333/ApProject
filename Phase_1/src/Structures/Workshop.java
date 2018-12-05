@@ -11,52 +11,29 @@ import java.util.Scanner;
 
 public class Workshop {
 
-    private final Processable[] inputs;
-    private final Integer[] inputAmounts;
+    private final Processable[] inputs = null;
+    private final Integer[] inputAmounts = null;
 
-    private final Processable[] outputs;
-    private final Integer[] outputsAmount;
+    private final Processable[] outputs = null;
+    private final Integer[] outputsAmount = null;
 
-    private final byte position;
+    private final Byte position = null;
+
+    private final String name = null;
+    private final String pathToGraphicsFolder = null; //For Phase 1, it's null
+    private final Byte maxMaxLevel = null;
+    private final Byte maxLevel = null;
 
     private int amountProcessed;
-    private final String name;
-    private final String pathToGraphicsFolder = null; //For Phase 1, it's null
-    private final byte maxMaxLevel;
-
-    private byte level;
-    private final byte maxLevel;
-    private long timeToFinishTask = -1;
-    private transient BooleanProperty isAtTask = null;
     private int multiplier = 1; //this is dependent on Workshop level
-    /**
-     * @param inputs input types.
-     * @param inputsAmount amount needed of each input.
-     * @param outputs output types
-     * @param outputsAmount amount produced of each output
-     * @param position
-     * @param name Workshop Name
-     * @param maxLevel Workshop maxLevel                */
+    private byte level;
+    private long timeToFinishTask = -1;
 
-    private Workshop(Processable[] inputs, Integer[] inputsAmount,
-                     Processable[] outputs, Integer[] outputsAmount,
-                     byte position,
-                     String name,
-                     byte maxLevel,
-                     byte maxMaxLevel
-    )
-    {
-        this.inputs = inputs;
-        this.inputAmounts = inputsAmount;
-        this.outputs = outputs;
-        this.outputsAmount = outputsAmount;
-        this.position = position;
-        this.name = name;
-        this.maxLevel = maxLevel;
-        this.maxMaxLevel = maxMaxLevel;
+    private transient final BooleanProperty isAtTask;
+
+    private Workshop(){
+        this.isAtTask = new SimpleBooleanProperty(this, "isAtTask", false);
     }
-
-    private void initiateVariables(){}
 
     public static Workshop getInstance(String workshopName, int maxLevel) throws FileNotFoundException {
         String workshopDataFile = "../DefaultGameData/DefaultWorkshops/"+workshopName+".json";
@@ -67,10 +44,12 @@ public class Workshop {
         stringBuilder.deleteCharAt(stringBuilder.length()-1);
         stringBuilder.append("\"maxLevel\":").append(maxLevel).append("}");
         Gson gson = new GsonBuilder().create();
-        Workshop workshop = gson.fromJson(stringBuilder.toString(), Workshop.class);
-        workshop.isAtTask = new SimpleBooleanProperty(
-                workshop, "isAtTask", workshop.timeToFinishTask != -1);
-        return workshop;
+        return gson.fromJson(stringBuilder.toString(), Workshop.class);
+    }
+
+
+    public byte getPosition() {
+        return position;
     }
 
     public int getAmountProcessed() {

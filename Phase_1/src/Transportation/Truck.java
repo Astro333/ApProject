@@ -1,8 +1,9 @@
 package Transportation;
 
 public class Truck extends TransportationTool{
-    public Truck(byte maxLevel){
-        super(maxLevel);
+
+    private Truck(){
+        super();
     }
 
     @Override

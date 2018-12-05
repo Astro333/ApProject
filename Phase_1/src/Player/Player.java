@@ -6,20 +6,18 @@ public class Player {
 
     private long money;
     private long goldMoney;
-    private final byte[] levels;
+    private final byte[] levels = null;
     private final HashMap<String, Byte> gameElementsLevel;
+    private final Long id = null;
 
     public long getId() {
         return id;
     }
 
-    private final long id;
-    private Player(byte[] levels, long id)
-    {
-        this.id = id;
-        this.levels =  levels;
+    private Player() {
         gameElementsLevel = new HashMap<>();
     }
+
     public long getGoldMoney() {
         return goldMoney;
     }

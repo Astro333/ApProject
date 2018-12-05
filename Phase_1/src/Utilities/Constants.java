@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class Constants {
@@ -17,6 +18,12 @@ public class Constants {
     private static HashMap<String, Float> productsDepotSize;
     private static HashMap<String, Integer> productsBuyCost;
     private static HashMap<String, Integer> productsSaleCost;
+
+    private static HashMap<Byte, Pair<Integer, Integer>> workshopsDropZoneAfrica; // from continent
+    private static HashMap<Byte, Pair<Integer, Integer>> workshopsDropZoneAntarctica; // from continent
+    private static HashMap<Byte, Pair<Integer, Integer>> workshopsDropZoneSouthAmerica; // from continent
+    private static HashMap<Byte, Pair<Integer, Integer>> workshopsDropZonePrairie; // from continent
+    private static HashMap<Byte, Pair<Integer, Integer>> workshopsDropZoneRussia; // from continent
     private static boolean isInitiated = false;
 
     // MUST INITIATE THIS CLASS AT LOADING MENU
@@ -43,6 +50,7 @@ public class Constants {
             productsBuyCost = gson.fromJson(reader, type);
 
 
+
             isInitiated = true;
             return true;
         }
@@ -55,5 +63,21 @@ public class Constants {
     public static Integer getProductSaleCost(String product){return productsBuyCost.getOrDefault(product, null);}
     public static Integer getProductBuyCost(String product){
         return productsBuyCost.getOrDefault(product, null);
+    }
+    public static Pair<Integer, Integer> getWorkshopDropZone(String continent, byte position){
+        switch (continent){
+            case "prairie":
+                return workshopsDropZonePrairie.get(position);
+            case "southAmerica":
+                return workshopsDropZoneSouthAmerica.get(position);
+            case "russia":
+                return workshopsDropZoneRussia.get(position);
+            case "antarctica":
+                return workshopsDropZoneAntarctica.get(position);
+            case "africa":
+                return workshopsDropZoneAfrica.get(position);
+            default:
+                return null;
+        }
     }
 }
