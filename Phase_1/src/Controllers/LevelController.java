@@ -141,39 +141,21 @@ public class LevelController {
         Gson gson = new GsonBuilder().create();
         levelData = gson.fromJson(reader, LevelData.class);
         this.player = player;
-        HashMap<String, Workshop> workshops = null;
+        HashMap<String, Workshop> workshops;
         Map map = null;
         Well well = null;
         Helicopter helicopter = null;
         Truck truck = null;
         Depot depot = null;
-        initiateLevelComponents(
-                workshops,
-                map,
-                well,
-                helicopter,
-                truck,
-                depot,
-                levelData, player);
-        this.map = map;
-        this.well = well;
-        this.truck = truck;
-        this.helicopter = helicopter;
-        this.workshops = workshops;
-        levelLog = new StringBuilder();
-        this.depot = depot;
-        scanner = new Scanner(System.in);
-        cageLevel = 2;
-    }
 
-    private void initiateLevelComponents(HashMap<String, Workshop> workshops, Map map, Well well, Helicopter helicopter, Truck truck, Depot depot, LevelData levelData, Player player) {
-        if(levelData.getWorkshops().length == 0)
+        if(levelData.getWorkshops().length == 0) {
             workshops = null;
+        }
         else {
             workshops = new HashMap<>();
             for (String workshopName : levelData.getWorkshops()) {
                 int maxLevel = player.getGameElementLevel(workshopName);
-                Workshop workshop = null;
+                Workshop workshop;
                 try {
                     workshop = Workshop.getInstance(workshopName, maxLevel);
                 }
@@ -183,8 +165,17 @@ public class LevelController {
                 workshops.put(workshopName, workshop);
             }
         }
-        map = new Map();
 
+        map = new Map();
+        this.map = map;
+        this.well = well;
+        this.truck = truck;
+        this.helicopter = helicopter;
+        this.workshops = workshops;
+        levelLog = new StringBuilder();
+        this.depot = depot;
+        scanner = new Scanner(System.in);
+        cageLevel = 2;
     }
 
     public LevelController(SaveData saveData, Player player){
@@ -433,11 +424,11 @@ public class LevelController {
 
     private boolean truckGo() {
         if (truck.go()) {
-            levelLog.append("Truck is going. will return in ").
-                    append(truck.getTimeRemainedToFinishTask()).append(" turns.\n");
+            System.err.println("Truck is going. will return in "+
+                    truck.getTimeRemainedToFinishTask()+" turns.\n");
             return true;
         }
-        levelLog.append("Nothing in Truck.\n");
+        System.err.println("Nothing in Truck.\n");
         return false;
     }
 
@@ -534,6 +525,10 @@ public class LevelController {
         return false;
     }
 
+    private void PRINT_DEPOT_FULL(String item){
+        System.err.println("can't store "+item+", Depot is Full.\n");
+    }
+
     private void pickup(int x, int y) {
         boolean depotWasFilled = false;
         Cell cell = map.getCell(x, y);
@@ -543,12 +538,12 @@ public class LevelController {
                         cell.removeItem(item.getId());
                         System.out.println(item+" was picked up.\n");
                     } else {
-                        System.err.println("can't pick "+item+", Depot is Full.\n");
+                        PRINT_DEPOT_FULL(item.toString());
                         depotWasFilled = true;
                     }
                 }
                 else {
-                    System.err.println("can't pick "+item+", Depot is Full.\n");
+                    PRINT_DEPOT_FULL(item.toString());
                 }
             }
             if(!depotWasFilled) {
@@ -560,10 +555,10 @@ public class LevelController {
                             }
                             else {
                                 depotWasFilled = true;
-                                System.err.println("can't store " + wild.getType() + ", Depot is Full.");
+                                PRINT_DEPOT_FULL(wild.toString());
                             }
                         } else {
-                            System.err.println("can't store " + wild.getType() + ", Depot is Full.");
+                            PRINT_DEPOT_FULL(wild.toString());
                         }
                     }
                 }
@@ -571,7 +566,7 @@ public class LevelController {
             else{
                 for (Wild wild : cell.getWilds().values()) {
                     if(wild.isCaged()){
-                        System.err.println("can't store "+wild.getType()+", Depot is Full.");
+                        PRINT_DEPOT_FULL(wild.toString());
                     }
                 }
             }
