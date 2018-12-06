@@ -1,5 +1,6 @@
 package Transportation;
 
+import Items.Item;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import Utilities.Constants;
@@ -12,7 +13,7 @@ public abstract class TransportationTool {
     private int capacity;
     private int timeRemainedToFinishTask = -1;
     private transient final BooleanProperty isAtTask;
-    final HashMap<String, Integer> itemsInside;
+    final HashMap<Item.ItemType, Integer> itemsInside;
     int itemsInsidePrices = 0;
     private int itemsInsideSize = 0;
 
@@ -73,15 +74,15 @@ public abstract class TransportationTool {
     }
     public abstract int getUpgradeCost();
     public abstract boolean upgrade();
-    public boolean hasCapacityFor(String item, int amount){
-        return Constants.getProductSize(item) * amount + itemsInsideSize <= capacity;
+    public boolean hasCapacityFor(Item.ItemType item, int amount){
+        return Constants.getProductSize(item.toString()) * amount + itemsInsideSize <= capacity;
     }
-    public boolean addAll(String item, int amount){
+    public boolean addAll(Item.ItemType item, int amount){
         if(hasCapacityFor(item, amount)) {
             if(this instanceof Helicopter)
-                itemsInsidePrices += Constants.getProductBuyCost(item)* amount;
+                itemsInsidePrices += Constants.getProductBuyCost(item.toString())* amount;
             else
-                itemsInsidePrices += Constants.getProductSaleCost(item) * amount;
+                itemsInsidePrices += Constants.getProductSaleCost(item.toString()) * amount;
 
             if(itemsInside.containsKey(item)){
                 itemsInside.compute(item, (k, v) -> v + amount);

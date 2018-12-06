@@ -9,10 +9,11 @@ public class Item {
     private final ItemType type;
     private final int itemPrice;
     private Long id;
+
     /**
      * @param type Item type.
-     * */
-    public Item(ItemType type, int x, int y){
+     */
+    public Item(ItemType type, int x, int y) {
         this.type = type;
         this.itemPrice = Utilities.Constants.getProductBuyCost(type.toString());
         id = SUID.generateId();
@@ -20,7 +21,7 @@ public class Item {
         this.y = y;
     }
 
-    public Item(ItemType type){
+    public Item(ItemType type) {
         this.type = type;
         this.itemPrice = Utilities.Constants.getProductBuyCost(type.toString());
         id = SUID.generateId();
@@ -32,7 +33,7 @@ public class Item {
         return id;
     }
 
-    public int getItemPrice(){
+    public int getItemPrice() {
         return itemPrice;
     }
 

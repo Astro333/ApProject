@@ -1,22 +1,25 @@
 package Structures;
 
+import static Items.Item.ItemType;
+import Utilities.Constants;
+
 import java.util.HashMap;
 
 
 public class Depot {
-    private int storedThingsVolume = 0;
-    private int capacity;
+    private float storedThingsVolume = 0;
+    private int capacity = 40;
     private byte level = 1;
     private final byte maxLevel;
-    private final HashMap<String, Integer> thingsStored;
+    private final HashMap<ItemType, Integer> thingsStored;
 
     public Depot(byte maxLevel) {
         this.maxLevel = maxLevel;
         thingsStored = new HashMap<>();
     }
 
-    public boolean addAllStorable(String storable, int amount) {
-        int unitVolume = Utilities.Constants.getProductSize(storable);
+    public boolean addAllStorable(ItemType storable, int amount) {
+        float unitVolume = Utilities.Constants.getProductSize(storable.toString());
         if(amount > 0 && storedThingsVolume + unitVolume*amount <= capacity) {
             if (thingsStored.containsKey(storable)) {
                 thingsStored.compute(storable, (k, v) -> v + amount);
@@ -29,8 +32,8 @@ public class Depot {
         return false;
     }
 
-    public boolean addStorable(String storable) {
-        int unitVolume = Utilities.Constants.getProductSize(storable);
+    public boolean addStorable(ItemType storable) {
+        float unitVolume = Utilities.Constants.getProductSize(storable.toString());
         if (unitVolume + storedThingsVolume <= capacity) {
             if (thingsStored.containsKey(storable)) {
                 thingsStored.put(storable, thingsStored.get(storable) + 1);
@@ -43,8 +46,8 @@ public class Depot {
         return false;
     }
 
-    public boolean removeAllStorable(String type, int amount) {
-        int unitVolume = Utilities.Constants.getProductSize(type);
+    public boolean removeAllStorable(ItemType type, int amount) {
+        float unitVolume = Utilities.Constants.getProductSize(type.toString());
         if (amount > 0 && thingsStored.containsKey(type)) {
             if (thingsStored.get(type) > amount) {
                 thingsStored.compute(type, (k, v) -> v - amount);
@@ -63,7 +66,7 @@ public class Depot {
     public boolean upgrade() {
         if (level < maxLevel) {
             ++level;
-            capacity += 10;
+            capacity *= 2;
             return true;
         }
         return false;
@@ -77,7 +80,7 @@ public class Depot {
                 append(", storedObjectsVolume = ").append(storedThingsVolume).append("\n");
         if(thingsStored.size() > 0) {
             s.append("Items:\n");
-            for (String item : thingsStored.keySet()) {
+            for (ItemType item : thingsStored.keySet()) {
                 s.append(item).append(", amount = ").append(thingsStored.get(item)).append("\n");
             }
         }
@@ -87,10 +90,10 @@ public class Depot {
     }
 
     public int getUpgradeCost() {
-        return 0;
+        return Constants.getElementLevelUpgradeCost("Depot", level+1);
     }
 
     public byte getLevel() {
-        return 0;
+        return level;
     }
 }

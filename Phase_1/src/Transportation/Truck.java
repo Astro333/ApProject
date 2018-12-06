@@ -16,7 +16,7 @@ public class Truck extends TransportationTool{
         return false;
     }
 
-    public int getSoldGoodsMoney(){
+    public int receiveSoldGoodsMoney(){
         int temp = itemsInsidePrices;
         itemsInsidePrices = 0;
         return temp;

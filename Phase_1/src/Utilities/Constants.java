@@ -19,11 +19,20 @@ public class Constants {
     private static HashMap<String, Integer> productsBuyCost;
     private static HashMap<String, Integer> productsSaleCost;
 
+    private static HashMap<String, Integer[]> elementsLevelUpgradeCost;
+    private static HashMap<String, Integer[]> elementsMaxLevelUpgradeCost;
+
     private static HashMap<Byte, Pair<Integer, Integer>> workshopsDropZoneAfrica; // from continent
     private static HashMap<Byte, Pair<Integer, Integer>> workshopsDropZoneAntarctica; // from continent
     private static HashMap<Byte, Pair<Integer, Integer>> workshopsDropZoneSouthAmerica; // from continent
     private static HashMap<Byte, Pair<Integer, Integer>> workshopsDropZonePrairie; // from continent
     private static HashMap<Byte, Pair<Integer, Integer>> workshopsDropZoneRussia; // from continent
+
+    private static HashMap<Byte, Pair<Integer, Integer>> workshopsPositionAfrica; // from continent
+    private static HashMap<Byte, Pair<Integer, Integer>> workshopsPositionAntarctica; // from continent
+    private static HashMap<Byte, Pair<Integer, Integer>> workshopsPositionSouthAmerica; // from continent
+    private static HashMap<Byte, Pair<Integer, Integer>> workshopsPositionPrairie; // from continent
+    private static HashMap<Byte, Pair<Integer, Integer>> workshopsPositionRussia; // from continent
     private static boolean isInitiated = false;
 
     // MUST INITIATE THIS CLASS AT LOADING MENU
@@ -79,5 +88,27 @@ public class Constants {
             default:
                 return null;
         }
+    }
+    public static Pair<Integer, Integer> getWorkshopPosition(String continent, byte position){
+        switch (continent){
+            case "prairie":
+                return workshopsPositionPrairie.get(position);
+            case "southAmerica":
+                return workshopsPositionSouthAmerica.get(position);
+            case "russia":
+                return workshopsPositionRussia.get(position);
+            case "antarctica":
+                return workshopsPositionAntarctica.get(position);
+            case "africa":
+                return workshopsPositionAfrica.get(position);
+            default:
+                return null;
+        }
+    }
+    public static int getElementLevelUpgradeCost(String element, int nextLevel){
+        return elementsLevelUpgradeCost.get(element)[nextLevel];
+    }
+    public static int getElementMaxLevelUpgradeCost(String element, int nextLevel){
+        return elementsMaxLevelUpgradeCost.get(element)[nextLevel];
     }
 }

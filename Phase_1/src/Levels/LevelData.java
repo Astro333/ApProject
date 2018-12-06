@@ -7,7 +7,7 @@ public class LevelData {
 
     private final String[] workshops = null;
     private final int[] workshopsLevel = null;
-    private final int[] workshopsPosition = null;
+    private final byte[] workshopsPosition = null;
 
     private final String[] startingPets = null;
     private final int[] startingPetsAmount = null;
@@ -27,9 +27,7 @@ public class LevelData {
 
     private final Integer prize = null;
 
-    private LevelData()
-    {
-    }
+    private LevelData(){}
 
     public String[] getGoals() {
         return goals;
@@ -47,7 +45,7 @@ public class LevelData {
         return workshopsLevel;
     }
 
-    public int[] getWorkshopsPosition() {
+    public byte[] getWorkshopsPosition() {
         return workshopsPosition;
     }
 
