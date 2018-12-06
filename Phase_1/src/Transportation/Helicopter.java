@@ -1,7 +1,7 @@
 package Transportation;
 
-import Items.Item;
 import static Items.Item.ItemType;
+import Items.Item;
 import Map.Map;
 
 import java.util.HashMap;
@@ -11,8 +11,8 @@ public class Helicopter extends TransportationTool{
 
     private final Random random;
 
-    private Helicopter(){
-        super();
+    public Helicopter(byte maxLevel, byte level){
+        super(maxLevel, level);
         random = new Random();
     }
 

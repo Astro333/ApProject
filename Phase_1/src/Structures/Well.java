@@ -1,18 +1,31 @@
 package Structures;
 
+import Exceptions.IllegalConstructorArgumentException;
+
 public class Well {
 
     private boolean isRefilling;
-    private byte level;
+    private byte level = 0;
     private byte storedWater;
-    private byte waterAdditionFactor;
+    private float waterAdditionFactor;
     private byte capacity;
     private int timeRemainedToRefill = -1;
     private final byte maxLevel;
-    private final byte WATER_UNIT_COST;
+    private final byte maxMaxLevel = 3;
+    private final float WATER_UNIT_COST;
 
-    public Well(byte maxLevel, byte WATER_UNIT_COST){
+    public Well(byte maxLevel, float WATER_UNIT_COST) throws IllegalConstructorArgumentException{
+        if(maxLevel > maxMaxLevel)
+            throw new IllegalConstructorArgumentException();
         this.maxLevel = maxLevel;
+        this.WATER_UNIT_COST = WATER_UNIT_COST;
+    }
+
+    public Well(byte maxLevel, byte level, float WATER_UNIT_COST) throws IllegalConstructorArgumentException{
+        if(level > maxLevel || maxLevel > maxMaxLevel)
+            throw new IllegalConstructorArgumentException();
+        this.maxLevel = maxLevel;
+        this.level = level;
         this.WATER_UNIT_COST = WATER_UNIT_COST;
     }
 
@@ -33,10 +46,12 @@ public class Well {
         if(isRefilling){
             if(storedWater + waterAdditionFactor*turns >= capacity){
                 storedWater = capacity;
+                timeRemainedToRefill = -1;
                 isRefilling = false;
             }
             else {
                 storedWater += waterAdditionFactor*turns;
+                timeRemainedToRefill -= turns;
             }
         }
     }
@@ -58,12 +73,15 @@ public class Well {
     }
 
     public int getRefillPrice(){
-        return (capacity-storedWater)*WATER_UNIT_COST;
+        return (int)((capacity-storedWater)*WATER_UNIT_COST);
     }
-
+    private int calculateRefillingTime(){
+        return 0;
+    }
     public boolean refill(){
         if(!isRefilling && storedWater < capacity){
             isRefilling = true;
+            timeRemainedToRefill = calculateRefillingTime();
             return true;
         }
         return false;

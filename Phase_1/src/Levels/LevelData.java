@@ -12,6 +12,10 @@ public class LevelData {
     private final String[] startingPets = null;
     private final int[] startingPetsAmount = null;
 
+    private final Byte wellStartingLevel = null;
+    private final Byte helicopterStartingLevel = null;
+    private final Byte truckStartingLevel = null;
+
     private final String continent = null;
 
     private final Integer initialCoin = null;
@@ -28,6 +32,18 @@ public class LevelData {
     private final Integer prize = null;
 
     private LevelData(){}
+
+    public Byte getHelicopterStartingLevel(){
+        return helicopterStartingLevel;
+    }
+
+    public Byte getTruckStartingLevel() {
+        return truckStartingLevel;
+    }
+
+    public byte getWellStartingLevel() {
+        return wellStartingLevel;
+    }
 
     public String[] getGoals() {
         return goals;
