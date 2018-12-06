@@ -487,10 +487,10 @@ public class LevelController {
         if(coinsCollected >= cost){
             if(depot.upgrade()){
                 coinsCollected -= cost;
-                System.out.println("Warehouse was upgraded to level " + depot.getLevel() + "\n");
+                System.out.println("Depot was upgraded to level " + depot.getLevel() + "\n");
             }
             else {
-                System.err.println("Warehouse is At Maximum LevelData.");
+                System.err.println("Depot is At Maximum Level.");
             }
         }
         else
