@@ -2,7 +2,7 @@ package Controllers;
 
 import Transportation.Helicopter;
 
-public class HelicopterController extends Controller{
+public class HelicopterController extends Controller {
     private final Helicopter helicopter;
 
     public HelicopterController(Helicopter helicopter) {

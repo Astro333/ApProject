@@ -1,18 +1,15 @@
 package Controllers;
 
-import static Items.Item.ItemType;
-
 import Animals.Animal;
 import Animals.Pet.Cat;
 import Animals.Pet.Dog;
 import Animals.Wild.Wild;
 import Exceptions.IllegalConstructorArgumentException;
-import Exceptions.SaveDataInvalidException;
 import Interfaces.Processable;
 import Items.Item;
 import Levels.LevelData;
-import Map.Map;
 import Map.Cell;
+import Map.Map;
 import Player.Player;
 import Structures.Depot;
 import Structures.Well;
@@ -37,8 +34,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Random;
 
+import static Items.Item.ItemType;
+
 // this Controller is Used For Any LevelData Being Played
-public class LevelController extends Controller{
+public class LevelController extends Controller {
 
     private final String PLANT_REGEX;
     private final String CAGE_REGEX;
@@ -332,26 +331,23 @@ public class LevelController extends Controller{
             } else if (input.matches(TURN_REGEX)) {
                 int turns = Integer.parseInt(input.split("\\s+")[1]);
                 update(turns);
-            } else if(input.matches(SHOW_TRANSPORTATION_TOOL_MENU)){
+            } else if (input.matches(SHOW_TRANSPORTATION_TOOL_MENU)) {
                 String type = input.split("\\s+")[1];
-                if(type.equals("helicopter")){
-                    if(helicopter != null){
-                        while (!input.matches("exit helicopter")){
+                if (type.equals("helicopter")) {
+                    if (helicopter != null) {
+                        while (!input.matches("exit helicopter")) {
                             input = scanner.nextLine().trim().toLowerCase();
                         }
-                    }
-                    else
+                    } else
                         System.err.println("This Level Lacks Helicopter.");
-                }
-                else{
-                    if(truck != null){
+                } else {
+                    if (truck != null) {
                         input = scanner.nextLine().trim().toLowerCase();
-                        while (!input.matches("exit truck")){
+                        while (!input.matches("exit truck")) {
 
                             input = scanner.nextLine().trim().toLowerCase();
                         }
-                    }
-                    else
+                    } else
                         System.err.println("This Level Lacks Truck.");
                 }
             }

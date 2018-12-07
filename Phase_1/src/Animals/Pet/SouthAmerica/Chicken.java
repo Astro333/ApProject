@@ -5,8 +5,9 @@ import Items.Item;
 
 public class Chicken extends Pet {
     public Chicken(int x, int y) {
-        super(x, y, AnimalType.Chicken);
+        super(x, y,AnimalType.Chicken);
     }
+
 
     @Override
     public Item produce() {

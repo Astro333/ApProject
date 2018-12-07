@@ -14,15 +14,15 @@ public class Well {
     private final byte maxMaxLevel = 3;
     private final float WATER_UNIT_COST;
 
-    public Well(byte maxLevel, float WATER_UNIT_COST) throws IllegalConstructorArgumentException{
-        if(maxLevel > maxMaxLevel)
+    public Well(byte maxLevel, float WATER_UNIT_COST) throws IllegalConstructorArgumentException {
+        if (maxLevel > maxMaxLevel)
             throw new IllegalConstructorArgumentException();
         this.maxLevel = maxLevel;
         this.WATER_UNIT_COST = WATER_UNIT_COST;
     }
 
-    public Well(byte maxLevel, byte level, float WATER_UNIT_COST) throws IllegalConstructorArgumentException{
-        if(level > maxLevel || maxLevel > maxMaxLevel)
+    public Well(byte maxLevel, byte level, float WATER_UNIT_COST) throws IllegalConstructorArgumentException {
+        if (level > maxLevel || maxLevel > maxMaxLevel)
             throw new IllegalConstructorArgumentException();
         this.maxLevel = maxLevel;
         this.level = level;
@@ -73,9 +73,10 @@ public class Well {
     }
 
     public int getRefillPrice(){
-        return (int)((capacity-storedWater)*WATER_UNIT_COST);
+        return (int) ((capacity - storedWater) * WATER_UNIT_COST);
     }
-    private int calculateRefillingTime(){
+
+    private int calculateRefillingTime() {
         return 0;
     }
     public boolean refill(){

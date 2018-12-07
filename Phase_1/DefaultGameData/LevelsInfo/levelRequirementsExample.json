@@ -1,12 +1,18 @@
 {
-  "goals":["Coin","Egg","GuineaFowl"],
+  "goals": [
+    "Coin",
+    "Egg",
+    "GuineaFowl"
+  ],
   "goalsAmount":[1000,10,5],
 
   "workshops":["Egg Powder Plant", "Cookie Bakery"],
   "workshopsLevel":[2,1],
   "workshopsPosition":[2,6],
-
-  "startingAnimals":["GuineaFowl", "Cow"],
+  "startingAnimals": [
+    "GuineaFowl",
+    "Cow"
+  ],
   "startingAnimalsAmount":[2,1],
 
   "startMoney":1000,

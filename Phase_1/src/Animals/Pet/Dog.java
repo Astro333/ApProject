@@ -2,12 +2,9 @@ package Animals.Pet;
 
 import Animals.Animal;
 import Animals.Wild.Wild;
-import Map.Cell;
 import Map.Map;
 
-import java.util.HashSet;
-
-public class Dog extends Animal{
+public class Dog extends Animal {
 
     private final byte level;
 
@@ -29,7 +26,7 @@ public class Dog extends Animal{
      * @return {x, y} return new position to map
      * */
 
-    public int[] updatePosition(Map map){
+    public int[] updatePosition(Map map) {
         /*
         * find nearest wild animal and move towards it
         * */

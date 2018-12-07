@@ -22,7 +22,7 @@ public class Cell {
     private byte grassInCell;
 
 
-    protected Cell(int x, int y){
+    protected Cell(int x, int y) {
         this.x = x;
         this.y = y;
     }
@@ -41,10 +41,11 @@ public class Cell {
         return noGrass;
     }
 
-    protected void removeItem(Long itemId){
+    protected void removeItem(Long itemId) {
         items.remove(itemId);
     }
-    protected void removeItem(Item item){
+
+    protected void removeItem(Item item) {
         items.remove(item.getId());
     }
 
@@ -52,7 +53,7 @@ public class Cell {
         return items;
     }
 
-    protected void clearItems(){
+    protected void clearItems() {
         items.clear();
     }
 
@@ -64,7 +65,7 @@ public class Cell {
         return pets;
     }
 
-    protected void cageWilds(int timeToBreakCage){
+    protected void cageWilds(int timeToBreakCage) {
         for(Wild wild : wilds.values()){
             wild.setCaged(timeToBreakCage);
         }
@@ -79,19 +80,19 @@ public class Cell {
         }
     }
 
-    protected void setGrassInCell(byte value){
+    protected void setGrassInCell(byte value) {
         grassInCell = value;
         if(grassInCell > 0)
             noGrass.set(false);
     }
 
-    protected void addItem(Item item){
+    protected void addItem(Item item) {
         item.setX(x);
         item.setY(y);
         items.put(item.getId(), item);
     }
 
-    protected boolean removeAnimal(Animal animal){
+    protected boolean removeAnimal(Animal animal) {
         wilds.remove(animal.getId());
         pets.remove(animal.getId());
         return true;

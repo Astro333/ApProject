@@ -21,7 +21,7 @@ public abstract class Pet extends Animal implements Productive {
      * */
 
     //ToDo: Bug HERE(Where?)
-    public int[] updatePosition(Map map){
+    public int[] updatePosition(Map map) {
         int[] position = new int[2];
         Cell within = map.getCell(x, y);
         HashSet<Cell> cellsWithGrass = map.getCellsWithGrass();

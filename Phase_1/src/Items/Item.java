@@ -34,7 +34,7 @@ public class Item {
         y = 0;
     }
 
-    public void setTossed(boolean tossed){
+    public void setTossed(boolean tossed) {
         isTossed.set(tossed);
     }
 

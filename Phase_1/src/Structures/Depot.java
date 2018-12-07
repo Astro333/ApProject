@@ -1,9 +1,10 @@
 package Structures;
 
-import static Items.Item.ItemType;
 import Utilities.Constants;
 
 import java.util.HashMap;
+
+import static Items.Item.ItemType;
 
 
 public class Depot {

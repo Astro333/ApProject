@@ -5,7 +5,7 @@ import Items.Item;
 
 public class Yak extends Pet {
     public Yak(int x, int y) {
-        super(x, y);
+        super(x, y,AnimalType.Yak);
     }
 
     @Override

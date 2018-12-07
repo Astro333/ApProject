@@ -6,7 +6,7 @@ import Items.Item;
 
 public class Ostrich extends Pet {
     public Ostrich(int x, int y) {
-        super(x, y);
+        super(x, y,AnimalType.Ostrich);
     }
 
     @Override

@@ -31,9 +31,10 @@ public class LevelData {
 
     private final Integer prize = null;
 
-    private LevelData(){}
+    private LevelData() {
+    }
 
-    public Byte getHelicopterStartingLevel(){
+    public Byte getHelicopterStartingLevel() {
         return helicopterStartingLevel;
     }
 

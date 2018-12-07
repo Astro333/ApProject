@@ -2,12 +2,9 @@ package Animals.Pet;
 
 import Animals.Animal;
 import Items.Item;
-import Map.Cell;
 import Map.Map;
-import Structures.Depot;
 
 import java.util.HashSet;
-import java.util.List;
 
 public class Cat extends Animal {
 
@@ -28,7 +25,7 @@ public class Cat extends Animal {
         HashSet<Item> items = map.getItems();
 
         /*
-        * write code to find nearest item based on intelligence and items HashSet
+         * write code to find nearest item based on intelligence and items HashSet
         * */
 
         return null;

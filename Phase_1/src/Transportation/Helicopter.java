@@ -1,11 +1,12 @@
 package Transportation;
 
-import static Items.Item.ItemType;
 import Items.Item;
 import Map.Map;
 
 import java.util.HashMap;
 import java.util.Random;
+
+import static Items.Item.ItemType;
 
 public class Helicopter extends TransportationTool{
 

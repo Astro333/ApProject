@@ -4,18 +4,18 @@ import Utilities.Constants;
 
 public class Truck extends TransportationTool{
 
-    public Truck(byte maxLevel, byte level){
+    public Truck(byte maxLevel, byte level) {
         super(maxLevel, level);
     }
 
     @Override
     public int getUpgradeCost() {
-        return Constants.getElementLevelUpgradeCost("Truck", getLevel()+1);
+        return Constants.getElementLevelUpgradeCost("Truck", getLevel() + 1);
     }
 
     @Override
     public boolean upgrade() {
-        if(level < maxLevel){
+        if (level < maxLevel) {
             ++level;
             ++capacity;
             return true;
@@ -23,7 +23,7 @@ public class Truck extends TransportationTool{
         return false;
     }
 
-    public int receiveSoldGoodsMoney(){
+    public int receiveSoldGoodsMoney() {
         int temp = itemsInsidePrice;
         itemsInsidePrice = 0;
         return temp;

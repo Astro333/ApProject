@@ -4,7 +4,7 @@ import Exceptions.PlayerNotFoundException;
 
 import java.util.Scanner;
 
-public class MainMenuController extends Controller{
+public class MainMenuController extends Controller {
 
     private final Scanner scanner;
 

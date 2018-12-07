@@ -11,7 +11,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
-import java.util.*;
+import java.util.HashSet;
 
 public class Map {
 

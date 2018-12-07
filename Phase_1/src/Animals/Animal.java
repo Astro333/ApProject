@@ -69,6 +69,6 @@ public abstract class Animal {
 
         Cat, Dog, Sheep, GuineaFowl, Ostrich, Cow, Buffalo,
         Turkey, Chicken, Penguin, Llama, BrownCow, Walrus ,
-        Yak, KingPenguin
+        Yak, KingPenguin,Goose,Goat
     }
 }

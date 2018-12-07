@@ -1,9 +1,9 @@
 package Transportation;
 
 import Items.Item;
+import Utilities.Constants;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import Utilities.Constants;
 
 import java.util.HashMap;
 

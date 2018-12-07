@@ -15,13 +15,13 @@ public abstract class Wild extends Animal {
     }
 
     public void destroy(Animal animal){
-        if(tossingBuffer < 0) {
+        if (tossingBuffer < 0) {
             animal.setTossed(true);
             tossingBuffer = calculateTossingBuffer();
         }
     }
     public void destroy(Item item){
-        if(tossingBuffer < 0) {
+        if (tossingBuffer < 0) {
             item.setTossed(true);
             tossingBuffer = calculateTossingBuffer();
         }
@@ -39,7 +39,7 @@ public abstract class Wild extends Animal {
     }
     public int[] updatePosition(){
         int[] position = new int[2];
-        if(tossingBuffer > 0)
+        if (tossingBuffer > 0)
             --tossingBuffer;
         else
             tossingBuffer = -1;
