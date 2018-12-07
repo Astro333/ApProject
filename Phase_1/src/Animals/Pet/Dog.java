@@ -7,8 +7,15 @@ import java.util.List;
 
 public class Dog extends Animal {
 
-    public Dog(int x, int y) {
+    private final byte level;
+
+    public Dog(int x, int y, byte level) {
         super(x, y, AnimalType.Dog);
+        this.level = level;
+    }
+
+    public byte getLevel() {
+        return level;
     }
 
     public void kill(Wild wild){

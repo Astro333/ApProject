@@ -16,7 +16,7 @@ public class LevelData {
     private final Byte helicopterStartingLevel = null;
     private final Byte truckStartingLevel = null;
 
-    private final String continent = null;
+    private final String continent = null;//first letter must be upper case
 
     private final Integer initialCoin = null;
 

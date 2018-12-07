@@ -19,6 +19,8 @@ public class Constants {
     private static HashMap<String, Integer> productsBuyCost;
     private static HashMap<String, Integer> productsSaleCost;
 
+    private static HashMap<String, String> animalsClassName;
+
     private static HashMap<String, Integer[]> elementsLevelUpgradeCost;
     private static HashMap<String, Integer[]> elementsMaxLevelUpgradeCost;
 
@@ -110,5 +112,8 @@ public class Constants {
     }
     public static int getElementMaxLevelUpgradeCost(String element, int nextLevel){
         return elementsMaxLevelUpgradeCost.get(element)[nextLevel];
+    }
+    public static String getAnimalClassName(String animal){
+        return animalsClassName.getOrDefault(animal, null);
     }
 }

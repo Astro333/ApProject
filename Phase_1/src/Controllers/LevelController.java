@@ -15,7 +15,6 @@ import Exceptions.SaveDataInvalidException;
 import Interfaces.Processable;
 import Items.Item;
 import Levels.LevelData;
-import Levels.SaveData;
 import Map.Map;
 import Map.Cell;
 import Player.Player;
@@ -37,6 +36,8 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
@@ -279,8 +280,8 @@ public class LevelController {
                     case "helicopter":
                         upgradeHelicopter();
                         break;
-                    case "warehouse":
-                        upgradeWarehouse();
+                    case "depot":
+                        upgradeDepot();
                         break;
                 }
                 if (workshops.containsKey(name)) {
@@ -384,28 +385,31 @@ public class LevelController {
      * @param type type of the animal selected to buy
      */
     private Animal getRandomlyLocatedAnimalInstance(String type) {
+        int x = randomGenerator.nextInt(map.cellsWidth);
+        int y = randomGenerator.nextInt(map.cellsHeight);
         switch (type) {
             case "cat":
-                return new Cat(randomGenerator.nextInt(map.cellsWidth),
-                        randomGenerator.nextInt(map.cellsHeight), player.getGameElementLevel("Cat"));
+                return new Cat(x, y, player.getGameElementLevel("Cat"));
             case "dog":
-                return new Dog(randomGenerator.nextInt(map.cellsWidth),
-                        randomGenerator.nextInt(map.cellsHeight));
-            case "cow":
-                return new Cow(randomGenerator.nextInt(map.cellsWidth),
-                        randomGenerator.nextInt(map.cellsHeight));
-            case "sheep":
-                return new Sheep(randomGenerator.nextInt(map.cellsWidth),
-                        randomGenerator.nextInt(map.cellsHeight));
-            case "guineafowl":
-                return new GuineaFowl(randomGenerator.nextInt(map.cellsWidth),
-                        randomGenerator.nextInt(map.cellsHeight));
-            case "ostrich":
-                return new Ostrich(randomGenerator.nextInt(map.cellsWidth),
-                        randomGenerator.nextInt(map.cellsHeight));
+                return new Dog(x, y, player.getGameElementLevel("Dog"));
+        }
 
-            default:
-                return null;
+        String animalClassName = Constants.getAnimalClassName(type);
+        if(animalClassName == null)
+            return null;
+        String packageName = "Animals.Pet."+levelData.getContinent()+".";
+        try {
+            Class clazz = Class.forName(packageName+animalClassName);
+            Constructor constructor = clazz.getDeclaredConstructor(int.class, int.class);
+            constructor.setAccessible(true);
+            Animal instance = (Animal) constructor.newInstance(x, y);
+            constructor.setAccessible(false);
+            return instance;
+        }
+        catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+               InstantiationException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
@@ -464,7 +468,7 @@ public class LevelController {
 
     private boolean truckGo() {
         if (truck.go()) {
-            System.err.println("Truck is going. will return in " +
+            System.out.println("Truck is going. will return in " +
                     truck.getTimeRemainedToFinishTask() + " turns.\n");
             return true;
         }
@@ -517,10 +521,9 @@ public class LevelController {
             }
         } else
             PRINT_NOT_ENOUGH_MONEY();
-
     }
 
-    private void upgradeWarehouse() {
+    private void upgradeDepot() {
         int cost = depot.getUpgradeCost();
         if (coinsCollected >= cost) {
             if (depot.upgrade()) {
@@ -531,7 +534,6 @@ public class LevelController {
             }
         } else
             PRINT_NOT_ENOUGH_MONEY();
-
     }
 
     private boolean addItemsToTruck(ItemType type, int count) {
