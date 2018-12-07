@@ -2,10 +2,12 @@ package Animals.Pet;
 
 import Animals.Animal;
 import Animals.Wild.Wild;
+import Map.Cell;
+import Map.Map;
 
-import java.util.List;
+import java.util.HashSet;
 
-public class Dog extends Animal {
+public class Dog extends Animal{
 
     private final byte level;
 
@@ -19,15 +21,15 @@ public class Dog extends Animal {
     }
 
     public void kill(Wild wild){
-        wild.setDead(true);
+        wild.setTossed(true);
     }
 
     /**
-     * @param wilds list of wild animals in map
+     * @param map map it'sself
      * @return {x, y} return new position to map
      * */
 
-    public int[] changePosition(List<Wild> wilds){
+    public int[] updatePosition(Map map){
         /*
         * find nearest wild animal and move towards it
         * */

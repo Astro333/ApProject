@@ -22,7 +22,7 @@ public class Cell {
     private byte grassInCell;
 
 
-    public Cell(int x, int y){
+    protected Cell(int x, int y){
         this.x = x;
         this.y = y;
     }
@@ -41,15 +41,18 @@ public class Cell {
         return noGrass;
     }
 
-    public void removeItem(Long itemId){
+    protected void removeItem(Long itemId){
         items.remove(itemId);
+    }
+    protected void removeItem(Item item){
+        items.remove(item.getId());
     }
 
     public HashMap<Long, Item> getItems() {
         return items;
     }
 
-    public void clearItems(){
+    protected void clearItems(){
         items.clear();
     }
 
@@ -61,7 +64,7 @@ public class Cell {
         return pets;
     }
 
-    public void cageWilds(int timeToBreakCage){
+    protected void cageWilds(int timeToBreakCage){
         for(Wild wild : wilds.values()){
             wild.setCaged(timeToBreakCage);
         }
@@ -76,25 +79,25 @@ public class Cell {
         }
     }
 
-    public void setGrassInCell(byte value){
+    protected void setGrassInCell(byte value){
         grassInCell = value;
         if(grassInCell > 0)
             noGrass.set(false);
     }
 
-    public void addItem(Item item){
+    protected void addItem(Item item){
         item.setX(x);
         item.setY(y);
         items.put(item.getId(), item);
     }
 
-    public boolean removeAnimal(Animal animal){
+    protected boolean removeAnimal(Animal animal){
         wilds.remove(animal.getId());
         pets.remove(animal.getId());
         return true;
     }
 
-    public void addAnimal(Animal animal) {
+    protected void addAnimal(Animal animal) {
         if(animal instanceof Wild)
             wilds.put(animal.getId(), (Wild) animal);
         else

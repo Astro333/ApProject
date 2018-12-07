@@ -11,13 +11,16 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.util.Scanner;
 
-public class PlayerMenuController {
+public class PlayerMenuController extends Controller{
 
     private final String UPGRADE_REGEX;
 
+    {
+        UPGRADE_REGEX = "upgrade\\s+[a-z]+";
+    }
+
     private final String playerDataPath;
     private final Player player;
-    private final Scanner scanner;
 
     public PlayerMenuController(long playerId) throws PlayerNotFoundException {
         String playerDataPath = "../PlayersData/"+playerId;
@@ -26,7 +29,6 @@ public class PlayerMenuController {
             Gson gson = new GsonBuilder().create();
             player = gson.fromJson(reader, Player.class);
             this.playerDataPath = playerDataPath;
-            scanner = new Scanner(System.in);
         }
         catch (FileNotFoundException e){
             throw new PlayerNotFoundException();

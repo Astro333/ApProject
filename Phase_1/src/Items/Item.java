@@ -2,12 +2,15 @@ package Items;
 
 import Interfaces.Processable;
 import Utilities.SUID;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 
 public class Item {
     private int x, y;
 
     private final ItemType type;
     private final int itemPrice;
+    private transient final BooleanProperty isTossed;
     private Long id;
 
     /**
@@ -17,6 +20,7 @@ public class Item {
         this.type = type;
         this.itemPrice = Utilities.Constants.getProductBuyCost(type.toString());
         id = SUID.generateId();
+        isTossed = new SimpleBooleanProperty(this, "isTossed", false);
         this.x = x;
         this.y = y;
     }
@@ -25,8 +29,17 @@ public class Item {
         this.type = type;
         this.itemPrice = Utilities.Constants.getProductBuyCost(type.toString());
         id = SUID.generateId();
+        isTossed = new SimpleBooleanProperty(this, "isTossed", false);
         x = 0;
         y = 0;
+    }
+
+    public void setTossed(boolean tossed){
+        isTossed.set(tossed);
+    }
+
+    public BooleanProperty isTossedProperty() {
+        return isTossed;
     }
 
     public long getId() {

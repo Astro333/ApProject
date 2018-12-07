@@ -1,4 +1,4 @@
 package Controllers;
 
-public class ShopController {
+public class ShopController extends Controller{
 }

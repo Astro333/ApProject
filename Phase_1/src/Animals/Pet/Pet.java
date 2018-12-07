@@ -3,6 +3,7 @@ package Animals.Pet;
 import Animals.Animal;
 import Interfaces.Productive;
 import Map.Cell;
+import Map.Map;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -15,14 +16,15 @@ public abstract class Pet extends Animal implements Productive {
     }
 
     /**
-     * @param cellsWithGrass list of cells with grass
+     * @param map list of cells with grass
      * @return {x, y} tame has to return it's current position as a 2 indexed array
      * */
 
     //ToDo: Bug HERE(Where?)
-    public int[] changePosition(HashSet<Cell> cellsWithGrass, Cell within){
+    public int[] updatePosition(Map map){
         int[] position = new int[2];
-
+        Cell within = map.getCell(x, y);
+        HashSet<Cell> cellsWithGrass = map.getCellsWithGrass();
         x = destinationX;
         y = destinationY;
         position[0] = x;
@@ -61,6 +63,6 @@ public abstract class Pet extends Animal implements Productive {
     private void increaseHunger(){
         --fullness;
         if(fullness <= 0)
-            setDead(true);
+            setTossed(true);
     }
 }

@@ -1,9 +1,6 @@
 package Animals;
 
-import Animals.Pet.SouthAmerica.Chicken;
 import Interfaces.Processable;
-import Interfaces.Productive;
-import Items.Item;
 import Utilities.SUID;
 import javafx.beans.property.BooleanProperty;
 
@@ -11,7 +8,7 @@ public abstract class Animal {
 
     protected int x, y;
     protected int destinationX, destinationY;
-    private transient BooleanProperty isDead;
+    private transient BooleanProperty isTossed;
     private final Long id;
     private final AnimalType type;
 
@@ -31,20 +28,20 @@ public abstract class Animal {
         this.type = type;
     }
 
-    public void setDead(boolean isDead) {
-        this.isDead.set(isDead);
+    public void setTossed(boolean isTossed) {
+        this.isTossed.set(isTossed);
     }
 
     public AnimalType getType(){
         return type;
     }
 
-    public BooleanProperty isDeadProperty() {
-        return isDead;
+    public BooleanProperty isTossedProperty() {
+        return isTossed;
     }
 
     public boolean isDead() {
-        return isDead.get();
+        return isTossed.get();
     }
 
     public long getId() {
