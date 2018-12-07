@@ -2,25 +2,31 @@ package Animals.Pet;
 
 import Animals.Animal;
 import Animals.Wild.Wild;
-
-import java.util.List;
+import Map.Map;
 
 public class Dog extends Animal {
 
-    public Dog(int x, int y) {
+    private final byte level;
+
+    public Dog(int x, int y, byte level) {
         super(x, y, AnimalType.Dog);
+        this.level = level;
+    }
+
+    public byte getLevel() {
+        return level;
     }
 
     public void kill(Wild wild){
-        wild.setDead(true);
+        wild.setTossed(true);
     }
 
     /**
-     * @param wilds list of wild animals in map
+     * @param map map it'sself
      * @return {x, y} return new position to map
      * */
 
-    public int[] changePosition(List<Wild> wilds){
+    public int[] updatePosition(Map map) {
         /*
         * find nearest wild animal and move towards it
         * */

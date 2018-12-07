@@ -1,4 +1,8 @@
 package Controllers;
 
-public class ShopController {
+public class ShopController extends Controller {
+    @Override
+    public void startProcessing() {
+
+    }
 }

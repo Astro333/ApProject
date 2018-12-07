@@ -1,4 +1,8 @@
 package Controllers;
 
-public class TruckController {
+public class TruckController extends Controller {
+    @Override
+    public void startProcessing() {
+
+    }
 }

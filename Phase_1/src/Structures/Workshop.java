@@ -1,12 +1,15 @@
 package Structures;
 
 import Interfaces.Processable;
+import Utilities.Constants;
+import Utilities.Pair;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class Workshop {
@@ -19,14 +22,16 @@ public class Workshop {
 
     private final Byte position = null;
 
+    private final Float pos_x = null;
+    private final Float pos_y = null;
+
     private final String name = null;
-    private final String pathToGraphicsFolder = null; //For Phase 1, it's null
     private final Byte maxMaxLevel = null;
     private final Byte maxLevel = null;
+    private byte level;
 
     private int amountProcessed;
     private int multiplier = 1; //this is dependent on Workshop level
-    private byte level;
     private long timeToFinishTask = -1;
 
     private transient final BooleanProperty isAtTask;
@@ -35,18 +40,28 @@ public class Workshop {
         this.isAtTask = new SimpleBooleanProperty(this, "isAtTask", false);
     }
 
-    public static Workshop getInstance(String workshopName, int maxLevel) throws FileNotFoundException {
+    public static Workshop getInstance(String workshopName, int maxLevel,
+                                       byte workshopPosition, String continent) throws FileNotFoundException {
         String workshopDataFile = "../DefaultGameData/DefaultWorkshops/"+workshopName+".json";
 
         Scanner scanner = new Scanner(new File(workshopDataFile));
         StringBuilder stringBuilder = new StringBuilder(scanner.useDelimiter("\\A").next());
         scanner.close();
         stringBuilder.deleteCharAt(stringBuilder.length()-1);
-        stringBuilder.append("\"maxLevel\":").append(maxLevel).append("}");
+        stringBuilder.append(",\"maxLevel\":").append(maxLevel).
+                append(",\"position\":").append(workshopPosition);
+        Pair<Integer, Integer> pos = Constants.getWorkshopPosition(continent, workshopPosition);
+        stringBuilder.append(",\"pos_x\":").append(pos.getKey());
+        stringBuilder.append(",\"pos_y\":").append(pos.getValue());
+
+        stringBuilder.append("}");
         Gson gson = new GsonBuilder().create();
         return gson.fromJson(stringBuilder.toString(), Workshop.class);
     }
 
+    /*public static Workshop getInstance(String workshopName, int maxLevel){
+
+    }*/
 
     public byte getPosition() {
         return position;
@@ -96,12 +111,15 @@ public class Workshop {
         *       storage.removeItem(input, amount)
         *   }
         * */
+        for(Processable processable : inputs){
+
+        }
         amountProcessed = 1;
         return false;
     }
 
     public int getUpgradeCost(){
-        return 0;
+        return Constants.getElementLevelUpgradeCost(name, level+1);
     }
 
     public boolean isAtTask() {

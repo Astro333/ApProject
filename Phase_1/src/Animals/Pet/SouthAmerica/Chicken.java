@@ -8,6 +8,7 @@ public class Chicken extends Pet {
         super(x, y,AnimalType.Chicken);
     }
 
+
     @Override
     public Item produce() {
         return null;

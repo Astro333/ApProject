@@ -6,16 +6,25 @@ import Items.Item;
 public abstract class Wild extends Animal {
     protected boolean isCaged = false;
     protected int cageBreakCountDown = -1;
+    private int tossingBuffer = -1;
+
+    protected abstract int calculateTossingBuffer();
 
     protected Wild(int x, int y, AnimalType type) {
         super(x, y, type);
     }
 
     public void destroy(Animal animal){
-        animal.setDead(true);
+        if (tossingBuffer < 0) {
+            animal.setTossed(true);
+            tossingBuffer = calculateTossingBuffer();
+        }
     }
     public void destroy(Item item){
-
+        if (tossingBuffer < 0) {
+            item.setTossed(true);
+            tossingBuffer = calculateTossingBuffer();
+        }
     }
 
     public boolean isCaged() {
@@ -30,6 +39,11 @@ public abstract class Wild extends Animal {
     }
     public int[] updatePosition(){
         int[] position = new int[2];
+        if (tossingBuffer > 0)
+            --tossingBuffer;
+        else
+            tossingBuffer = -1;
+
         if(!isCaged){
             x = destinationX;
             y = destinationY;

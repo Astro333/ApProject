@@ -7,12 +7,16 @@ public class LevelData {
 
     private final String[] workshops = null;
     private final int[] workshopsLevel = null;
-    private final int[] workshopsPosition = null;
+    private final byte[] workshopsPosition = null;
 
     private final String[] startingPets = null;
     private final int[] startingPetsAmount = null;
 
-    private final String continent = null;
+    private final Byte wellStartingLevel = null;
+    private final Byte helicopterStartingLevel = null;
+    private final Byte truckStartingLevel = null;
+
+    private final String continent = null;//first letter must be upper case
 
     private final Integer initialCoin = null;
 
@@ -27,8 +31,19 @@ public class LevelData {
 
     private final Integer prize = null;
 
-    private LevelData()
-    {
+    private LevelData() {
+    }
+
+    public Byte getHelicopterStartingLevel() {
+        return helicopterStartingLevel;
+    }
+
+    public Byte getTruckStartingLevel() {
+        return truckStartingLevel;
+    }
+
+    public byte getWellStartingLevel() {
+        return wellStartingLevel;
     }
 
     public String[] getGoals() {
@@ -47,7 +62,7 @@ public class LevelData {
         return workshopsLevel;
     }
 
-    public int[] getWorkshopsPosition() {
+    public byte[] getWorkshopsPosition() {
         return workshopsPosition;
     }
 

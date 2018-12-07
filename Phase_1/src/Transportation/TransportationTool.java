@@ -1,22 +1,26 @@
 package Transportation;
 
+import Items.Item;
+import Utilities.Constants;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import Utilities.Constants;
 
 import java.util.HashMap;
 
 public abstract class TransportationTool {
-    private final Byte maxLevel = null;
-    private byte level;
-    private int capacity;
+    protected final byte maxLevel;
+    protected final byte maxMaxLevel = 4;
+    protected byte level;
+    protected int capacity;
     private int timeRemainedToFinishTask = -1;
     private transient final BooleanProperty isAtTask;
-    final HashMap<String, Integer> itemsInside;
-    int itemsInsidePrices = 0;
-    private int itemsInsideSize = 0;
+    protected final HashMap<Item.ItemType, Integer> itemsInside;
+    protected int itemsInsidePrice = 0;
+    protected int itemsInsideVolume = 0;
 
-    TransportationTool(){
+    TransportationTool(byte maxLevel, byte level){
+        this.maxLevel = maxLevel;
+        this.level = level;
         itemsInside = new HashMap<>();
         isAtTask = new SimpleBooleanProperty(this, "isAtTask", false);
     }
@@ -30,8 +34,8 @@ public abstract class TransportationTool {
         return timeRemainedToFinishTask;
     }
 
-    public int getItemsInsidePrices(){
-        return itemsInsidePrices;
+    public int getItemsInsidePrice(){
+        return itemsInsidePrice;
     }
 
     public boolean isAtTask() {
@@ -54,11 +58,6 @@ public abstract class TransportationTool {
         return 0;
     }
     public boolean go(){
-        /*
-         * must check if there is any items to sell or buy first
-         * must set timeRemainedToFinishTask Based on its level
-         * must set isAtTask true
-         * */
         if(itemsInside.size() > 0){
             isAtTask.set(true);
             timeRemainedToFinishTask = calculateTimeToFinish();
@@ -69,19 +68,20 @@ public abstract class TransportationTool {
 
     public void clear(){
         itemsInside.clear();
-        itemsInsidePrices = 0;
+        itemsInsideVolume = 0;
+        itemsInsidePrice = 0;
     }
     public abstract int getUpgradeCost();
     public abstract boolean upgrade();
-    public boolean hasCapacityFor(String item, int amount){
-        return Constants.getProductSize(item) * amount + itemsInsideSize <= capacity;
+    public boolean hasCapacityFor(Item.ItemType item, int amount){
+        return Constants.getProductSize(item.toString()) * amount + itemsInsideVolume <= capacity;
     }
-    public boolean addAll(String item, int amount){
+    public boolean addAll(Item.ItemType item, int amount){
         if(hasCapacityFor(item, amount)) {
             if(this instanceof Helicopter)
-                itemsInsidePrices += Constants.getProductBuyCost(item)* amount;
+                itemsInsidePrice += Constants.getProductBuyCost(item.toString())* amount;
             else
-                itemsInsidePrices += Constants.getProductSaleCost(item) * amount;
+                itemsInsidePrice += Constants.getProductBuyCost(item.toString()) * amount/2;
 
             if(itemsInside.containsKey(item)){
                 itemsInside.compute(item, (k, v) -> v + amount);

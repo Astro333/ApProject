@@ -2,7 +2,9 @@ package Animals.Pet;
 
 import Animals.Animal;
 import Items.Item;
-import java.util.List;
+import Map.Map;
+
+import java.util.HashSet;
 
 public class Cat extends Animal {
 
@@ -14,14 +16,18 @@ public class Cat extends Animal {
     }
 
     /**
-     * @param items list of items in map
+     * @param map map
      * @return {x,y} return changed position to map
      * */
 
-    public int[] changePosition(List<Item> items) {
+    public int[] updatePosition(Map map) {
+
+        HashSet<Item> items = map.getItems();
+
         /*
-        * implement the algorithm to find items based on intelligence
+         * write code to find nearest item based on intelligence and items HashSet
         * */
+
         return null;
     }
 }
