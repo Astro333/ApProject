@@ -1,13 +1,18 @@
 package Levels;
 
+import Interfaces.LevelRequirement;
+
+import java.util.HashMap;
+
 public class LevelData {
 
-    private final String[] goals = null;
-    private final int[]  goalsAmount = null;
+    private final HashMap<LevelRequirement, Integer> goals = null;
 
     private final String[] workshops = null;
     private final int[] workshopsLevel = null;
     private final byte[] workshopsPosition = null;
+
+    private final Byte levelId = null;
 
     private final String[] startingPets = null;
     private final int[] startingPetsAmount = null;
@@ -34,6 +39,11 @@ public class LevelData {
     private LevelData() {
     }
 
+
+    public Byte getLevelId() {
+        return levelId;
+    }
+
     public Byte getHelicopterStartingLevel() {
         return helicopterStartingLevel;
     }
@@ -46,12 +56,8 @@ public class LevelData {
         return wellStartingLevel;
     }
 
-    public String[] getGoals() {
+    public HashMap<LevelRequirement, Integer> getGoals() {
         return goals;
-    }
-
-    public int[] getGoalsAmount() {
-        return goalsAmount;
     }
 
     public String[] getWorkshops() {

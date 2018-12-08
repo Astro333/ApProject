@@ -1,13 +1,17 @@
 package Controllers;
 
+import static Items.Item.ItemType;
+
 import Animals.Animal;
 import Animals.Pet.Cat;
 import Animals.Pet.Dog;
 import Animals.Wild.Wild;
 import Exceptions.IllegalConstructorArgumentException;
+import Interfaces.LevelRequirement;
 import Interfaces.Processable;
 import Items.Item;
 import Levels.LevelData;
+import Levels.RequirementsListener;
 import Map.Cell;
 import Map.Map;
 import Player.Player;
@@ -22,8 +26,12 @@ import Utilities.Pair;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -32,23 +40,24 @@ import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Random;
 
-import static Items.Item.ItemType;
 
 // this Controller is Used For Any LevelData Being Played
 public class LevelController extends Controller {
 
-    private final String PLANT_REGEX;
-    private final String CAGE_REGEX;
-    private final String BUY_REGEX;
-    private final String PICKUP_REGEX;
-    private final String WELL_REGEX;
-    private final String START_WORKSHOP_REGEX;
-    private final String UPGRADE_REGEX;
-    private final String PRINT_REGEX;
-    private final String TURN_REGEX;
-    private final String SHOW_TRANSPORTATION_TOOL_MENU;
+    private transient final String PLANT_REGEX;
+    private transient final String CAGE_REGEX;
+    private transient final String BUY_REGEX;
+    private transient final String PICKUP_REGEX;
+    private transient final String WELL_REGEX;
+    private transient final String START_WORKSHOP_REGEX;
+    private transient final String UPGRADE_REGEX;
+    private transient final String PRINT_REGEX;
+    private transient final String TURN_REGEX;
+    private transient final String SHOW_TRANSPORTATION_TOOL_MENU;
+
     {
         PLANT_REGEX = "plant\\s+\\d+\\s+\\d+";
         CAGE_REGEX = "cage\\s+\\d+\\s+\\d+";
@@ -64,14 +73,19 @@ public class LevelController extends Controller {
         x.matches(UPGRADE_REGEX);
     }
 
-    private int coinsCollected = 0;
-    private final LevelData levelData;
+    private transient final LevelData levelData;
+
+    private final IntegerProperty coin;
     private final Map map;
+    private boolean levelIsFinished = false;
+
+    private final ObservableMap<LevelRequirement, Integer> levelRequirements;
     private final HashMap<String, Workshop> workshops;
     private final TransportationTool helicopter;
     private final TransportationTool truck;
     private final Well well;
     private final StringBuilder levelLog;
+    private int timePassed;
     private final int cageLevel;
     private final Random randomGenerator = new Random();
     private final Player player;
@@ -81,7 +95,8 @@ public class LevelController extends Controller {
             if (oldValue) {
                 TransportationTool vehicle = (TransportationTool) ((BooleanProperty) observable).getBean();
                 if (vehicle instanceof Truck) {
-                    coinsCollected += ((Truck) vehicle).receiveSoldGoodsMoney();
+                    int gold = ((Truck) vehicle).receiveSoldGoodsMoney();
+                    coin.add(gold);
                 } else if (vehicle instanceof Helicopter) {
                     ((Helicopter) helicopter).dropItemsRandomly(map);
                 }
@@ -133,11 +148,24 @@ public class LevelController extends Controller {
         super();
         Reader reader = new BufferedReader(new FileReader(pathToLevelJsonFile));
         Gson gson = new GsonBuilder().create();
-
         levelData = gson.fromJson(reader, LevelData.class);
+        RequirementsListener requirementsListener;
+        levelRequirements = FXCollections.observableHashMap();
+        coin = new SimpleIntegerProperty(levelData.getInitialCoin());
+        for (LevelRequirement levelRequirement : levelData.getGoals().keySet())
+            levelRequirements.put(levelRequirement, 0);
+        if (levelData.getGoals().containsKey(ItemType.Coin)) {
+            requirementsListener = new RequirementsListener(
+                    this, true);
+            coin.addListener(requirementsListener.getCoinChangeListener());
+            levelRequirements.computeIfPresent(ItemType.Coin, (k, v) -> levelData.getInitialCoin());
+        } else
+            requirementsListener = new RequirementsListener(
+                    this, false);
         Map map;
-        Depot depot = new Depot(player.getGameElementLevel("Depot"));
-        map = new Map(depot);
+        Depot depot = new Depot(player.getGameElementLevel("Depot"),
+                requirementsListener.getMapChangeListener());
+        map = new Map(depot, requirementsListener.getMapChangeListener());
         levelLog = new StringBuilder();
 
         this.player = player;
@@ -146,7 +174,7 @@ public class LevelController extends Controller {
         this.truck = getTruckInstance();
         this.well = getWellInstance();
         this.workshops = getWorkshopsInstance();
-
+        this.timePassed = 0;
         cageLevel = player.getGameElementLevel("Cage");
 
         if (helicopter != null) {
@@ -159,6 +187,11 @@ public class LevelController extends Controller {
         if (workshops != null)
             for (Workshop workshop : workshops.values())
                 workshop.isAtTaskProperty().addListener(workShopFinishedJob);
+    }
+
+
+    public ObservableMap<LevelRequirement, Integer> getLevelRequirements() {
+        return levelRequirements;
     }
 
     /*public LevelController(Player player, String pathToSaveData) throws SaveDataInvalidException {
@@ -223,7 +256,7 @@ public class LevelController extends Controller {
     public void startProcessing() {
         String input = scanner.nextLine().trim().toLowerCase();
 
-        while (!input.equals("exit level")) {
+        while (!(input.equals("exit level"))) {
             if (input.matches(PLANT_REGEX)) {
                 String[] s = input.replaceFirst("plant\\s+", "").
                         split("\\s+");
@@ -247,10 +280,10 @@ public class LevelController extends Controller {
                     System.err.println("No Such Animal In Existence.");
                 } else {
                     Animal animal = getRandomlyLocatedAnimalInstance(s);
-                    if (coinsCollected >= cost) {
+                    if (coin.get() >= cost) {
                         if (animal != null) {
                             map.addAnimal(animal);
-                            coinsCollected -= cost;
+                            coin.subtract(cost);
                             System.out.println(s + " Was Bought.");
                         } else
                             System.err.println("No Such Animal In Existence.");
@@ -278,9 +311,9 @@ public class LevelController extends Controller {
                 if (workshops.containsKey(name)) {
                     Workshop workshop = workshops.get(name);
                     int cost = workshop.getUpgradeCost();
-                    if (coinsCollected >= cost) {
+                    if (coin.get() >= cost) {
                         if (workshop.upgrade()) {
-                            coinsCollected -= cost;
+                            coin.subtract(cost);
                             System.out.println(name + " was upgraded to level " + workshop.getLevel() + "\n");
                         } else {
                             System.err.println(name + " is At Maximum LevelData.");
@@ -330,6 +363,7 @@ public class LevelController extends Controller {
                 }
             } else if (input.matches(TURN_REGEX)) {
                 int turns = Integer.parseInt(input.split("\\s+")[1]);
+                timePassed += turns;
                 update(turns);
             } else if (input.matches(SHOW_TRANSPORTATION_TOOL_MENU)) {
                 String type = input.split("\\s+")[1];
@@ -350,11 +384,11 @@ public class LevelController extends Controller {
                     } else
                         System.err.println("This Level Lacks Truck.");
                 }
-            }
-
-            else {
+            } else {
                 System.err.println("Invalid Command.");
             }
+            if(levelIsFinished)
+                return;
             input = scanner.nextLine().trim().toLowerCase();
         }
     }
@@ -370,6 +404,7 @@ public class LevelController extends Controller {
     private void PRINT_INFO() {
 
     }
+
     /**
      * @param type type of the animal selected to buy
      */
@@ -407,11 +442,11 @@ public class LevelController extends Controller {
 
     private void well() {
         int cost = well.getRefillPrice();
-        if (coinsCollected >= cost) {
+        if (coin.get() >= cost) {
             if (!well.isRefilling()) {
                 if (well.refill()) {
                     System.out.println("Well is Refilling.");
-                    coinsCollected -= cost;
+                    coin.subtract(cost);
                 } else
                     System.err.println("Well is Full.");
             } else
@@ -442,9 +477,9 @@ public class LevelController extends Controller {
 
     private boolean helicopterGo() {
         int cost = helicopter.getItemsInsidePrice();
-        if (coinsCollected >= cost) {
+        if (coin.get() >= cost) {
             if (helicopter.go()) {
-                coinsCollected -= cost;
+                coin.subtract(cost);
                 System.out.println("Helicopter is going. will return in "
                         + helicopter.getTimeRemainedToFinishTask() + " turns.\n");
                 return true;
@@ -476,9 +511,9 @@ public class LevelController extends Controller {
 
     private void upgradeWell() {
         int cost = well.getUpgradePrice();
-        if (coinsCollected >= cost) {
+        if (coin.get() >= cost) {
             if (well.upgrade()) {
-                coinsCollected -= cost;
+                coin.subtract(cost);
                 System.out.println("Well was upgraded to level " + well.getLevel() + "\n");
             } else {
                 System.err.println("Well is At Maximum LevelData.");
@@ -489,9 +524,9 @@ public class LevelController extends Controller {
 
     private void upgradeTruck() {
         int cost = truck.getUpgradeCost();
-        if (coinsCollected >= cost) {
+        if (coin.get() >= cost) {
             if (truck.upgrade()) {
-                coinsCollected -= cost;
+                coin.subtract(cost);
                 System.out.println("Truck was upgraded to level " + truck.getLevel() + "\n");
             } else {
                 System.err.println("Truck is At Maximum LevelData.");
@@ -502,9 +537,9 @@ public class LevelController extends Controller {
 
     private void upgradeHelicopter() {
         int cost = helicopter.getUpgradeCost();
-        if (coinsCollected >= cost) {
+        if (coin.get() >= cost) {
             if (helicopter.upgrade()) {
-                coinsCollected -= cost;
+                coin.subtract(cost);
                 System.out.println("Helicopter was upgraded to level " + helicopter.getLevel() + "\n");
             } else {
                 System.err.println("Helicopter is At Maximum LevelData.");
@@ -516,9 +551,9 @@ public class LevelController extends Controller {
     private void upgradeDepot() {
         Depot depot = map.getDepot();
         int cost = depot.getUpgradeCost();
-        if (coinsCollected >= cost) {
+        if (coin.get() >= cost) {
             if (depot.upgrade()) {
-                coinsCollected -= cost;
+                coin.subtract(cost);
                 System.out.println("Depot was upgraded to level " + depot.getLevel() + "\n");
             } else {
                 System.err.println("Depot is At Maximum Level.");
@@ -542,7 +577,7 @@ public class LevelController extends Controller {
 
     private boolean addItemsToHelicopter(ItemType type, int amount) {
         if (helicopter.hasCapacityFor(type, amount)) {
-            if (coinsCollected >= Constants.getProductBuyCost(type.toString()) * amount) {
+            if (coin.get() >= Constants.getProductBuyCost(type.toString()) * amount) {
                 helicopter.addAll(type, amount);
                 System.out.println(amount + " of " + type + " was added to helicopter buy list.");
                 return true;
@@ -578,7 +613,7 @@ public class LevelController extends Controller {
             for (Wild wild : cell.getWilds().values()) {
                 if (wild.isCaged()) {
                     if (!depotWasFilled) {
-                        if (map.getDepot().addStorable(ItemType.valueOf("Caged" + wild.getType().toString()))) {
+                        if (map.getDepot().addStorable((ItemType.valueOf("Caged" + wild.getType())))) {
                             map.removeAnimal(wild);
                         } else {
                             depotWasFilled = true;
@@ -595,6 +630,42 @@ public class LevelController extends Controller {
                     PRINT_DEPOT_FULL("Caged" + wild.toString());
                 }
             }
+        }
+    }
+
+    public void setAchieved(LevelRequirement requirement) {
+        // requirement graphics -> setAchieved
+        levelRequirements.remove(requirement);
+        if (levelRequirements.size() == 0){
+            System.err.println("LEVEL IS FINISHED.");
+            byte levelId = levelData.getLevelId();
+            LinkedList<Integer> levelTime = player.getLevelTime(levelId);
+            player.addMoney(coin.get());
+            int playerPrize;
+            int levelBestTime = levelTime == null ? Integer.MAX_VALUE : levelTime.get(0);
+            if(timePassed > levelBestTime)
+                playerPrize = levelData.getPrize();
+            else{
+                if(timePassed <= levelData.getBronzeTime() && levelBestTime > levelData.getBronzeTime()) {
+                    playerPrize = levelData.getBronzePrize();
+                    System.out.print("Bronze Prize : ");
+                }
+                else if(timePassed <= levelData.getSilverTime() && levelBestTime > levelData.getSilverTime()) {
+                    playerPrize = levelData.getSilverPrize();
+                    System.out.print("Silver Prize : ");
+                }
+                else if(timePassed <= levelData.getGoldenTime() && levelBestTime > levelData.getGoldenTime()) {
+                    playerPrize = levelData.getGoldenPrize();
+                    System.out.print("Golden Prize : ");
+                }
+                else {
+                    playerPrize = levelData.getPrize();
+                    System.out.print("Prize : ");
+                }
+            }
+            player.addGoldMoney(playerPrize);
+            System.out.println(playerPrize + " Gold.");
+            levelIsFinished = true;
         }
     }
 }

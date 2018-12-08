@@ -62,6 +62,7 @@ public abstract class Pet extends Animal implements Productive {
         increaseHunger();
         return position;
     }
+
     private void increaseHunger(){
         --fullness;
         if(fullness <= 0)

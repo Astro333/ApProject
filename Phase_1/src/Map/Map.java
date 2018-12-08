@@ -5,12 +5,17 @@ import Animals.Pet.Cat;
 import Animals.Pet.Dog;
 import Animals.Pet.Pet;
 import Animals.Wild.Wild;
+import Interfaces.LevelRequirement;
 import Items.Item;
 import Structures.Depot;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class Map {
@@ -25,17 +30,11 @@ public class Map {
              * */
             if(((BooleanProperty)observable).getBean() instanceof Item) {
                 Item item = (Item) ((BooleanProperty) observable).getBean();
-                Cell within = cells[item.getX()][item.getY()];
-                within.removeItem(item.getId());
-                items.remove(item);
+                removeItem(item);
             }
             else if(((BooleanProperty)observable).getBean() instanceof Animal) {
                 Animal tossed = ((Animal) ((BooleanProperty) observable).getBean());
-                cells[tossed.getX()][tossed.getY()].removeAnimal(tossed);
-                if (tossed instanceof Wild)
-                    wilds.remove(tossed);
-                else
-                    pets.remove(tossed);
+                removeAnimal(tossed);
             }
             else
                 throw new RuntimeException("Fatal Error Occurred.");
@@ -61,9 +60,10 @@ public class Map {
     private final HashSet<Animal> pets;
     private final HashSet<Wild> wilds;
     private final HashSet<Item> items;
+    private final ObservableMap<Animal.AnimalType, Integer> animalsAmount;
     private final Depot depot;
 
-    public Map(Depot depot){
+    public Map(Depot depot, MapChangeListener<LevelRequirement, Integer> mapChangeListener){
         cells = new Cell[cellsWidth][cellsHeight];
         for(Cell[] cellRow : cells)
             for (Cell cell : cellRow)
@@ -74,6 +74,8 @@ public class Map {
         items = new HashSet<>();
         this.depot = depot;
         cellsWithGrass = new HashSet<Cell>();
+        animalsAmount = FXCollections.observableHashMap();
+        animalsAmount.addListener(mapChangeListener);
     }
     public void update(){
         detectCollisions();
@@ -174,6 +176,7 @@ public class Map {
 
     public void addAnimal(Animal animal){
         cells[animal.getX()][animal.getY()].addAnimal(animal);
+        animalsAmount.compute(animal.getType(), (k, v) -> v+1);
         if(animal instanceof Wild)
             wilds.add((Wild) animal);
         else
@@ -205,6 +208,7 @@ public class Map {
 
     public void removeAnimal(Animal animal) {
         cells[animal.getX()][animal.getY()].removeAnimal(animal);
+        animalsAmount.compute(animal.getType(), (k, v) -> v-1);
         if(animal instanceof Wild)
             wilds.remove(animal);
         else

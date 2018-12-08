@@ -1,5 +1,6 @@
 package Animals;
 
+import Interfaces.LevelRequirement;
 import Interfaces.Processable;
 import Utilities.SUID;
 import javafx.beans.property.BooleanProperty;
@@ -64,7 +65,7 @@ public abstract class Animal {
         return destinationY;
     }
 
-    public enum AnimalType implements Processable {
+    public enum AnimalType implements Processable, LevelRequirement {
         BrownBear, WhiteBear, Grizzly, Lion, Jaguar,
 
         Cat, Dog, Sheep, GuineaFowl, Ostrich, Cow, Buffalo,

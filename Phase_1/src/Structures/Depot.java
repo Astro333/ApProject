@@ -1,8 +1,10 @@
 package Structures;
 
+import Interfaces.LevelRequirement;
 import Utilities.Constants;
-
-import java.util.HashMap;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 
 import static Items.Item.ItemType;
 
@@ -12,11 +14,12 @@ public class Depot {
     private int capacity = 40;
     private byte level = 1;
     private final byte maxLevel;
-    private final HashMap<ItemType, Integer> thingsStored;
+    private final ObservableMap<ItemType, Integer> thingsStored;
 
-    public Depot(byte maxLevel) {
+    public Depot(byte maxLevel, MapChangeListener<LevelRequirement, Integer> requirementMetListener) {
         this.maxLevel = maxLevel;
-        thingsStored = new HashMap<>();
+        thingsStored = FXCollections.observableHashMap();
+        thingsStored.addListener(requirementMetListener);
     }
 
     public boolean addAllStorable(ItemType storable, int amount) {
@@ -78,7 +81,7 @@ public class Depot {
         StringBuilder s = new StringBuilder();
         s.append("Depot:\n").append("Level = ").append(level).append(", MaxLevel = ").append(maxLevel).
                append(", capacity = ").append(capacity).
-                append(", storedObjectsVolume = ").append(storedThingsVolume).append("\n");
+                append(", storedItemsVolume = ").append(storedThingsVolume).append("\n");
         if(thingsStored.size() > 0) {
             s.append("Items:\n");
             for (ItemType item : thingsStored.keySet()) {
