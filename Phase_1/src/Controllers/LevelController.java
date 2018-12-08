@@ -116,7 +116,7 @@ public class LevelController extends Controller {
                         }
                     } else if (outputs[i] instanceof Item.ItemType) {
                         while (j < amounts[i] * amountProcessed) {
-                            map.addItem(new Item((Item.ItemType) outputs[i]));
+                            map.addItem(new Item((Item.ItemType) outputs[i], dropZone.getKey(), dropZone.getValue()));
                             ++j;
                         }
                     }

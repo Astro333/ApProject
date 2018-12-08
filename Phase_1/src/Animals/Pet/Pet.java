@@ -10,6 +10,8 @@ import java.util.Iterator;
 
 public abstract class Pet extends Animal implements Productive {
     protected byte fullness;
+    protected final byte TIME_TO_PRODUCE = 10;
+    protected byte timeRemainedToProduce;
 
     protected Pet(int x, int y, AnimalType type) {
         super(x, y, type);

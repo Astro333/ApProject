@@ -52,11 +52,12 @@ public class Map {
             }
         }
     };
+
     private final Cell[][] cells;
     public final int cellsWidth = 10;
     public final int cellsHeight = 10;
-    private transient final HashSet<Cell> cellsWithGrass;
 
+    private transient final HashSet<Cell> cellsWithGrass;
     private final HashSet<Animal> pets;
     private final HashSet<Wild> wilds;
     private final HashSet<Item> items;
