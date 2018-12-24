@@ -10,8 +10,8 @@ public abstract class Wild extends Animal {
 
     protected abstract int calculateTossingBuffer();
 
-    protected Wild(int x, int y, AnimalType type) {
-        super(x, y, type);
+    protected Wild(int x, int y, int speed, int runningSpeed, AnimalType type) {
+        super(x, y, speed, runningSpeed, type);
     }
 
     public void destroy(Animal animal){

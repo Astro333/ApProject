@@ -1,0 +1,10 @@
+{
+  "inputs" : ["Fabric", "Adornment"],
+  "inputsAmount":[1, 1],
+  "outPuts":["CarnivalDress"],
+  "outputsAmount":[1],
+  "demonstrativeName":"Sewing Factory",
+  "realName":"CarnivalDressWorkshop",
+  "pathToGraphicsFolder" : null,
+  "maxMaxLevel":5
+}

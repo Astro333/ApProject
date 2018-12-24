@@ -1,12 +1,12 @@
 package Levels;
 
-import Interfaces.LevelRequirement;
+import Interfaces.Processable;
 
 import java.util.HashMap;
 
 public class LevelData {
 
-    private final HashMap<LevelRequirement, Integer> goals = null;
+    private final HashMap<Processable, Integer> goals = null;
 
     private final String[] workshops = null;
     private final int[] workshopsLevel = null;
@@ -56,7 +56,7 @@ public class LevelData {
         return wellStartingLevel;
     }
 
-    public HashMap<LevelRequirement, Integer> getGoals() {
+    public HashMap<Processable, Integer> getGoals() {
         return goals;
     }
 

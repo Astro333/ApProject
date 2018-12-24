@@ -19,7 +19,7 @@ public class Cell {
 
     private final int x;
     private final int y;
-    private byte grassInCell;
+    private int grassInCell;
 
 
     protected Cell(int x, int y) {
@@ -34,7 +34,7 @@ public class Cell {
         return y;
     }
 
-    public byte getGrassInCell() {
+    public int getGrassInCell() {
         return grassInCell;
     }
     public BooleanProperty noGrassProperty() {

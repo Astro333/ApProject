@@ -1,11 +1,12 @@
 package Map;
 
+import static Animals.Animal.AnimalType;
 import Animals.Animal;
 import Animals.Pet.Cat;
 import Animals.Pet.Dog;
 import Animals.Pet.Pet;
 import Animals.Wild.Wild;
-import Interfaces.LevelRequirement;
+import Interfaces.Processable;
 import Items.Item;
 import Structures.Depot;
 import javafx.beans.property.BooleanProperty;
@@ -15,7 +16,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 
-import java.util.HashMap;
 import java.util.HashSet;
 
 public class Map {
@@ -60,10 +60,10 @@ public class Map {
     private final HashSet<Animal> pets;
     private final HashSet<Wild> wilds;
     private final HashSet<Item> items;
-    private final ObservableMap<Animal.AnimalType, Integer> animalsAmount;
+    private final ObservableMap<AnimalType, Integer> animalsAmount;
     private final Depot depot;
 
-    public Map(Depot depot, MapChangeListener<LevelRequirement, Integer> mapChangeListener){
+    public Map(Depot depot, MapChangeListener<Processable, Integer> mapChangeListener){
         cells = new Cell[cellsWidth][cellsHeight];
         for(Cell[] cellRow : cells)
             for (Cell cell : cellRow)

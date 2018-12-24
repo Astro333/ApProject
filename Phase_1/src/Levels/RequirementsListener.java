@@ -1,17 +1,17 @@
 package Levels;
 
 import Controllers.LevelController;
-import Interfaces.LevelRequirement;
+import Interfaces.Processable;
 import Items.Item;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
 
 public class RequirementsListener {
-    private transient final MapChangeListener<LevelRequirement, Integer> mapChangeListener =
+    private transient final MapChangeListener<Processable, Integer> mapChangeListener =
             new MapChangeListener<>() {
                 @Override
-                public void onChanged(Change<? extends LevelRequirement, ? extends Integer> change) {
+                public void onChanged(Change<? extends Processable, ? extends Integer> change) {
                     if (levelController.getLevelRequirements().containsKey(change.getKey())) {
                         if (change.getValueAdded() >= levelController.getLevelRequirements().get(change.getKey())) {
                             levelController.getLevelRequirements().remove(change.getKey());
@@ -44,7 +44,7 @@ public class RequirementsListener {
         else
             coinChangeListener = null;
     }
-    public MapChangeListener<LevelRequirement, Integer> getMapChangeListener() {
+    public MapChangeListener<Processable, Integer> getMapChangeListener() {
         return mapChangeListener;
     }
 }

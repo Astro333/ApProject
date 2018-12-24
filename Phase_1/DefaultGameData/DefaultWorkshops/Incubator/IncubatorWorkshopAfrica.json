@@ -1,0 +1,10 @@
+{
+  "inputs" : ["Egg"],
+  "inputsAmount":[1],
+  "outPuts":["GuineaFowl"],
+  "outputsAmount":[1],
+  "demonstrativeName":"Incubator",
+  "realName":"IncubatorWorkshopAfrica",
+  "pathToGraphicsFolder" : null,
+  "maxMaxLevel":5
+}

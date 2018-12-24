@@ -9,12 +9,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 public abstract class Pet extends Animal implements Productive {
-    protected byte fullness;
-    protected final byte TIME_TO_PRODUCE = 10;
-    protected byte timeRemainedToProduce;
+    protected int fullness;
+    protected int timeRemainedToProduce;
+    public final int PRODUCTION_TIME;
 
-    protected Pet(int x, int y, AnimalType type) {
-        super(x, y, type);
+    protected Pet(int x, int y, int speed, int runningSpeed, int PRODUCTION_TIME, AnimalType type) {
+        super(x, y, speed, runningSpeed, type);
+        this.PRODUCTION_TIME = PRODUCTION_TIME;
     }
 
     /**
@@ -26,6 +27,11 @@ public abstract class Pet extends Animal implements Productive {
     public int[] updatePosition(Map map) {
         int[] position = new int[2];
         Cell within = map.getCell(x, y);
+        --timeRemainedToProduce;
+        if(timeRemainedToProduce < 0) {
+            map.addItem(produce());
+            timeRemainedToProduce = PRODUCTION_TIME;
+        }
         HashSet<Cell> cellsWithGrass = map.getCellsWithGrass();
         x = destinationX;
         y = destinationY;

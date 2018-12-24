@@ -1,0 +1,10 @@
+{
+  "inputs" : ["DriedEgg"],
+  "inputsAmount":[1],
+  "outPuts":["Cake"],
+  "outputsAmount":[1],
+  "demonstrativeName":"Cookie Bakery",
+  "realName":"CakeWorkshop",
+  "pathToGraphicsFolder" : null,
+  "maxMaxLevel":5
+}

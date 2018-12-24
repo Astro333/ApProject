@@ -1,6 +1,5 @@
 package Animals;
 
-import Interfaces.LevelRequirement;
 import Interfaces.Processable;
 import Utilities.SUID;
 import javafx.beans.property.BooleanProperty;
@@ -8,10 +7,12 @@ import javafx.beans.property.BooleanProperty;
 public abstract class Animal {
 
     protected int x, y;
+    protected final int speed;// for Phase 2
+    protected final int runningSpeed;// for Phase 2
     protected int destinationX, destinationY;
-    private transient BooleanProperty isTossed;
     private final Long id;
     private final AnimalType type;
+    private transient BooleanProperty isTossed;
 
 
     public void setX(int x) {
@@ -22,11 +23,13 @@ public abstract class Animal {
         this.y = y;
     }
 
-    protected Animal(int x, int y, AnimalType type){
+    protected Animal(int x, int y, int speed, int runningSpeed, AnimalType type){
         id = SUID.generateId();
         this.x = x;
         this.y = y;
         this.type = type;
+        this.speed = speed;
+        this.runningSpeed = runningSpeed;
     }
 
     public void setTossed(boolean isTossed) {
@@ -41,7 +44,7 @@ public abstract class Animal {
         return isTossed;
     }
 
-    public boolean isDead() {
+    public boolean isTossed() {
         return isTossed.get();
     }
 
@@ -65,11 +68,12 @@ public abstract class Animal {
         return destinationY;
     }
 
-    public enum AnimalType implements Processable, LevelRequirement {
+    public enum AnimalType implements Processable {
         BrownBear, WhiteBear, Grizzly, Lion, Jaguar,
 
-        Cat, Dog, Sheep, GuineaFowl, Ostrich, Cow, Buffalo,
-        Turkey, Chicken, Penguin, Llama, BrownCow, Walrus ,
-        Yak, KingPenguin,Goose,Goat
+        Cat, Dog,
+        Sheep, GuineaFowl, Ostrich, Cow, Buffalo,
+        Turkey, Chicken, Penguin, Llama, BrownCow, Walrus,
+        Yak, KingPenguin, Goose, Goat
     }
 }

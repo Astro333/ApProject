@@ -1,8 +1,11 @@
 package Structures;
 
 import Interfaces.Processable;
+import Items.Item;
+import static Items.Item.ItemType;
 import Utilities.Constants;
 import Utilities.Pair;
+import Utilities.ProcessableDeserializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.beans.property.BooleanProperty;
@@ -14,8 +17,8 @@ import java.util.Scanner;
 
 public class Workshop {
 
-    private final Processable[] inputs = null;
-    private final Integer[] inputAmounts = null;
+    private final ItemType[] inputs = null;
+    private final Integer[] inputsAmount = null;
 
     private final Processable[] outputs = null;
     private final Integer[] outputsAmount = null;
@@ -25,19 +28,26 @@ public class Workshop {
     private final Float pos_x = null;
     private final Float pos_y = null;
 
-    private final String name = null;
+    private final String realName = null;
+
+    private final String demonstrativeName = null;
     private final Byte maxMaxLevel = null;
     private final Byte maxLevel = null;
     private byte level;
+    private int processingMultiplier;
 
-    private int amountProcessed;
     private int multiplier = 1; //this is dependent on Workshop level
     private long timeToFinishTask = -1;
+    private transient static final Gson gson = new GsonBuilder().registerTypeAdapter(Processable.class,
+            new ProcessableDeserializer()).create();
 
     private transient final BooleanProperty isAtTask;
-
     private Workshop(){
         this.isAtTask = new SimpleBooleanProperty(this, "isAtTask", false);
+    }
+
+    public String getRealName() {
+        return realName;
     }
 
     public static Workshop getInstance(String workshopName, int maxLevel,
@@ -47,32 +57,27 @@ public class Workshop {
         Scanner scanner = new Scanner(new File(workshopDataFile));
         StringBuilder stringBuilder = new StringBuilder(scanner.useDelimiter("\\A").next());
         scanner.close();
+
         stringBuilder.deleteCharAt(stringBuilder.length()-1);
         stringBuilder.append(",\"maxLevel\":").append(maxLevel).
                 append(",\"position\":").append(workshopPosition);
         Pair<Integer, Integer> pos = Constants.getWorkshopPosition(continent, workshopPosition);
         stringBuilder.append(",\"pos_x\":").append(pos.getKey());
         stringBuilder.append(",\"pos_y\":").append(pos.getValue());
-
         stringBuilder.append("}");
-        Gson gson = new GsonBuilder().create();
         return gson.fromJson(stringBuilder.toString(), Workshop.class);
     }
-
-    /*public static Workshop getInstance(String workshopName, int maxLevel){
-
-    }*/
 
     public byte getPosition() {
         return position;
     }
 
-    public int getAmountProcessed() {
-        return amountProcessed;
+    public int getProcessingMultiplier() {
+        return processingMultiplier;
     }
 
     public void resetAmountProcessed(){
-        amountProcessed = 0;
+        processingMultiplier = 0;
     }
 
     public Integer[] getOutputsAmount() {
@@ -99,27 +104,39 @@ public class Workshop {
     }
 
     /**
-     * @param  storage reference of storage passed to workshop
-     * @return success: if storage had enough of inputs required, return true
+     * @param  depot reference of depot passed to workshop
+     * @return success: if depot had enough of inputs required, return true
      * */
 
-    public boolean startWorking(Depot storage){
+    public boolean startWorking(Depot depot){
         /*
         * Pseudo code:
         * forEach input:
-        *   if (storage.hasAllInputs){
-        *       storage.removeItem(input, amount)
+        *   if (depot.hasAllInputs){
+        *       depot.removeItem(input, amount)
         *   }
         * */
-        for(Processable processable : inputs){
-
+        int multiplier = this.multiplier;
+        int temp;
+        for(int i = 0; i < inputs.length; ++i){
+            temp = depot.getItemAmount(inputs[i])/inputsAmount[i];
+            if(temp == 0)
+                return false;
+            if(temp < multiplier)
+                multiplier = temp;
         }
-        amountProcessed = 1;
-        return false;
+        processingMultiplier = multiplier;
+        isAtTaskProperty().set(true);
+        timeToFinishTask = calculateTimeToFinishTask();
+        return true;
+    }
+
+    private int calculateTimeToFinishTask(){
+        return 1;
     }
 
     public int getUpgradeCost(){
-        return Constants.getElementLevelUpgradeCost(name, level+1);
+        return Constants.getElementLevelUpgradeCost(realName, level+1);
     }
 
     public boolean isAtTask() {

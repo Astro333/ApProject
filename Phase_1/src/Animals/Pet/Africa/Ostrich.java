@@ -6,14 +6,11 @@ import Items.Item;
 
 public class Ostrich extends Pet {
     public Ostrich(int x, int y) {
-        super(x, y,AnimalType.Ostrich);
+        super(x, y, 1, 1, 6, AnimalType.Ostrich);
     }
 
     @Override
     public Item produce() {
-        /*
-        *
-        * */
-        return null;
+        return new Item(Item.ItemType.Plume, x, y);
     }
 }

@@ -7,14 +7,11 @@ import Items.Item;
 public class Cow extends Pet {
 
     public Cow(int x, int y) {
-        super(x, y,AnimalType.Cow);
+        super(x, y, 1, 1, 6,AnimalType.Cow);
     }
 
     @Override
     public Item produce() {
-        /*
-        *
-        * */
-        return null;
+        return new Item(Item.ItemType.Milk, x, y);
     }
 }

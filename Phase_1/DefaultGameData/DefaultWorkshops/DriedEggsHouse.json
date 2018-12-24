@@ -1,9 +1,0 @@
-{
-  "inputs" : ["Egg"],
-  "inputAmounts":[1],
-  "outPuts":["DriedEgg"],
-  "outputsAmount":[1],
-  "name":"Egg Powder Plant",
-  "pathToGraphicsFolder" : null,
-  "maxMaxLevel":5
-}

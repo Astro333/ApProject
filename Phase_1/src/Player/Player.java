@@ -1,20 +1,59 @@
 package Player;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import java.io.*;
 import java.util.*;
 
 public class Player {
 
     private long money;
     private long goldMoney;
+
     private final HashMap<Byte, LinkedList<Integer>> levelsTime = null;
     private final HashMap<String, Byte> gameElementsLevel = null;
-    private final Long id = null;
 
-    public long getId() {
-        return id;
+    private final String name = null;
+
+    private Player(){}
+
+    public static Player create(String name) throws IOException {
+        Gson gson = new Gson();
+        Reader reader = new BufferedReader(new FileReader("PlayersData/newPlayerProgress.json"));
+        JsonObject object = gson.fromJson(reader, JsonObject.class);
+        object.remove("name");
+        object.addProperty("name", name);
+
+        String playerDataDir = "../PlayersData/"+name+"/";
+
+        new File(playerDataDir).mkdirs();
+        new File(playerDataDir+"Player_Custom_Workshops/").mkdirs();
+        new File(playerDataDir+"Player_Unfinished_Levels_Saves/").mkdirs();
+
+        return gson.fromJson(object, Player.class);
     }
 
-    private Player() {}
+    public static Player loadPlayer(String name) throws FileNotFoundException {
+        Gson gson = new Gson();
+        Reader reader = new BufferedReader(new FileReader("PlayersData/"+name+"/progress.json"));
+        JsonObject object = gson.fromJson(reader, JsonObject.class);
+        object.remove("name");
+        object.addProperty("name", name);
+        return gson.fromJson(object, Player.class);
+    }
+
+    public HashMap<String, Byte> getGameElementsLevel() {
+        return gameElementsLevel;
+    }
+
+    public static boolean exists(String playerName) {
+        return new File("PlayersData/"+playerName).exists();
+    }
+
+    public String getName() {
+        return name;
+    }
 
     public long getGoldMoney() {
         return goldMoney;

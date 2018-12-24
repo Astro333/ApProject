@@ -1,8 +1,8 @@
 package Controllers;
 
 import Exceptions.PlayerNotFoundException;
-
-import java.util.Scanner;
+import Player.Player;
+import java.io.IOException;
 
 public class MainMenuController extends Controller {
 
@@ -11,8 +11,6 @@ public class MainMenuController extends Controller {
     private final String EXIT_GAME_REGEX;
     private final String NEW_PLAYER_REGEX;
     private final String PLAYER_NAME_REGEX;
-
-    private final String pathToPlayerDataFolder = "../PlayersData/";
 
     {
         PLAY_AS_REGEX = "(?i:play\\s+as)\\s+[a-zA-Z0-9_]+";
@@ -23,28 +21,45 @@ public class MainMenuController extends Controller {
         String s = "a";
         s.matches(NEW_PLAYER_REGEX);
     }
-    public MainMenuController(){
+
+    public MainMenuController() {
         super();
     }
 
-    public void startProcessing(){
+    public void startProcessing() {
         String input = scanner.nextLine().trim();
         while (!input.matches(EXIT_GAME_REGEX)) {
             if (input.matches(PLAY_AS_REGEX)) {
                 String playerName = input.split("\\s+")[2];
                 play(playerName);
-            }
-            else if(input.matches(NEW_PLAYER_REGEX)){
+            } else if (input.matches(NEW_PLAYER_REGEX)) {
                 System.out.println("Enter Your Name:");
                 input = scanner.nextLine().trim();
+                boolean wasCanceled = false;
                 while (true) {
-                    if(!input.matches(PLAYER_NAME_REGEX)) {
+                    if (!input.matches(PLAYER_NAME_REGEX)) {
                         System.err.println("Invalid Player Name, Try Again.\nEnter Your Name:");
+                        input = scanner.nextLine().trim();
+                    } else if(Player.exists(input)){
+                        System.err.println("A player with this name already exists.");
+                    } else if(input.equals("cancel process")){
+                        wasCanceled = true;
+                        break;
+                    } else
+                        break;
+                }
+                if(!wasCanceled) {
+                    try {
+                        Player.create(input);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.err.println("HAppened HeRE");
                     }
                 }
-            }
-            else if (input.matches(SETTING_REGEX)) {
-
+            } else if (input.matches(SETTING_REGEX)) {
+                /*
+                *
+                * */
             } else {
                 System.err.println("Invalid Command");
             }
@@ -54,20 +69,19 @@ public class MainMenuController extends Controller {
 
     /**
      * @param playerName this parameter with pathToPlayersInfoDirectory specifies
-     *                  the directory in which player saved files exist.
-     * */
-    private void play(String playerName){
+     *                   the directory in which player saved files exist.
+     */
+    private void play(String playerName) {
         try {
-
-            PlayerMenuController playerMenuController = new PlayerMenuController(15238);
+            PlayerMenuController playerMenuController = new PlayerMenuController(playerName);
             playerMenuController.startProcessing();
-        }
-        catch (PlayerNotFoundException e){
+        } catch (PlayerNotFoundException e) {
             System.err.println("No Such Player In Existence.");
         }
-        /*
-        * in this method playerMenuController will be instantiated based on playerName.
-        * must search list of players for player id then give player id to playerMenuController
-        * */
+    }
+
+    private void play(Player player) {
+        PlayerMenuController playerMenuController = new PlayerMenuController(player);
+        playerMenuController.startProcessing();
     }
 }

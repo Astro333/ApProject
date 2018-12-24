@@ -1,6 +1,5 @@
 package Items;
 
-import Interfaces.LevelRequirement;
 import Interfaces.Processable;
 import Utilities.SUID;
 import javafx.beans.property.BooleanProperty;
@@ -72,7 +71,7 @@ public class Item {
     }
 
     // implements Processable so that could be processed at workshops
-    public enum ItemType implements Processable, LevelRequirement {
+    public enum ItemType implements Processable {
         Adornment,
         BrightHorn,
         CagedBrownBear, CagedJaguar, CagedLion, CagedWhiteBear, Cake,

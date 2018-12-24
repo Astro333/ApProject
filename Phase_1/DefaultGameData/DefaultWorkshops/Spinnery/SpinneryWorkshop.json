@@ -1,0 +1,10 @@
+{
+  "inputs" : ["Wool"],
+  "inputsAmount":[1],
+  "outPuts":["Sewing"],
+  "outputsAmount":[1],
+  "demonstrativeName":"Spinnery",
+  "realName":"SpinneryWorkshop",
+  "pathToGraphicsFolder" : null,
+  "maxMaxLevel":5
+}

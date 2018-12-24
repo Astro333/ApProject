@@ -1,6 +1,6 @@
 package Structures;
 
-import Interfaces.LevelRequirement;
+import Interfaces.Processable;
 import Utilities.Constants;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -16,9 +16,13 @@ public class Depot {
     private final byte maxLevel;
     private final ObservableMap<ItemType, Integer> thingsStored;
 
-    public Depot(byte maxLevel, MapChangeListener<LevelRequirement, Integer> requirementMetListener) {
+    public Depot(byte maxLevel, MapChangeListener<Processable, Integer> requirementMetListener) {
         this.maxLevel = maxLevel;
         thingsStored = FXCollections.observableHashMap();
+        thingsStored.addListener(requirementMetListener);
+    }
+
+    public void addListener(MapChangeListener<Processable, Integer> requirementMetListener){
         thingsStored.addListener(requirementMetListener);
     }
 
@@ -65,6 +69,17 @@ public class Depot {
             }
         }
         return false;
+    }
+
+    public boolean hasAll(ItemType item, int amount){
+        if(thingsStored.containsKey(item)){
+            return thingsStored.get(item) >= amount;
+        }
+        return false;
+    }
+
+    public int getItemAmount(ItemType item){
+        return thingsStored.getOrDefault(item, 0);
     }
 
     public boolean upgrade() {

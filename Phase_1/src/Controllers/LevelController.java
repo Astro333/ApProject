@@ -5,13 +5,14 @@ import static Items.Item.ItemType;
 import Animals.Animal;
 import Animals.Pet.Cat;
 import Animals.Pet.Dog;
+import Animals.Pet.Pet;
 import Animals.Wild.Wild;
 import Exceptions.IllegalConstructorArgumentException;
-import Interfaces.LevelRequirement;
 import Interfaces.Processable;
 import Items.Item;
 import Levels.LevelData;
 import Levels.RequirementsListener;
+import Levels.SaveData;
 import Map.Cell;
 import Map.Map;
 import Player.Player;
@@ -69,26 +70,25 @@ public class LevelController extends Controller {
         PRINT_REGEX = "print\\s+[a-z]+";
         TURN_REGEX = "turn\\s+[1-9]\\d*";
         SHOW_TRANSPORTATION_TOOL_MENU = "show\\s+((truck)|(helicopter))\\s+menu";
-        String x = "s";
-        x.matches(UPGRADE_REGEX);
     }
 
-    private transient final LevelData levelData;
+    private transient final LevelData levelData; //don't serialize
+    private transient final Random randomGenerator = new Random();//don't serialize
+    private transient final Player player;//only Serialize gameElementsLevel, ID
 
-    private final IntegerProperty coin;
-    private final Map map;
-    private boolean levelIsFinished = false;
+    private final IntegerProperty coin;//serialize
+    private final Map map;//serialize
+    private boolean levelIsFinished = false;//serialize
 
-    private final ObservableMap<LevelRequirement, Integer> levelRequirements;
-    private final HashMap<String, Workshop> workshops;
-    private final TransportationTool helicopter;
-    private final TransportationTool truck;
-    private final Well well;
-    private final StringBuilder levelLog;
-    private int timePassed;
-    private final int cageLevel;
-    private final Random randomGenerator = new Random();
-    private final Player player;
+    private final ObservableMap<Processable, Integer> levelRequirements;//serialize
+    private final HashMap<String, Workshop> workshops;//serialize
+    private final TransportationTool helicopter;// serialize
+    private final TransportationTool truck;//serialize
+    private final Well well;//serialize
+    private final StringBuilder levelLog;//serialize
+    private int timePassed;//serialize
+    private final int cageLevel;//serialize
+    private final HashMap<String, Byte> gameElementsLevel;
     private ChangeListener<Boolean> vehicleFinishedJob = new ChangeListener<>() {
         @Override
         public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -108,7 +108,7 @@ public class LevelController extends Controller {
         public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
             if (oldValue) {
                 Workshop workshop = (Workshop) (((BooleanProperty) observable).getBean());
-                int amountProcessed = workshop.getAmountProcessed();
+                int processingMultiplier = workshop.getProcessingMultiplier();
                 Integer[] amounts = workshop.getOutputsAmount();
                 Processable[] outputs = workshop.getOutputs();
                 Pair<Integer, Integer> dropZone =
@@ -120,8 +120,8 @@ public class LevelController extends Controller {
                 for (int i = 0; i < amounts.length; ++i) {
                     int j = 0;
                     if (outputs[i] instanceof Animal.AnimalType) {
-                        while (j < amounts[i] * amountProcessed) {
-                            Animal animal = getRandomlyLocatedAnimalInstance(outputs[i].toString().toLowerCase());
+                        while (j < amounts[i] * processingMultiplier) {
+                            Animal animal = getRandomlyLocatedAnimalInstance(outputs[i].toString());
                             if (animal == null)
                                 break;
                             animal.setX(dropZone.getKey());
@@ -130,7 +130,7 @@ public class LevelController extends Controller {
                             ++j;
                         }
                     } else if (outputs[i] instanceof Item.ItemType) {
-                        while (j < amounts[i] * amountProcessed) {
+                        while (j < amounts[i] * processingMultiplier) {
                             map.addItem(new Item((Item.ItemType) outputs[i], dropZone.getKey(), dropZone.getValue()));
                             ++j;
                         }
@@ -152,7 +152,7 @@ public class LevelController extends Controller {
         RequirementsListener requirementsListener;
         levelRequirements = FXCollections.observableHashMap();
         coin = new SimpleIntegerProperty(levelData.getInitialCoin());
-        for (LevelRequirement levelRequirement : levelData.getGoals().keySet())
+        for (Processable levelRequirement : levelData.getGoals().keySet())
             levelRequirements.put(levelRequirement, 0);
         if (levelData.getGoals().containsKey(ItemType.Coin)) {
             requirementsListener = new RequirementsListener(
@@ -169,13 +169,14 @@ public class LevelController extends Controller {
         levelLog = new StringBuilder();
 
         this.player = player;
+        this.gameElementsLevel = new HashMap<>(player.getGameElementsLevel());
         this.map = map;
         this.helicopter = getHelicopterInstance();
         this.truck = getTruckInstance();
         this.well = getWellInstance();
         this.workshops = getWorkshopsInstance();
         this.timePassed = 0;
-        cageLevel = player.getGameElementLevel("Cage");
+        cageLevel = gameElementsLevel.get("Cage");
 
         if (helicopter != null) {
             helicopter.isAtTaskProperty().addListener(vehicleFinishedJob);
@@ -189,39 +190,57 @@ public class LevelController extends Controller {
                 workshop.isAtTaskProperty().addListener(workShopFinishedJob);
     }
 
+    public LevelController(SaveData saveData, Player player) throws FileNotFoundException{
+        this.gameElementsLevel = saveData.getGameElementsLevel();
+        this.coin = new SimpleIntegerProperty(saveData.getCoin());
+        this.workshops = new HashMap<>();
+        for(Workshop workshop : saveData.getWorkshops())
+            workshops.put(workshop.getRealName(), workshop);
 
-    public ObservableMap<LevelRequirement, Integer> getLevelRequirements() {
-        return levelRequirements;
+        this.helicopter = saveData.getHelicopter();
+        this.truck = saveData.getTruck();
+        this.player = player;
+        this.map = saveData.getMap();
+        this.well = saveData.getWell();
+        this.levelLog = new StringBuilder(saveData.getLevelLog());
+        cageLevel = gameElementsLevel.get("Cage");
+        Reader reader = new BufferedReader(new FileReader(saveData.getPathToLevelJsonFile()));
+        Gson gson = new GsonBuilder().create();
+        levelData = gson.fromJson(reader, LevelData.class);
+        levelRequirements = FXCollections.observableMap(saveData.getLevelRequirements());
+        RequirementsListener requirementsListener;
+        if (levelData.getGoals().containsKey(ItemType.Coin)) {
+            requirementsListener = new RequirementsListener(
+                    this, true);
+            coin.addListener(requirementsListener.getCoinChangeListener());
+            levelRequirements.computeIfPresent(ItemType.Coin, (k, v) -> levelData.getInitialCoin());
+        } else
+            requirementsListener = new RequirementsListener(
+                    this, false);
+        map.getDepot().addListener(requirementsListener.getMapChangeListener());
     }
 
-    /*public LevelController(Player player, String pathToSaveData) throws SaveDataInvalidException {
-        super();
-        this.player = player;
-        levelData = null;
-        map = null;
-        well = null;
-        workshops = null;
-        levelLog = new StringBuilder();
-        cageLevel = 2;
-    }*/
+    public ObservableMap<Processable, Integer> getLevelRequirements() {
+        return levelRequirements;
+    }
 
     private Helicopter getHelicopterInstance() {
         if (levelData.getHelicopterStartingLevel() == null)
             return null;
-        return new Helicopter(player.getGameElementLevel("Helicopter"),
+        return new Helicopter(gameElementsLevel.get("Helicopter"),
                 levelData.getHelicopterStartingLevel());
     }
 
     private Truck getTruckInstance() {
         if (levelData.getTruckStartingLevel() == null)
             return null;
-        return new Truck(player.getGameElementLevel("Truck"),
+        return new Truck(gameElementsLevel.get("Truck"),
                 levelData.getTruckStartingLevel());
     }
 
     private Well getWellInstance() {
         byte level = levelData.getWellStartingLevel();
-        byte maxLevel = player.getGameElementLevel("Well");
+        byte maxLevel = gameElementsLevel.get("Well");
         Well well = null;
         try {
             well = new Well(maxLevel, level, 3);
@@ -240,7 +259,7 @@ public class LevelController extends Controller {
         String[] ws = levelData.getWorkshops();
         for (int i = 0; i < ws.length; ++i) {
             String workshopName = ws[i];
-            int maxLevel = player.getGameElementLevel(workshopName);
+            int maxLevel = gameElementsLevel.get(workshopName);
             Workshop workshop;
             try {
                 workshop = Workshop.getInstance(workshopName, maxLevel,
@@ -387,7 +406,7 @@ public class LevelController extends Controller {
             } else {
                 System.err.println("Invalid Command.");
             }
-            if(levelIsFinished)
+            if (levelIsFinished)
                 return;
             input = scanner.nextLine().trim().toLowerCase();
         }
@@ -413,18 +432,23 @@ public class LevelController extends Controller {
         int y = randomGenerator.nextInt(map.cellsHeight);
         switch (type) {
             case "cat":
-                return new Cat(x, y, player.getGameElementLevel("Cat"));
+                return new Cat(x, y, gameElementsLevel.get("Cat"));
             case "dog":
-                return new Dog(x, y, player.getGameElementLevel("Dog"));
+                return new Dog(x, y, gameElementsLevel.get("Dog"));
         }
 
-        String animalClassName = Constants.getAnimalClassName(type);
-        if (animalClassName == null)
+        String animalClassPath = Constants.getAnimalClassPath(type);
+        if (animalClassPath == null)
             return null;
-        String packageName = "Animals.Pet." + levelData.getContinent() + ".";
         try {
-            Class clazz = Class.forName(packageName + animalClassName);
-            Constructor constructor = clazz.getDeclaredConstructor(int.class, int.class);
+            Class clazz = Class.forName(animalClassPath);
+            Constructor constructor;
+            if(clazz.isAssignableFrom(Pet.class)){
+                constructor = clazz.getDeclaredConstructor(int.class, int.class);
+            }
+            else{
+                constructor = clazz.getDeclaredConstructor(int.class, int.class);
+            }
             constructor.setAccessible(true);
             Animal instance = (Animal) constructor.newInstance(x, y);
             constructor.setAccessible(false);
@@ -468,11 +492,9 @@ public class LevelController extends Controller {
     private void cage(int x, int y) {
         map.cageWilds(x, y, cageLevel * 2);
     }
-
+    //Todo
     private void saveGame(String jsonFileName) {
-        /*
-         * save data AS Json File under Player_Unfinished_Levels_Saves
-         * */
+
     }
 
     private boolean helicopterGo() {
@@ -516,7 +538,7 @@ public class LevelController extends Controller {
                 coin.subtract(cost);
                 System.out.println("Well was upgraded to level " + well.getLevel() + "\n");
             } else {
-                System.err.println("Well is At Maximum LevelData.");
+                System.err.println("Well is At Maximum Level.");
             }
         } else
             PRINT_NOT_ENOUGH_MONEY();
@@ -529,7 +551,7 @@ public class LevelController extends Controller {
                 coin.subtract(cost);
                 System.out.println("Truck was upgraded to level " + truck.getLevel() + "\n");
             } else {
-                System.err.println("Truck is At Maximum LevelData.");
+                System.err.println("Truck is At Maximum Level.");
             }
         } else
             PRINT_NOT_ENOUGH_MONEY();
@@ -542,7 +564,7 @@ public class LevelController extends Controller {
                 coin.subtract(cost);
                 System.out.println("Helicopter was upgraded to level " + helicopter.getLevel() + "\n");
             } else {
-                System.err.println("Helicopter is At Maximum LevelData.");
+                System.err.println("Helicopter is At Maximum Level.");
             }
         } else
             PRINT_NOT_ENOUGH_MONEY();
@@ -633,32 +655,29 @@ public class LevelController extends Controller {
         }
     }
 
-    public void setAchieved(LevelRequirement requirement) {
+    public void setAchieved(Processable requirement) {
         // requirement graphics -> setAchieved
         levelRequirements.remove(requirement);
-        if (levelRequirements.size() == 0){
+        if (levelRequirements.size() == 0) {
             System.err.println("LEVEL IS FINISHED.");
             byte levelId = levelData.getLevelId();
             LinkedList<Integer> levelTime = player.getLevelTime(levelId);
             player.addMoney(coin.get());
             int playerPrize;
             int levelBestTime = levelTime == null ? Integer.MAX_VALUE : levelTime.get(0);
-            if(timePassed > levelBestTime)
+            if (timePassed > levelBestTime)
                 playerPrize = levelData.getPrize();
-            else{
-                if(timePassed <= levelData.getBronzeTime() && levelBestTime > levelData.getBronzeTime()) {
+            else {
+                if (timePassed <= levelData.getBronzeTime() && levelBestTime > levelData.getBronzeTime()) {
                     playerPrize = levelData.getBronzePrize();
                     System.out.print("Bronze Prize : ");
-                }
-                else if(timePassed <= levelData.getSilverTime() && levelBestTime > levelData.getSilverTime()) {
+                } else if (timePassed <= levelData.getSilverTime() && levelBestTime > levelData.getSilverTime()) {
                     playerPrize = levelData.getSilverPrize();
                     System.out.print("Silver Prize : ");
-                }
-                else if(timePassed <= levelData.getGoldenTime() && levelBestTime > levelData.getGoldenTime()) {
+                } else if (timePassed <= levelData.getGoldenTime() && levelBestTime > levelData.getGoldenTime()) {
                     playerPrize = levelData.getGoldenPrize();
                     System.out.print("Golden Prize : ");
-                }
-                else {
+                } else {
                     playerPrize = levelData.getPrize();
                     System.out.print("Prize : ");
                 }

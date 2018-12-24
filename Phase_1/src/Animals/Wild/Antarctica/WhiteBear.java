@@ -5,6 +5,11 @@ import Animals.Wild.Wild;
 public class WhiteBear extends Wild {
 
     protected WhiteBear(int x, int y) {
-        super(x, y);
+        super(x, y, AnimalType.WhiteBear);
+    }
+
+    @Override
+    protected int calculateTossingBuffer() {
+        return 0;
     }
 }

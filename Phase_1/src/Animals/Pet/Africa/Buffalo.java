@@ -5,11 +5,11 @@ import Items.Item;
 
 public class Buffalo extends Pet {
     public Buffalo(int x, int y) {
-        super(x, y, AnimalType.Buffalo);
+        super(x, y, 1, 1, 6, AnimalType.Buffalo);
     }
 
     @Override
     public Item produce() {
-        return new Item(Item.ItemType.Milk);
+        return new Item(Item.ItemType.Horn, x, y);
     }
 }

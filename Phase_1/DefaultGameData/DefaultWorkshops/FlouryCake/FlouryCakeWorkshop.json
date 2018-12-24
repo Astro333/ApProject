@@ -1,0 +1,10 @@
+{
+  "inputs" : ["Flour", "Cake"],
+  "inputsAmount":[1, 1],
+  "outPuts":["FlouryCake"],
+  "outputsAmount":[1],
+  "demonstrativeName":"Cake Bakery",
+  "realName":"FlouryCakeWorkshop",
+  "pathToGraphicsFolder" : null,
+  "maxMaxLevel":5
+}

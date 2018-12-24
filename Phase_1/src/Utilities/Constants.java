@@ -1,10 +1,15 @@
 package Utilities;
 
+import Animals.Animal;
+import Interfaces.Processable;
+import Items.Item;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
@@ -34,29 +39,53 @@ public class Constants {
     private static HashMap<Byte, Pair<Integer, Integer>> workshopsPositionSouthAmerica; // from continent
     private static HashMap<Byte, Pair<Integer, Integer>> workshopsPositionPrairie; // from continent
     private static HashMap<Byte, Pair<Integer, Integer>> workshopsPositionRussia; // from continent
+
+    private static HashMap<String, Processable> processableElements;
+
+    static {
+        processableElements = new HashMap<>();
+        for(Item.ItemType itemType : Item.ItemType.values())
+            processableElements.put(itemType.toString(), itemType);
+
+        for(Animal.AnimalType animalType : Animal.AnimalType.values())
+            processableElements.put(animalType.toString(), animalType);
+    }
+
     private static boolean isInitiated = false;
 
     // MUST INITIATE THIS CLASS AT LOADING MENU
     public static boolean initiate() {
         if(!isInitiated){
             Gson gson = new GsonBuilder().create();
-            Reader reader;
-            Type type = new TypeToken<Map<String, Float>>(){}.getType();
+            Reader reader = null;
+            Type type = new TypeToken<HashMap<String, Float>>(){}.getType();
 
-            reader = new InputStreamReader(JsonParser.class.getResourceAsStream(
-                    "../DefaultGameData/productsDepotSize.json"),
-                    StandardCharsets.UTF_8);
+            try {
+                reader = new InputStreamReader(new FileInputStream(
+                        "../DefaultGameData/productsDepotSize.json"),
+                        StandardCharsets.UTF_8);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
             productsDepotSize = gson.fromJson(reader, type);
 
-            type = new TypeToken<Map<String, Integer>>(){}.getType();
+            type = new TypeToken<HashMap<String, Integer>>(){}.getType();
 
-            reader = new InputStreamReader(JsonParser.class.getResourceAsStream(
-                    "../DefaultGameData/productsSaleCost.json"));
+            try {
+                reader = new InputStreamReader(new FileInputStream(
+                        "../DefaultGameData/productsSaleCost.json"));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
 
             productsSaleCost = gson.fromJson(reader, type);
 
-            reader = new InputStreamReader(JsonParser.class.getResourceAsStream(
-                    "../DefaultGameData/productsBuyCost.json"));
+            try {
+                reader = new InputStreamReader(new FileInputStream(
+                        "../DefaultGameData/productsBuyCost.json"));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
             productsBuyCost = gson.fromJson(reader, type);
 
 
@@ -112,7 +141,11 @@ public class Constants {
     public static int getElementMaxLevelUpgradeCost(String element, int nextLevel){
         return elementsMaxLevelUpgradeCost.get(element)[nextLevel];
     }
-    public static String getAnimalClassName(String animal){
-        return animalsClassName.getOrDefault(animal, null);
+    public static String getAnimalClassPath(String animal){
+        return animalsClassName.getOrDefault(animal.toLowerCase(), null);
+    }
+
+    public static Processable getProcessableElement(String name){
+        return processableElements.getOrDefault(name, null);
     }
 }

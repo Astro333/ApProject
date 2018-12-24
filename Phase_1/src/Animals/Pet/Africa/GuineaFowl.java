@@ -6,14 +6,11 @@ import Items.Item;
 
 public class GuineaFowl extends Pet {
     public GuineaFowl(int x, int y) {
-        super(x, y, AnimalType.GuineaFowl);
+        super(x, y, 1, 1, 6, AnimalType.GuineaFowl);
     }
 
     @Override
     public Item produce() {
-        /*
-        * Write code to produce Egg
-        * */
-        return null;
+        return new Item(Item.ItemType.Egg, x, y);
     }
 }
