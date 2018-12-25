@@ -29,8 +29,8 @@ public class Workshop {
     private final Float pos_y = null;
 
     private final String realName = null;
-
     private final String demonstrativeName = null;
+
     private final Byte maxMaxLevel = null;
     private final Byte maxLevel = null;
     private byte level;
@@ -132,7 +132,7 @@ public class Workshop {
     }
 
     private int calculateTimeToFinishTask(){
-        return 1;
+        return 5;
     }
 
     public int getUpgradeCost(){

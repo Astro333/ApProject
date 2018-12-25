@@ -13,7 +13,7 @@ public class MainMenuController extends Controller {
     private final String PLAYER_NAME_REGEX;
 
     {
-        PLAY_AS_REGEX = "(?i:play\\s+as)\\s+[a-zA-Z0-9_]+";
+        PLAY_AS_REGEX = "(?i:playAs\\s+as)\\s+[a-zA-Z0-9_]+";
         SETTING_REGEX = "(?i:show\\s+setting)";
         EXIT_GAME_REGEX = "(?i:exit\\s+game)";
         NEW_PLAYER_REGEX = "(?i:new player)";
@@ -31,7 +31,7 @@ public class MainMenuController extends Controller {
         while (!input.matches(EXIT_GAME_REGEX)) {
             if (input.matches(PLAY_AS_REGEX)) {
                 String playerName = input.split("\\s+")[2];
-                play(playerName);
+                playAs(playerName);
             } else if (input.matches(NEW_PLAYER_REGEX)) {
                 System.out.println("Enter Your Name:");
                 input = scanner.nextLine().trim();
@@ -71,7 +71,7 @@ public class MainMenuController extends Controller {
      * @param playerName this parameter with pathToPlayersInfoDirectory specifies
      *                   the directory in which player saved files exist.
      */
-    private void play(String playerName) {
+    private void playAs(String playerName) {
         try {
             PlayerMenuController playerMenuController = new PlayerMenuController(playerName);
             playerMenuController.startProcessing();
@@ -80,7 +80,7 @@ public class MainMenuController extends Controller {
         }
     }
 
-    private void play(Player player) {
+    private void playAs(Player player) {
         PlayerMenuController playerMenuController = new PlayerMenuController(player);
         playerMenuController.startProcessing();
     }

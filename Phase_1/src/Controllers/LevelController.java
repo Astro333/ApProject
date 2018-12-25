@@ -74,7 +74,7 @@ public class LevelController extends Controller {
 
     private transient final LevelData levelData; //don't serialize
     private transient final Random randomGenerator = new Random();//don't serialize
-    private transient final Player player;//only Serialize gameElementsLevel, ID
+    private transient final Player player;//only Serialize gameElementsLevel, name
 
     private final IntegerProperty coin;//serialize
     private final Map map;//serialize
@@ -151,14 +151,14 @@ public class LevelController extends Controller {
         levelData = gson.fromJson(reader, LevelData.class);
         RequirementsListener requirementsListener;
         levelRequirements = FXCollections.observableHashMap();
-        coin = new SimpleIntegerProperty(levelData.getInitialCoin());
+        coin = new SimpleIntegerProperty(levelData.getStartMoney());
         for (Processable levelRequirement : levelData.getGoals().keySet())
             levelRequirements.put(levelRequirement, 0);
         if (levelData.getGoals().containsKey(ItemType.Coin)) {
             requirementsListener = new RequirementsListener(
                     this, true);
             coin.addListener(requirementsListener.getCoinChangeListener());
-            levelRequirements.computeIfPresent(ItemType.Coin, (k, v) -> levelData.getInitialCoin());
+            levelRequirements.computeIfPresent(ItemType.Coin, (k, v) -> levelData.getStartMoney());
         } else
             requirementsListener = new RequirementsListener(
                     this, false);
@@ -213,7 +213,7 @@ public class LevelController extends Controller {
             requirementsListener = new RequirementsListener(
                     this, true);
             coin.addListener(requirementsListener.getCoinChangeListener());
-            levelRequirements.computeIfPresent(ItemType.Coin, (k, v) -> levelData.getInitialCoin());
+            levelRequirements.computeIfPresent(ItemType.Coin, (k, v) -> levelData.getStartMoney());
         } else
             requirementsListener = new RequirementsListener(
                     this, false);
@@ -243,7 +243,7 @@ public class LevelController extends Controller {
         byte maxLevel = gameElementsLevel.get("Well");
         Well well = null;
         try {
-            well = new Well(maxLevel, level, 3);
+            well = new Well(maxLevel, level);
         } catch (IllegalConstructorArgumentException e) {
             e.printStackTrace();
         }
@@ -503,7 +503,7 @@ public class LevelController extends Controller {
             if (helicopter.go()) {
                 coin.subtract(cost);
                 System.out.println("Helicopter is going. will return in "
-                        + helicopter.getTimeRemainedToFinishTask() + " turns.\n");
+                        + helicopter.getTurnsRemainedToFinishTask() + " turns.\n");
                 return true;
             }
             System.err.println("Nothing Set To Buy.\n");
@@ -516,7 +516,7 @@ public class LevelController extends Controller {
     private boolean truckGo() {
         if (truck.go()) {
             System.out.println("Truck is going. will return in " +
-                    truck.getTimeRemainedToFinishTask() + " turns.\n");
+                    truck.getTurnsRemainedToFinishTask() + " turns.\n");
             return true;
         }
         System.err.println("Nothing in Truck.\n");
@@ -546,7 +546,7 @@ public class LevelController extends Controller {
 
     private void upgradeTruck() {
         int cost = truck.getUpgradeCost();
-        if (coin.get() >= cost) {
+        if (coin.get() >= cost && cost >= 0) {
             if (truck.upgrade()) {
                 coin.subtract(cost);
                 System.out.println("Truck was upgraded to level " + truck.getLevel() + "\n");
@@ -559,7 +559,7 @@ public class LevelController extends Controller {
 
     private void upgradeHelicopter() {
         int cost = helicopter.getUpgradeCost();
-        if (coin.get() >= cost) {
+        if (coin.get() >= cost && cost >= 0) {
             if (helicopter.upgrade()) {
                 coin.subtract(cost);
                 System.out.println("Helicopter was upgraded to level " + helicopter.getLevel() + "\n");

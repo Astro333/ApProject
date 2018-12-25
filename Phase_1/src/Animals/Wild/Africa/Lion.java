@@ -10,6 +10,6 @@ public class Lion extends Wild {
 
     @Override
     protected int calculateTossingBuffer() {
-        return 0;
+        return 10;
     }
 }

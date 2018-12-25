@@ -18,6 +18,7 @@ public class SaveData {
     private final String levelLog = null;
     private final String pathToLevelJsonFile = null;
     private final HashMap<Processable, Integer> levelRequirements = null;
+
     private SaveData(){}
 
     public LinkedList<Workshop> getWorkshops() {

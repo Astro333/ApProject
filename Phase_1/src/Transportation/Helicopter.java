@@ -2,6 +2,7 @@ package Transportation;
 
 import Items.Item;
 import Map.Map;
+import Utilities.Constants;
 
 import java.util.HashMap;
 import java.util.Random;
@@ -18,8 +19,13 @@ public class Helicopter extends TransportationTool{
     }
 
     @Override
+    protected int calculateTimeToFinish() {
+        return level == 0 ? 120 : 140-level*40;
+    }
+
+    @Override
     public int getUpgradeCost() {
-        return 0;
+        return level == maxLevel ? Integer.MIN_VALUE : Constants.getElementLevelUpgradeCost("Helicopter", level+1);
     }
 
     @Override
@@ -31,12 +37,19 @@ public class Helicopter extends TransportationTool{
         return itemsInside;
     }
 
+    private int getRandomPosition(int max){
+        return random.nextInt(max);
+    }
+
     public void dropItemsRandomly(Map map) {
+        /*
+        * must handle parachute animation in phase 2
+        * */
         for(ItemType item : itemsInside.keySet()){
             for(int i = itemsInside.get(item); i > 0; --i) {
-                int pos_x = random.nextInt(map.cellsWidth);
-                int pos_y = random.nextInt(map.cellsHeight);
-                map.getCell(pos_x, pos_y).addItem(new Item(item));
+                int pos_x = getRandomPosition(map.cellsWidth);
+                int pos_y = getRandomPosition(map.cellsHeight);
+                map.addItem(new Item(item, pos_x, pos_y));
             }
         }
         itemsInside.clear();

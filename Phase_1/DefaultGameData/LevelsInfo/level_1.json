@@ -1,0 +1,41 @@
+{
+  "goals": [
+    "Coin",
+    "Egg",
+    "GuineaFowl"
+  ],
+  "goalsAmount": [
+    1000,
+    10,
+    5
+  ],
+  "workshops": [
+    "DriedEggs",
+    "Cake"
+  ],
+  "workshopsLevel": [
+    0,
+    0
+  ],
+  "workshopsPosition": [
+    2,
+    6
+  ],
+  "startingPets": [
+    "GuineaFowl",
+    "Ostrich"
+  ],
+  "startingPetsAmount": [
+    3,
+    1
+  ],
+  "levelId": 1,
+  "startMoney": 1000,
+  "goldenTime": 120,
+  "goldenPrize": 1000,
+  "silverTime": 240,
+  "silverPrize": 850,
+  "bronzeTime": 360,
+  "bronzePrize": 750,
+  "prize": 500
+}

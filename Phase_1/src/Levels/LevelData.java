@@ -23,7 +23,7 @@ public class LevelData {
 
     private final String continent = null;//first letter must be upper case
 
-    private final Integer initialCoin = null;
+    private final Integer startMoney = null;
 
     private final Integer goldenTime = null;
     private final Integer goldenPrize = null;
@@ -38,7 +38,6 @@ public class LevelData {
 
     private LevelData() {
     }
-
 
     public Byte getLevelId() {
         return levelId;
@@ -80,8 +79,8 @@ public class LevelData {
         return startingPetsAmount;
     }
 
-    public int getInitialCoin() {
-        return initialCoin;
+    public int getStartMoney() {
+        return startMoney;
     }
 
     public int getGoldenTime() {

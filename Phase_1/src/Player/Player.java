@@ -1,5 +1,6 @@
 package Player;
 
+import Utilities.Constants;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -94,8 +95,10 @@ public class Player {
 
     public boolean incrementGameElementLevel(String element){
         if(gameElementsLevel.containsKey(element)) {
-            gameElementsLevel.compute(element, (k, v) -> ++v);
-            return true;
+            if(Constants.getElementMaxMaxLevel(element) > getGameElementLevel(element)) {
+                gameElementsLevel.compute(element, (k, v) -> ++v);
+                return true;
+            }
         }
         return false;
     }

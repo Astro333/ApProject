@@ -1,0 +1,29 @@
+{
+  "GuineaFowl": "Animals.Pet.Africa.GuineaFowl",
+  "Ostrich": "Animals.Pet.Africa.Ostrich",
+  "Buffalo": "Animals.Pet.Africa.Buffalo",
+  "Lion": "Animals.Wild.Africa.Lion",
+
+  "Penguin": "Animals.Pet.Antarctica.Penguin",
+  "KingPenguin": "Animals.Pet.Antarctica.KingPenguin",
+  "Walrus": "Animals.Pet.Antarctica.Walrus",
+  "WhiteBear":"Animals.Wild.Antarctica.WhiteBear",
+
+  "Cow": "Animals.Pet.Prairie.Cow",
+  "Turkey": "Animals.Pet.Prairie.Turkey",
+  "Sheep": "Animals.Pet.Prairie.Sheep",
+  "Grizzly":"Animals.Wild.Prairie.Grizzly",
+
+  "Goose": "Animals.Pet.Russia.Goose",
+  "Yak": "Animals.Pet.Russia.Yak",
+  "BrownCow": "Animals.Pet.Russia.BrownCow",
+  "BrownBear": "Animals.Wild.Russia.BrownBear",
+
+  "Chicken": "Animals.Pet.SouthAmerica.Chicken",
+  "Llama": "Animals.Pet.SouthAmerica.Llama",
+  "Goat": "Animals.Pet.SouthAmerica.Goat",
+  "Jaguar": "Animals.Wild.SouthAmerica.Jaguar",
+
+  "Cat": "Animals.Pet.Cat",
+  "Dog": "Animals.Pet.Dog"
+}

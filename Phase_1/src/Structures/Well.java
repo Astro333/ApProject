@@ -1,32 +1,30 @@
 package Structures;
 
 import Exceptions.IllegalConstructorArgumentException;
+import Utilities.Constants;
 
 public class Well {
 
     private boolean isRefilling;
     private byte level = 0;
     private byte storedWater;
-    private float waterAdditionFactor;
     private byte capacity;
     private int timeRemainedToRefill = -1;
     private final byte maxLevel;
     private final byte maxMaxLevel = 3;
-    private final float WATER_UNIT_COST;
 
-    public Well(byte maxLevel, float WATER_UNIT_COST) throws IllegalConstructorArgumentException {
+    public Well(byte maxLevel) throws IllegalConstructorArgumentException {
         if (maxLevel > maxMaxLevel)
             throw new IllegalConstructorArgumentException();
         this.maxLevel = maxLevel;
-        this.WATER_UNIT_COST = WATER_UNIT_COST;
     }
 
-    public Well(byte maxLevel, byte level, float WATER_UNIT_COST) throws IllegalConstructorArgumentException {
+    public Well(byte maxLevel, byte level) throws IllegalConstructorArgumentException {
         if (level > maxLevel || maxLevel > maxMaxLevel)
             throw new IllegalConstructorArgumentException();
         this.maxLevel = maxLevel;
         this.level = level;
-        this.WATER_UNIT_COST = WATER_UNIT_COST;
+        this.capacity = level == maxMaxLevel ? 100 : ((byte)(5 + level*(level+3)/2));
     }
 
     public byte getLevel() {
@@ -42,16 +40,15 @@ public class Well {
             --storedWater;
     }
 
-    public void update(int turns){
+    public void update(){
         if(isRefilling){
-            if(storedWater + waterAdditionFactor*turns >= capacity){
+            if(timeRemainedToRefill <= 0){
                 storedWater = capacity;
                 timeRemainedToRefill = -1;
                 isRefilling = false;
             }
             else {
-                storedWater += waterAdditionFactor*turns;
-                timeRemainedToRefill -= turns;
+                --timeRemainedToRefill;
             }
         }
     }
@@ -63,21 +60,24 @@ public class Well {
     public boolean upgrade(){
         if(level < maxLevel){
             ++level;
-            capacity +=10;
+            if(level == maxMaxLevel)
+                capacity = 100;
+            else
+                capacity += (level+1);
         }
         return false;
     }
 
     public int getUpgradePrice(){
-        return 0;
+        return level == maxMaxLevel ? Integer.MAX_VALUE : Constants.getElementLevelUpgradeCost("Well",level+1);
     }
 
     public int getRefillPrice(){
-        return (int) ((capacity - storedWater) * WATER_UNIT_COST);
+        return level == maxMaxLevel ? 7 : 19-2*level;
     }
 
     private int calculateRefillingTime() {
-        return 0;
+        return level == maxMaxLevel ? 0 : 8 - 2*level;
     }
     public boolean refill(){
         if(!isRefilling && storedWater < capacity){
