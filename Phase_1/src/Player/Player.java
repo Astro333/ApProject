@@ -2,6 +2,7 @@ package Player;
 
 import Utilities.Constants;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import java.io.*;
@@ -20,24 +21,29 @@ public class Player {
     private Player(){}
 
     public static Player create(String name) throws IOException {
-        Gson gson = new Gson();
-        Reader reader = new BufferedReader(new FileReader("PlayersData/newPlayerProgress.json"));
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Reader reader = new BufferedReader(new FileReader("Phase_1/PlayersData/newPlayerProgress.json"));
         JsonObject object = gson.fromJson(reader, JsonObject.class);
         object.remove("name");
         object.addProperty("name", name);
 
-        String playerDataDir = "../PlayersData/"+name+"/";
+        String playerDataDir = "Phase_1/PlayersData/"+name+"/";
 
-        new File(playerDataDir).mkdirs();
-        new File(playerDataDir+"Player_Custom_Workshops/").mkdirs();
-        new File(playerDataDir+"Player_Unfinished_Levels_Saves/").mkdirs();
+        new File(playerDataDir).mkdir();
+        new File(playerDataDir+"Player_Custom_Workshops/").mkdir();
+        new File(playerDataDir+"Player_Unfinished_Levels_Saves/").mkdir();
+        Writer writer = new BufferedWriter(new FileWriter(playerDataDir+"progress.json"));
+        gson.toJson(object, writer);
+        writer.flush();
+        writer.close();
+        reader.close();
 
         return gson.fromJson(object, Player.class);
     }
 
     public static Player loadPlayer(String name) throws FileNotFoundException {
         Gson gson = new Gson();
-        Reader reader = new BufferedReader(new FileReader("PlayersData/"+name+"/progress.json"));
+        Reader reader = new BufferedReader(new FileReader("Phase_1/PlayersData/"+name+"/progress.json"));
         JsonObject object = gson.fromJson(reader, JsonObject.class);
         object.remove("name");
         object.addProperty("name", name);
@@ -49,7 +55,7 @@ public class Player {
     }
 
     public static boolean exists(String playerName) {
-        return new File("PlayersData/"+playerName).exists();
+        return new File("Phase_1/PlayersData/"+playerName).exists();
     }
 
     public String getName() {

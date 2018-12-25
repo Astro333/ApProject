@@ -17,9 +17,9 @@ public class LevelData {
     private final String[] startingPets = null;
     private final int[] startingPetsAmount = null;
 
-    private final Byte wellStartingLevel = null;
-    private final Byte helicopterStartingLevel = null;
-    private final Byte truckStartingLevel = null;
+    private final Byte wellLevel = null;
+    private final Byte helicopterLevel = null;
+    private final Byte truckLevel = null;
 
     private final String continent = null;//first letter must be upper case
 
@@ -43,16 +43,16 @@ public class LevelData {
         return levelId;
     }
 
-    public Byte getHelicopterStartingLevel() {
-        return helicopterStartingLevel;
+    public Byte getHelicopterLevel() {
+        return helicopterLevel;
     }
 
-    public Byte getTruckStartingLevel() {
-        return truckStartingLevel;
+    public Byte getTruckLevel() {
+        return truckLevel;
     }
 
-    public byte getWellStartingLevel() {
-        return wellStartingLevel;
+    public byte getWellLevel() {
+        return wellLevel;
     }
 
     public HashMap<Processable, Integer> getGoals() {

@@ -49,7 +49,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "../DefaultGameData/productsDepotSize.json"),
+                    "Phase_1/DefaultGameData/productsDepotSize.json"),
                     StandardCharsets.UTF_8);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -61,7 +61,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "../DefaultGameData/productsSaleCost.json"));
+                    "Phase_1/DefaultGameData/productsSaleCost.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -70,7 +70,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "../DefaultGameData/productsBuyCost.json"));
+                    "Phase_1/DefaultGameData/productsBuyCost.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -80,7 +80,7 @@ public class Constants {
         }.getType();
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "../DefaultGameData/animalsClassPath.json"));
+                    "Phase_1/DefaultGameData/animalsClassPath.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -91,7 +91,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "../DefaultGameData/elementsLevelUpgradeCost.json"));
+                    "Phase_1/DefaultGameData/elementsLevelUpgradeCost.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -100,9 +100,25 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "../DefaultGameData/elementsMaxLevelUpgradeCost.json"));
+                    "Phase_1/DefaultGameData/elementsMaxLevelUpgradeCost.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+        }
+        // ToDo: Essential to be set for Phase_2:
+        workshopsPosition = new HashMap<>();
+        workshopsDropZone = new HashMap<>();
+        for(int i = 1; i <= 6; ++i){
+            workshopsPosition.put("Africa"+i, new Pair<>(0, 0));
+            workshopsPosition.put("Antarctica"+i, new Pair<>(0, 0));
+            workshopsPosition.put("Prairie"+i, new Pair<>(0, 0));
+            workshopsPosition.put("SouthAmerica"+i, new Pair<>(0, 0));
+            workshopsPosition.put("Russia"+i, new Pair<>(0, 0));
+
+            workshopsDropZone.put("Africa"+i, new Pair<>(i, i));
+            workshopsDropZone.put("Antarctica"+i, new Pair<>(i, i));
+            workshopsDropZone.put("Prairie"+i, new Pair<>(i, i));
+            workshopsDropZone.put("SouthAmerica"+i, new Pair<>(i, i));
+            workshopsDropZone.put("Russia"+i, new Pair<>(i, i));
         }
 
         elementsMaxLevelUpgradeCost = gson.fromJson(reader, type);

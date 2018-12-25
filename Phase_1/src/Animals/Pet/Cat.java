@@ -11,7 +11,7 @@ public class Cat extends Animal {
     private final byte intelligence;
 
     public Cat(int x, int y, byte intelligence){
-        super(x, y, AnimalType.Cat);
+        super(x, y, 1, 1, AnimalType.Cat);
         this.intelligence = intelligence;
     }
 

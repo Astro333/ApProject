@@ -1,10 +1,11 @@
 {
   "inputs" : ["CagedJaguar", "CarnivalDress"],
   "inputsAmount":[1, 1],
-  "outPuts":["SpruceJaguar"],
+  "outputs":["SpruceJaguar"],
   "outputsAmount":[1],
   "demonstrativeName":"Fitting Room",
   "realName":"FittingRoomWorkshopSouthAmerica",
+  "productionTime":[15, 14, 13, 11, 8],
   "pathToGraphicsFolder" : null,
-  "maxMaxLevel":5
+  "maxMaxLevel":4
 }

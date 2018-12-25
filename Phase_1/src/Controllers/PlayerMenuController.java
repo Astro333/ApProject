@@ -8,12 +8,10 @@ import Player.Player;
 import Utilities.Constants;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.Reader;
+import java.io.*;
 import java.util.LinkedList;
 
 public class PlayerMenuController extends Controller{
@@ -24,7 +22,7 @@ public class PlayerMenuController extends Controller{
     private transient final String GO_TO_SHOP_REGEX;
     private transient final String EXIT_TO_MAIN_MENU_REGEX;
 
-    private final Gson gson = new GsonBuilder().registerTypeAdapter(Animal.class, new  Utilities.AnimalDeserializer()).
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(Animal.class, new  Utilities.AnimalDeserializer()).
             registerTypeAdapter(Processable.class, new Utilities.ProcessableDeserializer()).create();
     {
         UPGRADE_REGEX = "(?i:upgrade)\\s+[a-z]+";
@@ -43,7 +41,7 @@ public class PlayerMenuController extends Controller{
         super();
         try {
             player = Player.loadPlayer(playerName);
-            playerDataPath = "../PlayersData/"+playerName;
+            playerDataPath = "Phase_1/PlayersData/"+playerName;
         }
         catch (FileNotFoundException e){
             throw new PlayerNotFoundException();
@@ -52,7 +50,7 @@ public class PlayerMenuController extends Controller{
 
     public PlayerMenuController(Player player){
         this.player = player;
-        playerDataPath = "../PlayersData/"+player.getName();
+        playerDataPath = "Phase_1/PlayersData/"+player.getName();
     }
 
     public void startProcessing(){
@@ -77,20 +75,33 @@ public class PlayerMenuController extends Controller{
                 } catch (FileNotFoundException e) {
                     System.err.println("Levels Not Found!");
                 }
-            }
+            } else
+                System.err.println("Invalid Input");
             input = scanner.nextLine().trim();
         }
     }
 
     private void runLevel(int levelId) throws FileNotFoundException {
-        String path = "DefaultGameData/LevelsInfo/level_"+levelId+".json";
-        Reader reader = new BufferedReader(new FileReader(path));
-
+        String path = "Phase_1/DefaultGameData/LevelsInfo/level_"+levelId+".json";
+        LevelController levelController = new LevelController(path, player);
+        levelController.startProcessing();
     }
 
     private void printLevels() throws FileNotFoundException {
-        Reader reader = new BufferedReader(new FileReader("DefaultGameData/LevelsInfo/level_1.json"));
-        System.out.println(gson.fromJson(reader, JsonObject.class));
+        int i = 1;
+        File levelFile = new File("Phase_1/DefaultGameData/LevelsInfo/level_1.json");
+        while (levelFile.exists()){
+            System.out.println("**********************************");
+            System.out.println("##############");
+            System.out.printf("## Level %02d ##\n", i);
+            System.out.println("##############");
+            Reader reader = new BufferedReader(new FileReader(levelFile));
+            JsonObject object = gson.fromJson(reader, JsonObject.class);
+            for(String s : object.keySet())
+                System.out.println(s + " : "+object.get(s).toString());
+            ++i;
+            levelFile = new File("Phase_1/DefaultGameData/LevelsInfo/level_"+i+".json");
+        }
     }
 
     private void loadSavedGame(String jsonFileName){
@@ -129,10 +140,10 @@ public class PlayerMenuController extends Controller{
                 sb.append("Item is At Max Level.\n");
         }
         System.out.println(sb);
-        System.out.println("Options:\n");
+        System.out.println("Options:");
         int i = 1;
         for(String s : upgradeableElements){
-            System.out.printf("%d- Upgrade %s\n", i, s);
+            System.out.printf("%02d- Upgrade %s\n", i, s);
             ++i;
         }
         int exit = i;

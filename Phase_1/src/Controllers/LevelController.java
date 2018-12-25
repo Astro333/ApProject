@@ -24,6 +24,7 @@ import Transportation.TransportationTool;
 import Transportation.Truck;
 import Utilities.Constants;
 import Utilities.Pair;
+import Utilities.ProcessableDeserializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.beans.property.BooleanProperty;
@@ -74,7 +75,7 @@ public class LevelController extends Controller {
 
     private transient final LevelData levelData; //don't serialize
     private transient final Random randomGenerator = new Random();//don't serialize
-    private transient final Player player;//only Serialize gameElementsLevel, name
+    private transient final Player player;//only Serialize levelGameElementsLevel, name
 
     private final IntegerProperty coin;//serialize
     private final Map map;//serialize
@@ -88,7 +89,8 @@ public class LevelController extends Controller {
     private final StringBuilder levelLog;//serialize
     private int timePassed;//serialize
     private final int cageLevel;//serialize
-    private final HashMap<String, Byte> gameElementsLevel;
+    // this one is set when player first starts game
+    private final HashMap<String, Byte> levelGameElementsLevel;
     private ChangeListener<Boolean> vehicleFinishedJob = new ChangeListener<>() {
         @Override
         public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -147,7 +149,7 @@ public class LevelController extends Controller {
     public LevelController(String pathToLevelJsonFile, Player player) throws FileNotFoundException {
         super();
         Reader reader = new BufferedReader(new FileReader(pathToLevelJsonFile));
-        Gson gson = new GsonBuilder().create();
+        Gson gson = new GsonBuilder().registerTypeAdapter(Processable.class, new ProcessableDeserializer()).create();
         levelData = gson.fromJson(reader, LevelData.class);
         RequirementsListener requirementsListener;
         levelRequirements = FXCollections.observableHashMap();
@@ -169,14 +171,14 @@ public class LevelController extends Controller {
         levelLog = new StringBuilder();
 
         this.player = player;
-        this.gameElementsLevel = new HashMap<>(player.getGameElementsLevel());
+        this.levelGameElementsLevel = new HashMap<>(player.getGameElementsLevel());
         this.map = map;
         this.helicopter = getHelicopterInstance();
         this.truck = getTruckInstance();
         this.well = getWellInstance();
         this.workshops = getWorkshopsInstance();
         this.timePassed = 0;
-        cageLevel = gameElementsLevel.get("Cage");
+        cageLevel = levelGameElementsLevel.get("Cage");
 
         if (helicopter != null) {
             helicopter.isAtTaskProperty().addListener(vehicleFinishedJob);
@@ -190,11 +192,11 @@ public class LevelController extends Controller {
                 workshop.isAtTaskProperty().addListener(workShopFinishedJob);
     }
 
-    public LevelController(SaveData saveData, Player player) throws FileNotFoundException{
-        this.gameElementsLevel = saveData.getGameElementsLevel();
+    public LevelController(SaveData saveData, Player player) throws FileNotFoundException {
+        this.levelGameElementsLevel = saveData.getGameElementsLevel();
         this.coin = new SimpleIntegerProperty(saveData.getCoin());
         this.workshops = new HashMap<>();
-        for(Workshop workshop : saveData.getWorkshops())
+        for (Workshop workshop : saveData.getWorkshops())
             workshops.put(workshop.getRealName(), workshop);
 
         this.helicopter = saveData.getHelicopter();
@@ -203,7 +205,7 @@ public class LevelController extends Controller {
         this.map = saveData.getMap();
         this.well = saveData.getWell();
         this.levelLog = new StringBuilder(saveData.getLevelLog());
-        cageLevel = gameElementsLevel.get("Cage");
+        cageLevel = levelGameElementsLevel.get("Cage");
         Reader reader = new BufferedReader(new FileReader(saveData.getPathToLevelJsonFile()));
         Gson gson = new GsonBuilder().create();
         levelData = gson.fromJson(reader, LevelData.class);
@@ -225,22 +227,22 @@ public class LevelController extends Controller {
     }
 
     private Helicopter getHelicopterInstance() {
-        if (levelData.getHelicopterStartingLevel() == null)
+        if (levelData.getHelicopterLevel() == null)
             return null;
-        return new Helicopter(gameElementsLevel.get("Helicopter"),
-                levelData.getHelicopterStartingLevel());
+        return new Helicopter(levelGameElementsLevel.get("Helicopter"),
+                levelData.getHelicopterLevel());
     }
 
     private Truck getTruckInstance() {
-        if (levelData.getTruckStartingLevel() == null)
+        if (levelData.getTruckLevel() == null)
             return null;
-        return new Truck(gameElementsLevel.get("Truck"),
-                levelData.getTruckStartingLevel());
+        return new Truck(levelGameElementsLevel.get("Truck"),
+                levelData.getTruckLevel());
     }
 
     private Well getWellInstance() {
-        byte level = levelData.getWellStartingLevel();
-        byte maxLevel = gameElementsLevel.get("Well");
+        byte level = levelData.getWellLevel();
+        byte maxLevel = levelGameElementsLevel.get("Well");
         Well well = null;
         try {
             well = new Well(maxLevel, level);
@@ -259,7 +261,7 @@ public class LevelController extends Controller {
         String[] ws = levelData.getWorkshops();
         for (int i = 0; i < ws.length; ++i) {
             String workshopName = ws[i];
-            int maxLevel = gameElementsLevel.get(workshopName);
+            int maxLevel = levelGameElementsLevel.get(workshopName);
             Workshop workshop;
             try {
                 workshop = Workshop.getInstance(workshopName, maxLevel,
@@ -360,7 +362,7 @@ public class LevelController extends Controller {
                     case "map":
                         System.out.print(map);
                         break;
-                    case "warehouse":
+                    case "depot":
                         System.out.print(map.getDepot());
                         break;
                     case "well":
@@ -375,6 +377,9 @@ public class LevelController extends Controller {
                         break;
                     case "helicopter":
                         System.out.print(helicopter);
+                        break;
+                    case "money":
+                        System.out.println("Money : " + coin.get());
                         break;
                     default:
                         System.err.println("Invalid Argument For Print Instruction.");
@@ -432,9 +437,9 @@ public class LevelController extends Controller {
         int y = randomGenerator.nextInt(map.cellsHeight);
         switch (type) {
             case "cat":
-                return new Cat(x, y, gameElementsLevel.get("Cat"));
+                return new Cat(x, y, levelGameElementsLevel.get("Cat"));
             case "dog":
-                return new Dog(x, y, gameElementsLevel.get("Dog"));
+                return new Dog(x, y, levelGameElementsLevel.get("Dog"));
         }
 
         String animalClassPath = Constants.getAnimalClassPath(type);
@@ -443,10 +448,9 @@ public class LevelController extends Controller {
         try {
             Class clazz = Class.forName(animalClassPath);
             Constructor constructor;
-            if(clazz.isAssignableFrom(Pet.class)){
+            if (clazz.isAssignableFrom(Pet.class)) {
                 constructor = clazz.getDeclaredConstructor(int.class, int.class);
-            }
-            else{
+            } else {
                 constructor = clazz.getDeclaredConstructor(int.class, int.class);
             }
             constructor.setAccessible(true);
@@ -492,6 +496,7 @@ public class LevelController extends Controller {
     private void cage(int x, int y) {
         map.cageWilds(x, y, cageLevel * 2);
     }
+
     //Todo
     private void saveGame(String jsonFileName) {
 

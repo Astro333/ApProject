@@ -9,7 +9,7 @@ public class Dog extends Animal {
     private final byte level;
 
     public Dog(int x, int y, byte level) {
-        super(x, y, AnimalType.Dog);
+        super(x, y, 1, 1, AnimalType.Dog);
         this.level = level;
     }
 

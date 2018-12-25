@@ -1,10 +1,11 @@
 {
   "inputs" : ["Sewing"],
   "inputsAmount":[1],
-  "outPuts":["Fabric"],
+  "outputs":["Fabric"],
   "outputsAmount":[1],
   "demonstrativeName":"Weaving Factory",
   "realName":"Weaving Workshop",
+  "productionTime":[15, 14, 13, 11, 8],
   "pathToGraphicsFolder" : null,
-  "maxMaxLevel":5
+  "maxMaxLevel":4
 }

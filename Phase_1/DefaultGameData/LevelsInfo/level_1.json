@@ -1,17 +1,12 @@
 {
-  "goals": [
-    "Coin",
-    "Egg",
-    "GuineaFowl"
-  ],
-  "goalsAmount": [
-    1000,
-    10,
-    5
-  ],
+  "goals": {
+    "Coin":1000,
+    "Egg":10,
+    "GuineaFowl":5
+  },
   "workshops": [
-    "DriedEggs",
-    "Cake"
+    "DriedEggsWorkshop",
+    "CakeWorkshop"
   ],
   "workshopsLevel": [
     0,
@@ -29,6 +24,13 @@
     3,
     1
   ],
+
+  "continent":"Africa",
+
+  "truckLevel":0,
+  "helicopterLevel":0,
+  "wellLevel":0,
+
   "levelId": 1,
   "startMoney": 1000,
   "goldenTime": 120,

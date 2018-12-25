@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 public abstract class TransportationTool {
     protected final byte maxLevel;
-    protected final byte maxMaxLevel = Constants.getElementMaxMaxLevel("truck");
+    protected final byte maxMaxLevel;
     protected byte level;
     protected int capacity;
     private int turnsRemainedToFinishTask = -1;
@@ -22,6 +22,11 @@ public abstract class TransportationTool {
     private transient final BooleanProperty isAtTask;
 
     TransportationTool(byte maxLevel, byte level){
+        if(this instanceof Helicopter)
+            maxMaxLevel = Constants.getElementMaxMaxLevel("Helicopter");
+        else
+            maxMaxLevel = Constants.getElementMaxMaxLevel("Truck");
+
         this.maxLevel = maxLevel;
         this.level = level;
         itemsInside = new HashMap<>();

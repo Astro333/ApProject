@@ -1,10 +1,13 @@
 {
   "inputs" : ["Egg"],
   "inputsAmount":[1],
-  "outPuts":["DriedEgg"],
+  "outputs":["DriedEgg"],
   "outputsAmount":[1],
   "demonstrativeName":"Egg Powder Plant",
   "realName":"DriedEggsWorkshop",
+
+  "productionTime":[15, 14, 13, 11, 8],
+
   "pathToGraphicsFolder" : null,
-  "maxMaxLevel":5
+  "maxMaxLevel":4
 }

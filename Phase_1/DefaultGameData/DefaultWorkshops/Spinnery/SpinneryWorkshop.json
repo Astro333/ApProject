@@ -1,10 +1,25 @@
 {
-  "inputs" : ["Wool"],
-  "inputsAmount":[1],
-  "outPuts":["Sewing"],
-  "outputsAmount":[1],
-  "demonstrativeName":"Spinnery",
-  "realName":"SpinneryWorkshop",
-  "pathToGraphicsFolder" : null,
-  "maxMaxLevel":5
+  "inputs": [
+    "Wool"
+  ],
+  "inputsAmount": [
+    1
+  ],
+  "outputs": [
+    "Sewing"
+  ],
+  "outputsAmount": [
+    1
+  ],
+  "demonstrativeName": "Spinnery",
+  "realName": "SpinneryWorkshop",
+  "pathToGraphicsFolder": null,
+  "productionTime": [
+    15,
+    14,
+    13,
+    11,
+    8
+  ],
+  "maxMaxLevel": 4
 }

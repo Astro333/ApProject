@@ -1,10 +1,11 @@
 {
   "inputs" : ["DriedEgg"],
   "inputsAmount":[1],
-  "outPuts":["Cake"],
+  "outputs":["Cake"],
   "outputsAmount":[1],
   "demonstrativeName":"Cookie Bakery",
   "realName":"CakeWorkshop",
+  "productionTime":[15, 14, 13, 11, 8],
   "pathToGraphicsFolder" : null,
-  "maxMaxLevel":5
+  "maxMaxLevel":4
 }

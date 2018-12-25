@@ -12,7 +12,7 @@ import static Items.Item.ItemType;
 public class Depot {
     private float storedThingsVolume = 0;
     private int capacity = 40;
-    private byte level = 1;
+    private byte level = 0;
     private final byte maxLevel;
     private final ObservableMap<ItemType, Integer> thingsStored;
 

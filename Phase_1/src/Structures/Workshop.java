@@ -23,6 +23,8 @@ public class Workshop {
     private final Processable[] outputs = null;
     private final Integer[] outputsAmount = null;
 
+    private final Byte[] productionTime = null;
+
     private final Byte position = null;
 
     private final Float pos_x = null;
@@ -52,7 +54,8 @@ public class Workshop {
 
     public static Workshop getInstance(String workshopName, int maxLevel,
                                        byte workshopPosition, String continent) throws FileNotFoundException {
-        String workshopDataFile = "../DefaultGameData/DefaultWorkshops/"+workshopName+".json";
+        workshopName = workshopName.replace("Workshop", "");
+        String workshopDataFile = "Phase_1/DefaultGameData/DefaultWorkshops/"+workshopName+"/"+workshopName+"Workshop.json";
 
         Scanner scanner = new Scanner(new File(workshopDataFile));
         StringBuilder stringBuilder = new StringBuilder(scanner.useDelimiter("\\A").next());
@@ -109,13 +112,7 @@ public class Workshop {
      * */
 
     public boolean startWorking(Depot depot){
-        /*
-        * Pseudo code:
-        * forEach input:
-        *   if (depot.hasAllInputs){
-        *       depot.removeItem(input, amount)
-        *   }
-        * */
+
         int multiplier = this.multiplier;
         int temp;
         for(int i = 0; i < inputs.length; ++i){
@@ -132,11 +129,11 @@ public class Workshop {
     }
 
     private int calculateTimeToFinishTask(){
-        return 5;
+        return productionTime[level];
     }
 
     public int getUpgradeCost(){
-        return Constants.getElementLevelUpgradeCost(realName, level+1);
+        return level == maxMaxLevel ? Integer.MIN_VALUE : Constants.getElementLevelUpgradeCost(realName, level+1);
     }
 
     public boolean isAtTask() {
@@ -158,5 +155,32 @@ public class Workshop {
 
     public byte getLevel() {
         return level;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("*********************************\n");
+        sb.append(demonstrativeName).append(" :\n").
+                append("Inputs: ");
+        for(int i = 0; i < inputs.length; ++i){
+            sb.append(inputs[i]).append(" : ").append(inputsAmount[i]);
+            if(i != inputs.length-1)
+                sb.append(", ");
+        }
+        sb.append("\n").append("Outputs: ");
+
+        for(int i = 0; i < outputs.length; ++i){
+            sb.append(outputs[i]).append(" : ").append(outputsAmount[i]);
+            if(i != outputs.length-1)
+                sb.append(", ");
+        }
+        sb.append("\n");
+        sb.append("Level: ").append(level).append(", MaxLevel: ").append(maxLevel).append(", TaskTime: ").append(calculateTimeToFinishTask()).append("\n");
+        if(isAtTask()){
+            sb.append("Time to finish current Task: ").append(timeToFinishTask);
+        } else
+            sb.append("No Task At Hand.\n");
+        sb.append("*********************************\n");
+        return sb.toString();
     }
 }

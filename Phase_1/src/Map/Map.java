@@ -65,9 +65,11 @@ public class Map {
 
     public Map(Depot depot, MapChangeListener<Processable, Integer> mapChangeListener){
         cells = new Cell[cellsWidth][cellsHeight];
-        for(Cell[] cellRow : cells)
-            for (Cell cell : cellRow)
-                cell.noGrassProperty().addListener(noGrassInCell);
+        for(int i = 0; i < cellsWidth; ++i)
+            for (int j = 0; j < cellsHeight; ++j) {
+                cells[i][j] = new Cell(i, j);
+                cells[i][j].noGrassProperty().addListener(noGrassInCell);
+            }
 
         wilds = new HashSet<>();
         pets = new HashSet<>();

@@ -1,10 +1,11 @@
 {
   "inputs" : ["Egg"],
   "inputsAmount":[1],
-  "outPuts":["Penguin"],
+  "outputs":["Penguin"],
   "outputsAmount":[1],
   "demonstrativeName":"Incubator",
   "realName":"IncubatorWorkshopAntarctica",
+  "productionTime":[10, 8, 6, 4, 2],
   "pathToGraphicsFolder" : null,
-  "maxMaxLevel":5
+  "maxMaxLevel":4
 }

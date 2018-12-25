@@ -1,10 +1,11 @@
 {
   "inputs" : ["CagedGrizzly", "CarnivalDress"],
   "inputsAmount":[1, 1],
-  "outPuts":["SpruceGrizzly"],
+  "outputs":["SpruceGrizzly"],
   "outputsAmount":[1],
   "demonstrativeName":"Fitting Room",
   "realName":"FittingRoomWorkshopPrairie",
+  "productionTime":[15, 14, 13, 11, 8],
   "pathToGraphicsFolder" : null,
-  "maxMaxLevel":5
+  "maxMaxLevel":4
 }

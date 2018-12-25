@@ -13,10 +13,10 @@ public class MainMenuController extends Controller {
     private final String PLAYER_NAME_REGEX;
 
     {
-        PLAY_AS_REGEX = "(?i:playAs\\s+as)\\s+[a-zA-Z0-9_]+";
+        PLAY_AS_REGEX = "(?i:play\\s+as)\\s+[a-zA-Z0-9_]+";
         SETTING_REGEX = "(?i:show\\s+setting)";
         EXIT_GAME_REGEX = "(?i:exit\\s+game)";
-        NEW_PLAYER_REGEX = "(?i:new player)";
+        NEW_PLAYER_REGEX = "(?i:new\\s+player)";
         PLAYER_NAME_REGEX = "[a-zA-Z0-9_]+";
         String s = "a";
         s.matches(NEW_PLAYER_REGEX);

@@ -31,3 +31,5 @@ hs_err_pid*
 .idea/modules.xml
 .idea/workspace.xml
 .idea/misc.xml
+/Phase_1/Out/
+/.idea/
