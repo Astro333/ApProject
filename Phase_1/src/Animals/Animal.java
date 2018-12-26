@@ -2,7 +2,8 @@ package Animals;
 
 import Interfaces.Processable;
 import Utilities.SUID;
-import javafx.beans.property.BooleanProperty;
+
+import java.util.Random;
 
 public abstract class Animal {
 
@@ -12,8 +13,33 @@ public abstract class Animal {
     protected int destinationX, destinationY;
     private final Long id;
     private final AnimalType type;
-    private transient BooleanProperty isTossed;
+    protected transient Random random;
 
+    protected void moveTowardDestination() {
+        if (x != destinationX && y != destinationY) {
+            if (random.nextBoolean()) {
+                if (x < destinationX)
+                    ++x;
+                else
+                    --x;
+            } else {
+                if (y < destinationY)
+                    ++y;
+                else
+                    --y;
+            }
+        } else if (x != destinationX) {
+            if (x < destinationX)
+                ++x;
+            else
+                --x;
+        } else if (y != destinationY) {
+            if (y < destinationY)
+                ++y;
+            else
+                --y;
+        }
+    }
 
     public void setX(int x) {
         this.x = x;
@@ -32,20 +58,9 @@ public abstract class Animal {
         this.runningSpeed = runningSpeed;
     }
 
-    public void setTossed(boolean isTossed) {
-        this.isTossed.set(isTossed);
-    }
 
     public AnimalType getType(){
         return type;
-    }
-
-    public BooleanProperty isTossedProperty() {
-        return isTossed;
-    }
-
-    public boolean isTossed() {
-        return isTossed.get();
     }
 
     public long getId() {

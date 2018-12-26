@@ -1,7 +1,6 @@
 package Animals.Wild;
 
 import Animals.Animal;
-import Items.Item;
 
 public abstract class Wild extends Animal {
     protected boolean isCaged = false;
@@ -14,17 +13,12 @@ public abstract class Wild extends Animal {
         super(x, y, speed, runningSpeed, type);
     }
 
-    public void destroy(Animal animal){
-        if (tossingBuffer < 0) {
-            animal.setTossed(true);
-            tossingBuffer = calculateTossingBuffer();
-        }
+    public int getTossingBuffer() {
+        return tossingBuffer;
     }
-    public void destroy(Item item){
-        if (tossingBuffer < 0) {
-            item.setTossed(true);
-            tossingBuffer = calculateTossingBuffer();
-        }
+
+    public void resetTossingBuffer() {
+        tossingBuffer = calculateTossingBuffer();
     }
 
     public boolean isCaged() {
@@ -37,19 +31,17 @@ public abstract class Wild extends Animal {
             cageBreakCountDown = timeToBreakCage;
         }
     }
-    public int[] updatePosition(){
-        int[] position = new int[2];
-        if (tossingBuffer > 0)
-            --tossingBuffer;
-        else
-            tossingBuffer = -1;
 
+    public int[] updatePosition(int cellsWidth, int cellsHeight) {
+        if (tossingBuffer > 0) {
+            --tossingBuffer;
+        } else {
+            tossingBuffer = -1;
+        }
         if(!isCaged){
-            x = destinationX;
-            y = destinationY;
-            /*
-            * implement movement Algorithm here.
-            * */
+            moveTowardDestination();
+            destinationX = random.nextInt(cellsWidth);
+            destinationY = random.nextInt(cellsHeight);
         }
         else {
             --cageBreakCountDown;
@@ -59,8 +51,6 @@ public abstract class Wild extends Animal {
             destinationX = x;
             destinationY = y;
         }
-        position[0] = x;
-        position[1] = y;
-        return position;
+        return new int[]{x, y};
     }
 }
