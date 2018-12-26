@@ -1,6 +1,7 @@
 package Map;
 
 import static Animals.Animal.AnimalType;
+
 import Animals.Animal;
 import Animals.Pet.Cat;
 import Animals.Pet.Dog;
@@ -16,30 +17,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 
+import java.lang.reflect.MalformedParametersException;
 import java.util.HashSet;
+import java.util.Iterator;
 
 public class Map {
 
-    private transient final ChangeListener<Boolean> tossedElementListener = new ChangeListener<>() {
-        @Override
-        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-            /*
-             * in Phase 2 when graphics is added,
-             * first must show "dying animal animation"
-             * then remove the animal from map
-             * */
-            if(((BooleanProperty)observable).getBean() instanceof Item) {
-                Item item = (Item) ((BooleanProperty) observable).getBean();
-                removeItem(item);
-            }
-            else if(((BooleanProperty)observable).getBean() instanceof Animal) {
-                Animal tossed = ((Animal) ((BooleanProperty) observable).getBean());
-                removeAnimal(tossed);
-            }
-            else
-                throw new RuntimeException("Fatal Error Occurred.");
-        }
-    };
     private transient final ChangeListener<Boolean> noGrassInCell = new ChangeListener<>() {
         @Override
         public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -63,9 +46,9 @@ public class Map {
     private final ObservableMap<AnimalType, Integer> animalsAmount;
     private final Depot depot;
 
-    public Map(Depot depot, MapChangeListener<Processable, Integer> mapChangeListener){
+    public Map(Depot depot, MapChangeListener<Processable, Integer> mapChangeListener) {
         cells = new Cell[cellsWidth][cellsHeight];
-        for(int i = 0; i < cellsWidth; ++i)
+        for (int i = 0; i < cellsWidth; ++i)
             for (int j = 0; j < cellsHeight; ++j) {
                 cells[i][j] = new Cell(i, j);
                 cells[i][j].noGrassProperty().addListener(noGrassInCell);
@@ -79,31 +62,36 @@ public class Map {
         animalsAmount = FXCollections.observableHashMap();
         animalsAmount.addListener(mapChangeListener);
     }
-    public void update(){
-        detectCollisions();
-        for (int i = 0; i < cellsWidth; ++i){
-            for(int j = 0; j < cellsHeight; ++j){
-                for(Wild wild : cells[i][j].getWilds().values()){
-                    int[] xy = wild.updatePosition();
-                    cells[i][j].removeAnimal(wild);
-                    cells[xy[0]][xy[1]].addAnimal(wild);
-                }
-                for(Animal animal : cells[i][j].getPets().values()){
-                    int[] xy;
-                    if(animal instanceof Pet) {
-                        xy = ((Pet) animal).updatePosition(this);
-                    }
-                    else if(animal instanceof Dog){
-                        xy = ((Dog) animal).updatePosition(this);
-                    }
-                    else if(animal instanceof Cat){
-                        xy = ((Cat) animal).updatePosition(this);
-                    }
-                    else
-                        throw new RuntimeException();
 
-                    cells[i][j].removeAnimal(animal);
-                    cells[xy[0]][xy[1]].addAnimal(animal);
+    public void update() {
+        detectCollisions();
+        for (int i = 0; i < cellsWidth; ++i) {
+            for (int j = 0; j < cellsHeight; ++j) {
+                Iterator<Wild> wildIterator = cells[i][j].getWilds().values().iterator();
+                while (wildIterator.hasNext()) {
+                    Wild wild = wildIterator.next();
+                    int[] xy = wild.updatePosition(cellsWidth, cellsHeight);
+                    wildIterator.remove();
+                    if (xy == null) {
+                        removeAnimal(wild);
+                    } else {
+                        cells[xy[0]][xy[1]].addAnimal(wild);
+                    }
+                }
+                Iterator<Animal> petIterator = cells[i][j].getPets().values().iterator();
+                while (petIterator.hasNext()) {
+                    Animal pet = petIterator.next();
+                    int[] xy;
+                    if (pet instanceof Pet) {
+                        xy = ((Pet) pet).updatePosition(this);
+                    } else if (pet instanceof Dog) {
+                        xy = ((Dog) pet).updatePosition(this);
+                    } else if (pet instanceof Cat) {
+                        xy = ((Cat) pet).updatePosition(this);
+                    } else
+                        throw new RuntimeException();
+                    petIterator.remove();
+                    cells[xy[0]][xy[1]].addAnimal(pet);
                 }
             }
         }
@@ -112,25 +100,23 @@ public class Map {
     private void detectCollisions() {
         for (Cell[] cellRow : cells) {
             for (Cell cell : cellRow) {
-                for (Wild wild : cell.getWilds().values()) {
-                    if (wild.isCaged())
+                Iterator<Wild> wildIterator = cell.getWilds().values().iterator();
+                while (wildIterator.hasNext()) {
+                    Wild wild = wildIterator.next();
+                    if (wild.isCaged() || wild.getTossingBuffer() >= 0)
                         continue;
-                    for (Item item : cell.getItems().values()) {
-                        wild.destroy(item);
-                    }
-                    for (Animal animal : cell.getPets().values()) {
-                        if(animal instanceof Cat){
-                            for(Item item : cell.getItems().values()){
-                                if(depot.addStorable(item.getType()))
-                                    cell.removeItem(item);
-                                else
-                                    break;
-                            }
+                    if (cell.getPets().size() > 0) {
+                        Animal thePet = cell.getPets().values().iterator().next();
+                        removeAnimal(thePet);
+                        wild.resetTossingBuffer();
+                        if (thePet instanceof Dog) {
+                            wildIterator.remove();
+                            removeAnimal(wild);
+                            break;
                         }
-                        wild.destroy(animal);
-                        if (animal instanceof Dog) {
-                            ((Dog) animal).kill(wild);
-                        }
+                    } else if (cell.getItems().size() > 0) {
+                        removeItem(cell.getItems().values().iterator().next());
+                        wild.resetTossingBuffer();
                     }
                 }
             }
@@ -154,47 +140,50 @@ public class Map {
         return wilds;
     }
 
-    public void addItem(Item item){
+    public void addItem(Item item) {
         cells[item.getX()][item.getY()].addItem(item);
         items.add(item);
-        item.isTossedProperty().addListener(tossedElementListener);
     }
 
-    public void removeItem(Item item){
+    public void removeItem(Item item) {
         cells[item.getX()][item.getY()].removeItem(item);
         items.remove(item);
     }
 
-    public void setGrassInCell(int x, int y, byte amount){
+    public void setGrassInCell(int x, int y, byte amount) {
         cells[x][y].setGrassInCell(amount);
     }
 
-    public Cell getCell(int x, int y){
-        if(x < cells.length)
-            if(y < cells[x].length)
+    public Cell getCell(int x, int y) {
+        if (x < cells.length)
+            if (y < cells[x].length)
                 return cells[x][y];
         return null;
     }
 
-    public void addAnimal(Animal animal){
+    public void addAnimal(Animal animal) {
         cells[animal.getX()][animal.getY()].addAnimal(animal);
-        animalsAmount.compute(animal.getType(), (k, v) -> v+1);
-        if(animal instanceof Wild)
+
+        if (animalsAmount.containsKey(animal.getType()))
+            animalsAmount.compute(animal.getType(), (k, v) -> v + 1);
+        else
+            animalsAmount.put(animal.getType(), 1);
+
+        if (animal instanceof Wild)
             wilds.add((Wild) animal);
         else
             pets.add(animal);
-        animal.isTossedProperty().addListener(tossedElementListener);
     }
 
-    public Cell[][] getCells(){
+    public Cell[][] getCells() {
         return cells;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < cellsWidth; ++i){
-            for(int j = 0; j < cellsHeight; ++j)
+        for (int i = 0; i < cellsWidth; ++i) {
+            for (int j = 0; j < cellsHeight; ++j)
                 sb.append(cells[i][j].toString());
         }
         return sb.toString();
@@ -204,14 +193,14 @@ public class Map {
         cells[x][y].cageWilds(timeToBreakCage);
     }
 
-    public Depot getDepot(){
+    public Depot getDepot() {
         return depot;
     }
 
     public void removeAnimal(Animal animal) {
         cells[animal.getX()][animal.getY()].removeAnimal(animal);
-        animalsAmount.compute(animal.getType(), (k, v) -> v-1);
-        if(animal instanceof Wild)
+        animalsAmount.compute(animal.getType(), (k, v) -> v - 1);
+        if (animal instanceof Wild)
             wilds.remove(animal);
         else
             pets.remove(animal);
