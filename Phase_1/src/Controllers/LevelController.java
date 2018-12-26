@@ -56,21 +56,25 @@ public class LevelController extends Controller {
     private transient final String WELL_REGEX;
     private transient final String START_WORKSHOP_REGEX;
     private transient final String UPGRADE_REGEX;
+    private transient final String VEHICLE_GO_REGEX;
     private transient final String PRINT_REGEX;
     private transient final String TURN_REGEX;
     private transient final String SHOW_TRANSPORTATION_TOOL_MENU;
 
     {
-        PLANT_REGEX = "plant\\s+\\d+\\s+\\d+";
-        CAGE_REGEX = "cage\\s+\\d+\\s+\\d+";
-        BUY_REGEX = "buy\\s+[a-z]+";
-        PICKUP_REGEX = "pickup\\s+\\d+\\s+\\d+";
-        WELL_REGEX = "well";
-        START_WORKSHOP_REGEX = "start\\s+[a-z]+";
-        UPGRADE_REGEX = "upgrade\\s+[a-z]+";
-        PRINT_REGEX = "print\\s+[a-z]+";
-        TURN_REGEX = "turn\\s+[1-9]\\d*";
-        SHOW_TRANSPORTATION_TOOL_MENU = "show\\s+((truck)|(helicopter))\\s+menu";
+        PLANT_REGEX = "(?i:plant\\s+\\d+\\s+\\d+)";
+        CAGE_REGEX = "(?i:cage\\s+\\d+\\s+\\d+)";
+        BUY_REGEX = "(?i:buy\\s+[a-z]+)";
+        PICKUP_REGEX = "(?i:pickup\\s+\\d+\\s+\\d+)";
+        WELL_REGEX = "(?i:well)";
+        VEHICLE_GO_REGEX = "(?i:((helicopter)|(truck))\\s+go)";
+        START_WORKSHOP_REGEX = "(?i:start\\s+[a-z]+)";
+        UPGRADE_REGEX = "(?i:upgrade\\s+[a-z]+)";
+        PRINT_REGEX = "(?i:print\\s+[a-z]+)";
+        TURN_REGEX = "(?i:turn\\s+[1-9]\\d*)";
+        SHOW_TRANSPORTATION_TOOL_MENU = "(?i:show\\s+((truck)|(helicopter))\\s+menu)";
+        String s = "s";
+        s.matches(VEHICLE_GO_REGEX);
     }
 
     private transient final LevelData levelData; //don't serialize
@@ -253,11 +257,10 @@ public class LevelController extends Controller {
     }
 
     private HashMap<String, Workshop> getWorkshopsInstance() {
-        HashMap<String, Workshop> workshops;
         if (levelData.getWorkshops().length == 0) {
             return null;
         }
-        workshops = new HashMap<>();
+        HashMap<String, Workshop> workshops = new HashMap<>();
         String[] ws = levelData.getWorkshops();
         for (int i = 0; i < ws.length; ++i) {
             String workshopName = ws[i];
@@ -275,27 +278,27 @@ public class LevelController extends Controller {
     }
 
     public void startProcessing() {
-        String input = scanner.nextLine().trim().toLowerCase();
+        String input = scanner.nextLine().trim();
 
-        while (!(input.equals("exit level"))) {
+        while (!(input.toLowerCase().equals("exit level"))) {
             if (input.matches(PLANT_REGEX)) {
-                String[] s = input.replaceFirst("plant\\s+", "").
+                String[] s = input.replaceFirst("(?i:plant\\s+)", "").
                         split("\\s+");
                 plant(Integer.parseInt(s[0]), Integer.parseInt(s[1]));
 
             } else if (input.matches(CAGE_REGEX)) {
 
-                String[] s = input.replaceFirst("cage\\s+", "").
+                String[] s = input.replaceFirst("(?:cage\\s+)", "").
                         split("\\s+");
                 cage(Integer.parseInt(s[0]), Integer.parseInt(s[1]));
 
             } else if (input.matches(PICKUP_REGEX)) {
-                String[] s = input.replaceFirst("pickup\\s+", "").
+                String[] s = input.replaceFirst("(?i:pickup\\s+)", "").
                         split("\\s+");
                 pickup(Integer.parseInt(s[0]), Integer.parseInt(s[1]));
 
             } else if (input.matches(BUY_REGEX)) {
-                String s = input.replaceFirst("buy\\s+", "");
+                String s = input.replaceFirst("(?i:buy\\s+)", "");
                 int cost = Constants.getProductBuyCost(s);
                 if (cost < 0) {
                     System.err.println("No Such Animal In Existence.");
@@ -314,8 +317,8 @@ public class LevelController extends Controller {
             } else if (input.matches(WELL_REGEX)) {
                 well();
             } else if (input.matches(UPGRADE_REGEX)) {
-                String name = input.replaceFirst("upgrade\\s+", "");
-                switch (name) {
+                String name = input.replaceFirst("(?i:upgrade\\s+)", "");
+                switch (name.toLowerCase()) {
                     case "well":
                         upgradeWell();
                         break;
@@ -408,6 +411,13 @@ public class LevelController extends Controller {
                     } else
                         System.err.println("This Level Lacks Truck.");
                 }
+            } else if (input.matches(VEHICLE_GO_REGEX)) {
+                String vehicle = input.split("\\s+")[0];
+                if (vehicle.equals("truck")) {
+                    truckGo();
+                } else
+                    helicopterGo();
+
             } else {
                 System.err.println("Invalid Command.");
             }
@@ -539,6 +549,7 @@ public class LevelController extends Controller {
     private void upgradeWell() {
         int cost = well.getUpgradePrice();
         if (coin.get() >= cost) {
+            System.err.println();
             if (well.upgrade()) {
                 coin.subtract(cost);
                 System.out.println("Well was upgraded to level " + well.getLevel() + "\n");
