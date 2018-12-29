@@ -50,6 +50,14 @@ public class Player {
         return gson.fromJson(object, Player.class);
     }
 
+    public static void updatePlayer(Player player) throws IOException {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Writer writer = new BufferedWriter(new FileWriter("Phase_1/PlayersData/"+player.getName()+"/progress.json"));
+        gson.toJson(player, writer);
+        writer.flush();
+        writer.close();
+    }
+
     public HashMap<String, Byte> getGameElementsLevel() {
         return gameElementsLevel;
     }

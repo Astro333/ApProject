@@ -13,7 +13,9 @@ public class RequirementsListener {
                 @Override
                 public void onChanged(Change<? extends Processable, ? extends Integer> change) {
                     if (levelController.getLevelRequirements().containsKey(change.getKey())) {
-                        if (change.getValueAdded() >= levelController.getLevelRequirements().get(change.getKey())) {
+                        int newValue = change.getValueAdded();
+                        levelController.getLevelRequirements().computeIfPresent(change.getKey(), (k, v)->newValue);
+                        if (newValue >= levelController.levelData.getGoals().get(change.getKey())) {
                             levelController.getLevelRequirements().remove(change.getKey());
                             levelController.setAchieved(change.getKey());
                         }

@@ -1,7 +1,7 @@
 {
   "inputs" : ["Egg"],
   "inputsAmount":[1],
-  "outputs":["DriedEgg"],
+  "outputs":["DriedEggs"],
   "outputsAmount":[1],
   "demonstrativeName":"Egg Powder Plant",
   "realName":"DriedEggsWorkshop",

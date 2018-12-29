@@ -1,5 +1,5 @@
 {
-  "inputs" : ["DriedEgg"],
+  "inputs" : ["DriedEggs"],
   "inputsAmount":[1],
   "outputs":["Cake"],
   "outputsAmount":[1],

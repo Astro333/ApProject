@@ -2,6 +2,7 @@ package Controllers;
 
 import Exceptions.PlayerNotFoundException;
 import Player.Player;
+
 import java.io.IOException;
 
 public class MainMenuController extends Controller {
@@ -40,15 +41,15 @@ public class MainMenuController extends Controller {
                     if (!input.matches(PLAYER_NAME_REGEX)) {
                         System.err.println("Invalid Player Name, Try Again.\nEnter Your Name:");
                         input = scanner.nextLine().trim();
-                    } else if(Player.exists(input)){
+                    } else if (Player.exists(input)) {
                         System.err.println("A player with this name already exists.");
-                    } else if(input.equals("cancel process")){
+                    } else if (input.equals("cancel process")) {
                         wasCanceled = true;
                         break;
                     } else
                         break;
                 }
-                if(!wasCanceled) {
+                if (!wasCanceled) {
                     try {
                         Player.create(input);
                     } catch (IOException e) {
@@ -58,8 +59,13 @@ public class MainMenuController extends Controller {
                 }
             } else if (input.matches(SETTING_REGEX)) {
                 /*
-                *
-                * */
+                 *
+                 * */
+            } else if (input.matches("help")) {
+                System.out.println("Commands:");
+                System.out.println("\t\"new player\": create a new player");
+                System.out.println("\t\"play as [User_Name]\"");
+                System.out.println("\t\"show setting\"");
             } else {
                 System.err.println("Invalid Command");
             }

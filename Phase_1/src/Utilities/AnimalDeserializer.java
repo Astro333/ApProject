@@ -12,8 +12,8 @@ public class AnimalDeserializer implements JsonDeserializer<Animal> {
     @Override
     public Animal deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
         try {
-            Class animalClass = Class.forName(Constants.getAnimalClassPath(
-                    jsonElement.getAsJsonObject().get("type").getAsString().toLowerCase()));
+            Class animalClass = Class.forName(
+                    Constants.getAnimalClassPath(Animal.AnimalType.getType(jsonElement.getAsJsonObject().get("type").getAsString())));
             return jsonDeserializationContext.deserialize(jsonElement, animalClass);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();

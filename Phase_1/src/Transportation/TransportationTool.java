@@ -3,6 +3,9 @@ package Transportation;
 
 
 import static Items.Item.ItemType;
+
+import Animals.Animal;
+import Interfaces.Processable;
 import Items.Item;
 import Utilities.Constants;
 import javafx.beans.property.BooleanProperty;
@@ -16,11 +19,12 @@ public abstract class TransportationTool {
     protected byte level;
     protected int capacity;
     private int turnsRemainedToFinishTask = -1;
-    protected final HashMap<ItemType, Integer> itemsInside;
-    protected int itemsInsidePrice = 0;
-    protected int itemsInsideVolume = 0;
-    private transient final BooleanProperty isAtTask;
 
+    protected final HashMap<? super Processable, Integer> itemsInside;
+
+    protected int itemsInsidePrice = 0;
+    protected double itemsInsideVolume = 0;
+    private transient final BooleanProperty isAtTask;
     TransportationTool(byte maxLevel, byte level){
         if(this instanceof Helicopter)
             maxMaxLevel = Constants.getElementMaxMaxLevel("Helicopter");
@@ -31,6 +35,10 @@ public abstract class TransportationTool {
         this.level = level;
         itemsInside = new HashMap<>();
         isAtTask = new SimpleBooleanProperty(this, "isAtTask", false);
+    }
+
+    public HashMap<? super Processable, Integer> getItemsInside() {
+        return itemsInside;
     }
 
     public BooleanProperty isAtTaskProperty() {
@@ -82,6 +90,10 @@ public abstract class TransportationTool {
     public boolean hasCapacityFor(ItemType item, int amount){
         return Constants.getProductSize(item.toString()) * amount + itemsInsideVolume <= capacity;
     }
+
+    public boolean hasCapacityFor(Animal.AnimalType type, int amount){
+        return Constants.getAnimalDepotSize(type)*amount+itemsInsideVolume <= capacity;
+    }
     public boolean addAll(ItemType item, int amount){
         if(hasCapacityFor(item, amount)) {
             if(this instanceof Helicopter)
@@ -95,6 +107,7 @@ public abstract class TransportationTool {
             else {
                 itemsInside.put(item, amount);
             }
+            itemsInsideVolume += Constants.getProductSize(item.toString())*amount;
             return true;
         }
         return false;
@@ -103,4 +116,6 @@ public abstract class TransportationTool {
     public byte getLevel() {
         return level;
     }
+
+    public abstract void printElements();
 }

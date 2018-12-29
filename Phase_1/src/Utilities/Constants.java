@@ -5,6 +5,7 @@ import Interfaces.Processable;
 import Items.Item;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.FileInputStream;
@@ -14,6 +15,8 @@ import java.io.Reader;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 
 public class Constants {
 
@@ -21,7 +24,10 @@ public class Constants {
     private static HashMap<String, Integer> productsBuyCost;
     private static HashMap<String, Integer> productsSaleCost;
 
-    private static HashMap<String, String> animalsClassName;
+    private static HashMap<Animal.AnimalType, Integer> animalsBuyCost;
+    private static HashMap<Animal.AnimalType, Float> animalsDepotSize;
+    private static HashMap<Animal.AnimalType, String> animalsClassName;
+
 
     private static HashMap<String, Integer[]> elementsLevelUpgradeCost;
     private static HashMap<String, Integer[]> elementsMaxLevelUpgradeCost;
@@ -30,15 +36,20 @@ public class Constants {
 
     private static HashMap<String, Pair<Integer, Integer>> workshopsPosition; // from continent
 
-    private static HashMap<String, Processable> processableElements;
+    private static HashMap<String, Processable> processableElements;//Case Sensitive
 
     static {
-        processableElements = new HashMap<>();
-        for (Item.ItemType itemType : Item.ItemType.values())
-            processableElements.put(itemType.toString(), itemType);
+        try {
+            processableElements = new HashMap<>();
+            for (Item.ItemType itemType : Item.ItemType.values()) {
+                processableElements.put(itemType.toString(), itemType);
+            }
 
-        for (Animal.AnimalType animalType : Animal.AnimalType.values())
-            processableElements.put(animalType.toString(), animalType);
+            for (Animal.AnimalType animalType : Animal.AnimalType.values())
+                processableElements.put(animalType.toString(), animalType);
+        } catch (Exception e) {
+            System.err.println("here The Mess");
+        }
     }
 
     static {
@@ -76,15 +87,42 @@ public class Constants {
         }
         productsBuyCost = gson.fromJson(reader, type);
 
-        type = new TypeToken<HashMap<String, String>>() {
-        }.getType();
         try {
             reader = new InputStreamReader(new FileInputStream(
                     "Phase_1/DefaultGameData/animalsClassPath.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        animalsClassName = gson.fromJson(reader, type);
+        JsonObject object = gson.fromJson(reader, JsonObject.class);
+        animalsClassName = new HashMap<>();
+        for (String animalName : object.keySet()) {
+            animalsClassName.put(Animal.AnimalType.getType(animalName), object.get(animalName).getAsString());
+        }
+
+        try {
+            reader = new InputStreamReader(new FileInputStream(
+                    "Phase_1/DefaultGameData/animalsBuyCost.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        object = gson.fromJson(reader, JsonObject.class);
+        animalsBuyCost = new HashMap<>();
+        for (String animalName : object.keySet()) {
+            animalsBuyCost.put((Animal.AnimalType.getType(animalName)), object.get(animalName).getAsInt());
+        }
+
+        try {
+            reader = new InputStreamReader(new FileInputStream(
+                    "Phase_1/DefaultGameData/animalsDepotSize.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        object = gson.fromJson(reader, JsonObject.class);
+        animalsDepotSize = new HashMap<>();
+        for (String animalName : object.keySet()) {
+            animalsDepotSize.put((Animal.AnimalType.getType(animalName)), object.get(animalName).getAsFloat());
+        }
+
 
         type = new TypeToken<HashMap<String, Integer[]>>() {
         }.getType();
@@ -107,25 +145,32 @@ public class Constants {
         // ToDo: Essential to be set for Phase_2:
         workshopsPosition = new HashMap<>();
         workshopsDropZone = new HashMap<>();
-        for(int i = 1; i <= 6; ++i){
-            workshopsPosition.put("Africa"+i, new Pair<>(0, 0));
-            workshopsPosition.put("Antarctica"+i, new Pair<>(0, 0));
-            workshopsPosition.put("Prairie"+i, new Pair<>(0, 0));
-            workshopsPosition.put("SouthAmerica"+i, new Pair<>(0, 0));
-            workshopsPosition.put("Russia"+i, new Pair<>(0, 0));
+        for (int i = 1; i <= 6; ++i) {
+            workshopsPosition.put("Africa" + i, new Pair<>(0, 0));
+            workshopsPosition.put("Antarctica" + i, new Pair<>(0, 0));
+            workshopsPosition.put("Prairie" + i, new Pair<>(0, 0));
+            workshopsPosition.put("SouthAmerica" + i, new Pair<>(0, 0));
+            workshopsPosition.put("Russia" + i, new Pair<>(0, 0));
 
-            workshopsDropZone.put("Africa"+i, new Pair<>(i, i));
-            workshopsDropZone.put("Antarctica"+i, new Pair<>(i, i));
-            workshopsDropZone.put("Prairie"+i, new Pair<>(i, i));
-            workshopsDropZone.put("SouthAmerica"+i, new Pair<>(i, i));
-            workshopsDropZone.put("Russia"+i, new Pair<>(i, i));
+            workshopsDropZone.put("Africa" + i, new Pair<>(i, i));
+            workshopsDropZone.put("Antarctica" + i, new Pair<>(i, i));
+            workshopsDropZone.put("Prairie" + i, new Pair<>(i, i));
+            workshopsDropZone.put("SouthAmerica" + i, new Pair<>(i, i));
+            workshopsDropZone.put("Russia" + i, new Pair<>(i, i));
         }
-
         elementsMaxLevelUpgradeCost = gson.fromJson(reader, type);
     }
 
+    public static float getAnimalDepotSize(Animal.AnimalType type){
+        return animalsDepotSize.getOrDefault(type, -1F);
+    }
+
     public static byte getElementMaxMaxLevel(String element) {
-        return (byte)elementsMaxLevelUpgradeCost.get(element).length;
+        return (byte) (elementsMaxLevelUpgradeCost.get(element).length);
+    }
+
+    public static Integer getAnimalBuyCost(Animal.AnimalType type) {
+        return animalsBuyCost.getOrDefault(type, Integer.MIN_VALUE);
     }
 
     public static Float getProductSize(String product) {
@@ -137,7 +182,7 @@ public class Constants {
     }
 
     public static Integer getProductBuyCost(String product) {
-        return productsBuyCost.getOrDefault(product, null);
+        return productsBuyCost.getOrDefault(product, Integer.MIN_VALUE);
     }
 
     public static Pair<Integer, Integer> getWorkshopDropZone(String continent, byte position) {
@@ -153,11 +198,11 @@ public class Constants {
     }
 
     public static int getElementMaxLevelUpgradeCost(String element, int nextLevel) {
-        return elementsMaxLevelUpgradeCost.get(element)[nextLevel];
+        return elementsMaxLevelUpgradeCost.get(element)[nextLevel-1];
     }
 
-    public static String getAnimalClassPath(String animal) {
-        return animalsClassName.getOrDefault(animal.toLowerCase(), null);
+    public static String getAnimalClassPath(Animal.AnimalType animal) {
+        return animalsClassName.getOrDefault(animal, null);
     }
 
     public static Processable getProcessableElement(String name) {

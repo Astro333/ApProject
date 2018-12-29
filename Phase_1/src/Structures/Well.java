@@ -9,10 +9,11 @@ public class Well {
     private byte level = 0;
     private byte storedWater;
     private byte capacity;
+
     private int timeRemainedToRefill = -1;
+
     private final byte maxLevel;
     private final byte maxMaxLevel = 3;
-
     public Well(byte maxLevel) throws IllegalConstructorArgumentException {
         if (maxLevel > maxMaxLevel)
             throw new IllegalConstructorArgumentException();
@@ -25,6 +26,11 @@ public class Well {
         this.maxLevel = maxLevel;
         this.level = level;
         this.capacity = level == maxMaxLevel ? 100 : ((byte)(5 + level*(level+3)/2));
+        storedWater = capacity;
+    }
+
+    public int getTimeRemainedToRefill() {
+        return timeRemainedToRefill;
     }
 
     public byte getLevel() {
@@ -40,15 +46,13 @@ public class Well {
             --storedWater;
     }
 
-    public void update(){
+    public void update(int turns){
         if(isRefilling){
+            timeRemainedToRefill -= turns;
             if(timeRemainedToRefill <= 0){
                 storedWater = capacity;
                 timeRemainedToRefill = -1;
                 isRefilling = false;
-            }
-            else {
-                --timeRemainedToRefill;
             }
         }
     }

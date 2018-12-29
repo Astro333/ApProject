@@ -2,6 +2,7 @@ package Animals.Pet;
 
 import Animals.Animal;
 import Animals.Wild.Wild;
+import Items.Item;
 import Map.Map;
 
 import java.util.HashSet;

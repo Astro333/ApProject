@@ -35,16 +35,16 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.Reader;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 
+import Map.GraphicalCell;
+import Map.MapGraphics;
 
 // this Controller is Used For Any LevelData Being Played
 public class LevelController extends Controller {
@@ -56,7 +56,10 @@ public class LevelController extends Controller {
     private transient final String WELL_REGEX;
     private transient final String START_WORKSHOP_REGEX;
     private transient final String UPGRADE_REGEX;
-    private transient final String VEHICLE_GO_REGEX;
+    private transient final String HELICOPTER_GO_REGEX;
+    private transient final String TRUCK_GO_REGEX;
+    private transient final String VEHICLE_ADD_REGEX;
+    private transient final String VEHICLE_CLEAR_REGEX;
     private transient final String PRINT_REGEX;
     private transient final String TURN_REGEX;
     private transient final String SHOW_TRANSPORTATION_TOOL_MENU;
@@ -67,23 +70,42 @@ public class LevelController extends Controller {
         BUY_REGEX = "(?i:buy\\s+[a-z]+)";
         PICKUP_REGEX = "(?i:pickup\\s+\\d+\\s+\\d+)";
         WELL_REGEX = "(?i:well)";
-        VEHICLE_GO_REGEX = "(?i:((helicopter)|(truck))\\s+go)";
+        HELICOPTER_GO_REGEX = "(?i:helicopter\\s+go)";
+        TRUCK_GO_REGEX = "(?i:truck\\s+go)";
+        VEHICLE_ADD_REGEX = "(?i:((helicopter)|(truck))\\s+add\\s+[a-zA-Z]+\\s+\\d+)";
+        VEHICLE_CLEAR_REGEX = "(?i:((helicopter)|(truck))\\s+clear)";
         START_WORKSHOP_REGEX = "(?i:start\\s+[a-z]+)";
         UPGRADE_REGEX = "(?i:upgrade\\s+[a-z]+)";
         PRINT_REGEX = "(?i:print\\s+[a-z]+)";
         TURN_REGEX = "(?i:turn\\s+[1-9]\\d*)";
         SHOW_TRANSPORTATION_TOOL_MENU = "(?i:show\\s+((truck)|(helicopter))\\s+menu)";
         String s = "s";
-        s.matches(VEHICLE_GO_REGEX);
+        s.matches(VEHICLE_ADD_REGEX);
     }
 
-    private transient final LevelData levelData; //don't serialize
+    private transient final String PLAYER_ADD_REGEX;
+    private transient final String FILL_WELL_IMMEDIATELY;
+    private transient final String ADD_ELEMENT_TO_REGEX;
+    private transient final String ADD_ELEMENT_REGEX;
+
+    {
+        PLAYER_ADD_REGEX = "(?i:player.add\\s+[a-zA-Z]+\\s+\\d+)";
+        FILL_WELL_IMMEDIATELY = "(?i:fill\\s+well\\s+immediately)";
+        ADD_ELEMENT_TO_REGEX = "(?i:add\\s+[a-zA-Z]+\\s+\\d+\\s+to\\s+\\d+\\s+\\d+)";
+        ADD_ELEMENT_REGEX = "(?i:add\\s+[a-zA-Z]+\\s+\\d+)";
+        String s = "s";
+        s.matches(ADD_ELEMENT_REGEX);
+    }
+
+    public transient final LevelData levelData; //don't serialize
     private transient final Random randomGenerator = new Random();//don't serialize
     private transient final Player player;//only Serialize levelGameElementsLevel, name
 
     private final IntegerProperty coin;//serialize
     private final Map map;//serialize
     private boolean levelIsFinished = false;//serialize
+
+    private boolean cheatsEnabled = false;
 
     private final ObservableMap<Processable, Integer> levelRequirements;//serialize
     private final HashMap<String, Workshop> workshops;//serialize
@@ -93,6 +115,7 @@ public class LevelController extends Controller {
     private final StringBuilder levelLog;//serialize
     private int timePassed;//serialize
     private final int cageLevel;//serialize
+    private int timeRemainedToSpawnWild = 3;//serialize
     // this one is set when player first starts game
     private final HashMap<String, Byte> levelGameElementsLevel;
     private ChangeListener<Boolean> vehicleFinishedJob = new ChangeListener<>() {
@@ -133,11 +156,15 @@ public class LevelController extends Controller {
                             animal.setX(dropZone.getKey());
                             animal.setY(dropZone.getValue());
                             map.addAnimal(animal);
+                            System.out.println(workshop.getDemonstrativeName() + " Produced " + animal.getType() +
+                                    " At (" + dropZone.getKey() + ", " + dropZone.getValue() + ")");
                             ++j;
                         }
                     } else if (outputs[i] instanceof Item.ItemType) {
                         while (j < amounts[i] * processingMultiplier) {
                             map.addItem(new Item((Item.ItemType) outputs[i], dropZone.getKey(), dropZone.getValue()));
+                            System.out.println(workshop.getDemonstrativeName() + " Produced " + outputs[i] +
+                                    " At (" + dropZone.getKey() + ", " + dropZone.getValue() + ")");
                             ++j;
                         }
                     }
@@ -191,9 +218,28 @@ public class LevelController extends Controller {
         if (truck != null) {
             truck.isAtTaskProperty().addListener(vehicleFinishedJob);
         }
-        if (workshops != null)
-            for (Workshop workshop : workshops.values())
+        if (workshops != null) {
+            for (Workshop workshop : workshops.values()) {
                 workshop.isAtTaskProperty().addListener(workShopFinishedJob);
+            }
+        }
+        for (int i = 0; i < map.cellsWidth; ++i) {
+            for (int j = 0; j < map.cellsHeight; ++j) {
+                synchronized (MapGraphics.latch) {
+                    map.getGraphics().getMapCells()[i][j].setOnMouseClicked(event -> {
+                        GraphicalCell src = (GraphicalCell) event.getSource();
+                        switch (event.getButton()) {
+                            case PRIMARY:
+                                plant(src.getPos_X(), src.getPos_Y());
+                                break;
+                            case SECONDARY:
+                                System.out.println(map.getCell(src.getPos_X(), src.getPos_Y()));
+                                break;
+                        }
+                    });
+                }
+            }
+        }
     }
 
     public LevelController(SaveData saveData, Player player) throws FileNotFoundException {
@@ -299,7 +345,7 @@ public class LevelController extends Controller {
 
             } else if (input.matches(BUY_REGEX)) {
                 String s = input.replaceFirst("(?i:buy\\s+)", "");
-                int cost = Constants.getProductBuyCost(s);
+                int cost = Constants.getAnimalBuyCost(Animal.AnimalType.getType(s));
                 if (cost < 0) {
                     System.err.println("No Such Animal In Existence.");
                 } else {
@@ -307,7 +353,7 @@ public class LevelController extends Controller {
                     if (coin.get() >= cost) {
                         if (animal != null) {
                             map.addAnimal(animal);
-                            coin.subtract(cost);
+                            coin.set(coin.get() - cost);
                             System.out.println(s + " Was Bought.");
                         } else
                             System.err.println("No Such Animal In Existence.");
@@ -337,7 +383,7 @@ public class LevelController extends Controller {
                     int cost = workshop.getUpgradeCost();
                     if (coin.get() >= cost) {
                         if (workshop.upgrade()) {
-                            coin.subtract(cost);
+                            coin.set(coin.get() - cost);
                             System.out.println(name + " was upgraded to level " + workshop.getLevel() + "\n");
                         } else {
                             System.err.println(name + " is At Maximum LevelData.");
@@ -364,6 +410,28 @@ public class LevelController extends Controller {
                         break;
                     case "map":
                         System.out.print(map);
+                        break;
+                    case "pets":
+                        for (Animal animal : map.getPets())
+                            System.out.println(animal);
+                        break;
+
+                    case "animals":
+                        System.out.println("Pets:");
+                        if (map.getPets().size() > 0) {
+                            for (Animal animal : map.getPets()) {
+                                System.out.println("\t" + animal);
+                            }
+                        } else
+                            System.out.println("\tNone.");
+
+                        System.out.println("Wilds:");
+                        if (map.getWilds().size() > 0) {
+                            for (Wild wild : map.getWilds()) {
+                                System.out.println("\t" + wild);
+                            }
+                        } else
+                            System.out.println("\tNone.");
                         break;
                     case "depot":
                         System.out.print(map.getDepot());
@@ -396,63 +464,240 @@ public class LevelController extends Controller {
                 String type = input.split("\\s+")[1];
                 if (type.equals("helicopter")) {
                     if (helicopter != null) {
+                        input = scanner.nextLine().trim();
+                        boolean setToGo = false;
                         while (!input.matches("exit helicopter")) {
-                            input = scanner.nextLine().trim().toLowerCase();
+                            if (input.matches("(?i:add\\s+[a-zA-Z]+\\s+\\d+)")) {
+                                String[] s = input.split("\\s+");
+                                int amount = Integer.parseInt(s[2]);
+                                ItemType itemType = ItemType.getType(s[1]);
+                                if (itemType == null || itemType == ItemType.Coin) {
+                                    System.err.println("Invalid element type.");
+                                } else {
+                                    addItemsToHelicopter(itemType, amount);
+                                }
+                            } else if (input.matches("(?i:print\\s+items)")) {
+                                helicopter.printElements();
+                            } else if (input.matches("(?i:print)")) {
+                                System.out.println(helicopter);
+                            } else if (input.matches(HELICOPTER_GO_REGEX)) {
+                                if (helicopterGo()) {
+                                    setToGo = true;
+                                    break;
+                                }
+                            } else if (input.toLowerCase().equals("help")) {
+                                System.out.println("Commands:");
+                                System.out.println("\t\"print items\"");
+                                System.out.println("\t\"print\"");
+                                System.out.println("\t\"add [Item_Type] [count]\"");
+                                System.out.println("\t\"exit helicopter\"");
+                            } else
+                                System.err.println("Invalid Input");
+                            input = scanner.nextLine().trim();
                         }
+                        if(!setToGo)
+                            clearHelicopter();
                     } else
                         System.err.println("This Level Lacks Helicopter.");
                 } else {
                     if (truck != null) {
-                        input = scanner.nextLine().trim().toLowerCase();
+                        boolean setToGo = false;
+                        input = scanner.nextLine().trim();
                         while (!input.matches("exit truck")) {
-
-                            input = scanner.nextLine().trim().toLowerCase();
+                            if (input.matches("(?i:add\\s+[a-zA-Z]+\\s+\\d+)")) {
+                                String[] s = input.split("\\s+");
+                                int amount = Integer.parseInt(s[2]);
+                                Processable elementType = ItemType.getType(s[1]);
+                                if(elementType == null)
+                                    elementType = Animal.AnimalType.getType(s[1]);
+                                if (elementType == null || elementType == ItemType.Coin) {
+                                    System.err.println("Invalid element type.");
+                                } else {
+                                    if(elementType instanceof ItemType)
+                                        addElementsToTruck((ItemType) elementType, amount);
+                                    else
+                                        addElementsToTruck((Animal.AnimalType)elementType, amount);
+                                }
+                            } else if (input.matches("(?i:print\\s+elements)")) {
+                                truck.printElements();
+                            } else if (input.matches("(?i:print)")) {
+                                System.out.println(truck);
+                            } else if (input.matches(TRUCK_GO_REGEX)) {
+                                if (truckGo()) {
+                                    setToGo = true;
+                                    break;
+                                }
+                            } else if (input.toLowerCase().equals("help")) {
+                                System.out.println("Commands:");
+                                System.out.println("\t\"print elements\"");
+                                System.out.println("\t\"print\"");
+                                System.out.println("\t\"add [Item_Type|Animal_Type] [count]\"");
+                                System.out.println("\t\"exit truck\"");
+                            } else
+                                System.err.println("Invalid Input");
+                            input = scanner.nextLine().trim();
                         }
+                        if(!setToGo)
+                            clearTruck();
                     } else
                         System.err.println("This Level Lacks Truck.");
                 }
-            } else if (input.matches(VEHICLE_GO_REGEX)) {
-                String vehicle = input.split("\\s+")[0];
-                if (vehicle.equals("truck")) {
-                    truckGo();
-                } else
-                    helicopterGo();
-
+            } else if (input.toLowerCase().equals("help")) {
+                PRINT_HELP();
+            } else if (cheatsEnabled) {
+                handleCheatCommands(input);
+            } else if (input.toLowerCase().equals("enable cheats")) {
+                cheatsEnabled = true;
+            } else if (input.toLowerCase().equals("disable cheats")) {
+                cheatsEnabled = false;
             } else {
                 System.err.println("Invalid Command.");
             }
             if (levelIsFinished)
                 return;
-            input = scanner.nextLine().trim().toLowerCase();
+            input = scanner.nextLine().trim();
         }
+        map.terminateGraphics();
+    }
+
+    private void handleCheatCommands(String input) {
+        if (input.matches(FILL_WELL_IMMEDIATELY)) {
+            well.refill();
+            well.update(well.getTimeRemainedToRefill() + 1);
+        } else if (input.matches(ADD_ELEMENT_TO_REGEX)) {
+            String[] s = input.split("\\s+");
+            int amount = Integer.parseInt(s[2]);
+            int x = Integer.parseInt(s[4]);
+            int y = Integer.parseInt(s[5]);
+
+            if (amount == 0) {
+                return;
+            }
+            if (x >= map.cellsWidth || y >= map.cellsHeight) {
+                System.err.println("index out of Map Exception.");
+                return;
+            }
+
+            if (ItemType.getType(s[1]) != null) {
+                if (s[1].equals("Coin")) {
+                    System.err.println("No Such Element In Existence.");
+                } else {
+                    int i = 0;
+                    while (i < amount) {
+                        map.addItem(new Item(ItemType.getType(s[1]), x, y));
+                        System.out.println(s[1] + " was added to (" + x + ", " + y + ")");
+                        ++i;
+                    }
+                }
+            } else if (Animal.AnimalType.getType(s[1]) != null) {
+                int i = 0;
+                while (i < amount) {
+                    Animal animal = getRandomlyLocatedAnimalInstance(s[1]);
+                    animal.setX(x);
+                    animal.setY(y);
+                    map.addAnimal(animal);
+                    ++i;
+                }
+                System.out.println(s[1] + " was added to (" + x + ", " + y + ")");
+            } else
+                System.err.println("No Such Element In Existence.");
+        } else if (input.matches(ADD_ELEMENT_REGEX)) {
+            String[] s = input.split("\\s+");
+            int amount = Integer.parseInt(s[2]);
+            ItemType type = ItemType.getType(s[1]);
+            if (type != null) {
+                if (s[1].equals("Coin")) {
+                    coin.set(coin.get() + amount);
+                    System.out.println(amount + " of Coin Added.");
+                } else {
+                    map.getDepot().addAllStorable(type, amount);
+                    System.out.println(amount + " of " + type + " was added to depot.");
+                }
+            }
+        } else if (input.matches(PLAYER_ADD_REGEX)) {
+            String s[] = input.split("\\s+");
+            int amount = Integer.parseInt(s[2]);
+            if (s[0].toLowerCase().equals("money")) {
+                player.addMoney(amount);
+            } else if (s[0].toLowerCase().equals("goldMoney")) {
+                player.addGoldMoney(amount);
+            } else
+                System.err.println("No Such Element In Existence");
+        } else
+            System.err.println("Invalid Command");
+    }
+
+    private void PRINT_HELP() {
+        String s = "Commands:\n" +
+                "\t\"exit level\" : exit current level into player menu\n" +
+                "\t\"[helicopter|truck] add [item_name] [count]\"\n" +
+                "\t\"[helicopter|truck] clear\"\n" +
+                "\t\"[helicopter|truck] go\"\n" +
+                "\t\"cage [x y]\"\n" +
+                "\t\"plant [x y]\"\n" +
+                "\t\"pickup [x y]\"\n" +
+                "\t\"buy [Animal_Name]\"\n" +
+                "\t\"upgrade [workshop_name|well|truck|helicopter|depot]\"\n" +
+                "\t\"print [info|map|depot|well|workshops|truck|helicopter|money]\"\n" +
+                "\t\"turn [n]\": turns game forward(not recommended for n -> Infinity)\n" +
+                "";
+        System.out.println(s);
     }
 
     private void update(int turns) {
         for (int i = 0; i < turns; ++i) {
+            --timeRemainedToSpawnWild;
+            if (timeRemainedToSpawnWild <= 0) {
+                Wild wild1 = (Wild) getRandomlyLocatedAnimalInstance(Animal.AnimalType.BrownBear.toString());
+                Wild wild2 = (Wild) getRandomlyLocatedAnimalInstance(Animal.AnimalType.Lion.toString());
+                map.addAnimal(wild1);
+                map.addAnimal(wild2);
+                System.err.println(wild1.getType() + " was dropped on Map.");
+                System.err.println(wild2.getType() + " was dropped on Map.");
+                timeRemainedToSpawnWild = 10;
+            }
             map.update();
+            well.update(1);
+            if (helicopter != null)
+                helicopter.update(1);
+            if (truck != null)
+                truck.update(1);
             for (Workshop workshop : workshops.values())
                 workshop.update(1);
         }
     }
 
     private void PRINT_INFO() {
-
+        StringBuilder sb = new StringBuilder("Info:\n" +
+                "\tMoney : " + coin.get() + "\n" +
+                "\tTimePassed : " + timePassed + "\n" +
+                "\tLevel Requirements:\n");
+        HashMap<Processable, Integer> goals = levelData.getGoals();
+        for (Processable processable : goals.keySet()) {
+            sb.append("\t\t").append(processable).append(" : ").append(goals.get(processable));
+            if (levelRequirements.containsKey(processable)) {
+                sb.append(", Amount Accomplished : ").append(levelRequirements.get(processable));
+            } else
+                sb.append(", Goal Accomplished.");
+            sb.append("\n");
+        }
+        System.out.print(sb.toString());
     }
 
     /**
-     * @param type type of the animal selected to buy
+     * @param type type of the animal selected to create
      */
     private Animal getRandomlyLocatedAnimalInstance(String type) {
         int x = randomGenerator.nextInt(map.cellsWidth);
         int y = randomGenerator.nextInt(map.cellsHeight);
-        switch (type) {
+        switch (type.toLowerCase()) {
             case "cat":
                 return new Cat(x, y, levelGameElementsLevel.get("Cat"));
             case "dog":
-                return new Dog(x, y, levelGameElementsLevel.get("Dog"));
+                return new Dog(x, y);
         }
 
-        String animalClassPath = Constants.getAnimalClassPath(type);
+        String animalClassPath = Constants.getAnimalClassPath(Animal.AnimalType.getType(type));
         if (animalClassPath == null)
             return null;
         try {
@@ -484,7 +729,7 @@ public class LevelController extends Controller {
             if (!well.isRefilling()) {
                 if (well.refill()) {
                     System.out.println("Well is Refilling.");
-                    coin.subtract(cost);
+                    coin.set(coin.get() - cost);
                 } else
                     System.err.println("Well is Full.");
             } else
@@ -494,17 +739,17 @@ public class LevelController extends Controller {
         }
     }
 
-    private void plant(int x, int y) {
+    private synchronized void plant(int x, int y) {
         if (well.getStoredWater() > 0) {
-            byte MAX_GRASS_AMOUNT = 6;
+            byte MAX_GRASS_AMOUNT = 10;
             map.setGrassInCell(x, y, MAX_GRASS_AMOUNT);
             well.decrementWaterLevel();
         } else
-            System.err.println("Not Enough Water In Well.\n");
+            System.err.println("Not Enough Water In Well.");
     }
 
     private void cage(int x, int y) {
-        map.cageWilds(x, y, cageLevel * 2);
+        map.cageWilds(x, y, cageLevel * 2 + 6);
     }
 
     //Todo
@@ -516,9 +761,9 @@ public class LevelController extends Controller {
         int cost = helicopter.getItemsInsidePrice();
         if (coin.get() >= cost) {
             if (helicopter.go()) {
-                coin.subtract(cost);
+                coin.set(coin.get() - cost);
                 System.out.println("Helicopter is going. will return in "
-                        + helicopter.getTurnsRemainedToFinishTask() + " turns.\n");
+                        + helicopter.getTurnsRemainedToFinishTask() + " turns.");
                 return true;
             }
             System.err.println("Nothing Set To Buy.\n");
@@ -530,11 +775,32 @@ public class LevelController extends Controller {
 
     private boolean truckGo() {
         if (truck.go()) {
+
+            for (Object o : truck.getItemsInside().keySet()) {
+                Processable element = (Processable) o;
+                int count = truck.getItemsInside().get(element);
+                if (element instanceof Animal.AnimalType) {
+                    Iterator<Animal> it = map.getPets().iterator();
+                    Animal.AnimalType type = (Animal.AnimalType) element;
+                    int i = 0;
+                    while (it.hasNext() && i < count) {
+                        Animal animal = it.next();
+                        if (animal.getType() == type) {
+                            it.remove();
+                            map.removeAnimal(animal);
+                            ++i;
+                        }
+                    }
+                } else {
+                    ItemType type = (ItemType) element;
+                    map.getDepot().removeAllStorable(type, count);
+                }
+            }
             System.out.println("Truck is going. will return in " +
-                    truck.getTurnsRemainedToFinishTask() + " turns.\n");
+                    truck.getTurnsRemainedToFinishTask() + " turns.");
             return true;
         }
-        System.err.println("Nothing in Truck.\n");
+        System.err.println("Nothing in Truck.");
         return false;
     }
 
@@ -551,8 +817,8 @@ public class LevelController extends Controller {
         if (coin.get() >= cost) {
             System.err.println();
             if (well.upgrade()) {
-                coin.subtract(cost);
-                System.out.println("Well was upgraded to level " + well.getLevel() + "\n");
+                coin.set(coin.get() - cost);
+                System.out.println("Well was upgraded to level " + well.getLevel());
             } else {
                 System.err.println("Well is At Maximum Level.");
             }
@@ -562,10 +828,10 @@ public class LevelController extends Controller {
 
     private void upgradeTruck() {
         int cost = truck.getUpgradeCost();
-        if (coin.get() >= cost && cost >= 0) {
+        if (coin.get() >= cost) {
             if (truck.upgrade()) {
-                coin.subtract(cost);
-                System.out.println("Truck was upgraded to level " + truck.getLevel() + "\n");
+                coin.set(coin.get() - cost);
+                System.out.println("Truck was upgraded to level " + truck.getLevel());
             } else {
                 System.err.println("Truck is At Maximum Level.");
             }
@@ -575,10 +841,10 @@ public class LevelController extends Controller {
 
     private void upgradeHelicopter() {
         int cost = helicopter.getUpgradeCost();
-        if (coin.get() >= cost && cost >= 0) {
+        if (coin.get() >= cost) {
             if (helicopter.upgrade()) {
-                coin.subtract(cost);
-                System.out.println("Helicopter was upgraded to level " + helicopter.getLevel() + "\n");
+                coin.set(coin.get() - cost);
+                System.out.println("Helicopter was upgraded to level " + helicopter.getLevel());
             } else {
                 System.err.println("Helicopter is At Maximum Level.");
             }
@@ -591,8 +857,8 @@ public class LevelController extends Controller {
         int cost = depot.getUpgradeCost();
         if (coin.get() >= cost) {
             if (depot.upgrade()) {
-                coin.subtract(cost);
-                System.out.println("Depot was upgraded to level " + depot.getLevel() + "\n");
+                coin.set(coin.get() - cost);
+                System.out.println("Depot was upgraded to level " + depot.getLevel());
             } else {
                 System.err.println("Depot is At Maximum Level.");
             }
@@ -600,16 +866,37 @@ public class LevelController extends Controller {
             PRINT_NOT_ENOUGH_MONEY();
     }
 
-    private boolean addItemsToTruck(ItemType type, int count) {
+    private boolean addElementsToTruck(ItemType type, int count) {
         if (truck.hasCapacityFor(type, count)) {
-            if (map.getDepot().removeAllStorable(type, count)) {
+            if (map.getDepot().hasAll(type, count)) {
                 truck.addAll(type, count);
-                System.out.println(count + " of " + type + " was added to truck.\n");
+                System.out.println(count + " of " + type + " was added to truck.");
                 return true;
             }
-            System.err.println("Not Enough Item(s) in Depot.\n");
+            System.err.println("Not Enough Item(s) in Depot.");
+            return false;
         }
-        System.err.println("Not enough of space in truck.\n");
+        System.err.println("Not enough of space in truck.");
+        return false;
+    }
+
+    private boolean addElementsToTruck(Animal.AnimalType type, int count) {
+        if (type.IS_WILD) {
+            System.err.println("Can't Sell Wild Animals!");
+            return false;
+        }
+        if (truck.hasCapacityFor(type, count)) {
+            if (map.getAnimalsAmount().containsKey(type)) {
+                if (map.getAnimalsAmount().get(type) >= count) {
+                    ((Truck) truck).addAll(type, count);
+                    System.out.println(count + " of " + type + " was added to truck.");
+                    return true;
+                }
+            }
+            System.err.println("Not Enough Animals in Map.");
+            return false;
+        }
+        System.err.println("Not enough of space in truck.");
         return false;
     }
 
@@ -628,7 +915,7 @@ public class LevelController extends Controller {
     }
 
     private void PRINT_DEPOT_FULL(String item) {
-        System.err.println("can't store " + item + ", Depot is Full.\n");
+        System.err.println("can't store " + item + ", Depot is Full.");
     }
 
     private void pickup(int x, int y) {
@@ -638,7 +925,7 @@ public class LevelController extends Controller {
             if (!depotWasFilled) {
                 if (map.getDepot().addStorable(item.getType())) {
                     map.removeItem(item);
-                    System.out.println(item + " was picked up.\n");
+                    System.out.println(item + " was picked up.");
                 } else {
                     PRINT_DEPOT_FULL(item.toString());
                     depotWasFilled = true;
@@ -651,7 +938,7 @@ public class LevelController extends Controller {
             for (Wild wild : cell.getWilds().values()) {
                 if (wild.isCaged()) {
                     if (!depotWasFilled) {
-                        if (map.getDepot().addStorable((ItemType.valueOf("Caged" + wild.getType())))) {
+                        if (map.getDepot().addStorable((ItemType.getType("Caged"+wild.getType())))) {
                             map.removeAnimal(wild);
                         } else {
                             depotWasFilled = true;
@@ -693,13 +980,28 @@ public class LevelController extends Controller {
                 } else if (timePassed <= levelData.getGoldenTime() && levelBestTime > levelData.getGoldenTime()) {
                     playerPrize = levelData.getGoldenPrize();
                     System.out.print("Golden Prize : ");
+                } else if (levelBestTime == Integer.MAX_VALUE) {
+                    if (timePassed <= levelData.getGoldenTime()) {
+                        playerPrize = levelData.getGoldenPrize();
+                    } else if (timePassed <= levelData.getSilverTime()) {
+                        playerPrize = levelData.getSilverPrize();
+                    } else if (timePassed <= levelData.getBronzeTime()) {
+                        playerPrize = levelData.getBronzePrize();
+                    } else
+                        playerPrize = levelData.getPrize();
                 } else {
                     playerPrize = levelData.getPrize();
-                    System.out.print("Prize : ");
                 }
             }
             player.addGoldMoney(playerPrize);
-            System.out.println(playerPrize + " Gold.");
+            player.addLevelTime(levelId, timePassed);
+            try {
+                Player.updatePlayer(player);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.err.println("Saving Player Data Failed.");
+            }
+            System.out.println("Prize : " + playerPrize + " Gold.");
             levelIsFinished = true;
         }
     }

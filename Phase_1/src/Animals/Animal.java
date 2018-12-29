@@ -1,8 +1,11 @@
 package Animals;
 
+import Animals.Pet.Pet;
+import Animals.Wild.Wild;
 import Interfaces.Processable;
 import Utilities.SUID;
 
+import java.util.HashMap;
 import java.util.Random;
 
 public abstract class Animal {
@@ -13,7 +16,7 @@ public abstract class Animal {
     protected int destinationX, destinationY;
     private final Long id;
     private final AnimalType type;
-    protected transient Random random;
+    protected transient Random random = new Random();
 
     protected void moveTowardDestination() {
         if (x != destinationX && y != destinationY) {
@@ -49,7 +52,7 @@ public abstract class Animal {
         this.y = y;
     }
 
-    protected Animal(int x, int y, int speed, int runningSpeed, AnimalType type){
+    protected Animal(int x, int y, int speed, int runningSpeed, AnimalType type) {
         id = SUID.generateId();
         this.x = x;
         this.y = y;
@@ -58,8 +61,22 @@ public abstract class Animal {
         this.runningSpeed = runningSpeed;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder s = new StringBuilder("type : " + type + ", At : (" + x + ", " + y+")");
+        if (this instanceof Pet) {
+            s.append(", fullness : ").append(((Pet) this).getFullness());
+        } else {
+            s.append(", Status : ");
+            if(((Wild)this).isCaged())
+                s.append("Caged");
+            else
+                s.append("Free");
+        }
+        return s.toString();
+    }
 
-    public AnimalType getType(){
+    public AnimalType getType() {
         return type;
     }
 
@@ -84,11 +101,26 @@ public abstract class Animal {
     }
 
     public enum AnimalType implements Processable {
-        BrownBear, WhiteBear, Grizzly, Lion, Jaguar,
+        BrownBear(true), WhiteBear(true), Grizzly(true), Lion(true), Jaguar(true),
 
-        Cat, Dog,
-        Sheep, GuineaFowl, Ostrich, Cow, Buffalo,
-        Turkey, Chicken, Penguin, Llama, BrownCow, Walrus,
-        Yak, KingPenguin, Goose, Goat
+        Cat(false), Dog(false),
+        Sheep(false), GuineaFowl(false), Ostrich(false), Cow(false), Buffalo(false),
+        Turkey(false), Chicken(false), Penguin(false), Llama(false), BrownCow(false), Walrus(false),
+        Yak(false), KingPenguin(false), Goose(false), Goat(false);
+        public final boolean IS_WILD;
+        private static HashMap<String, AnimalType> animalTypeHashMap;
+        private AnimalType(boolean IS_WILD){
+            this.IS_WILD = IS_WILD;
+        }
+        static {
+            animalTypeHashMap = new HashMap<>();
+            for (AnimalType type : AnimalType.values()) {
+                animalTypeHashMap.put(type.toString(), type);
+            }
+        }
+
+        public static AnimalType getType(String name) {
+            return animalTypeHashMap.getOrDefault(name, null);
+        }
     }
 }

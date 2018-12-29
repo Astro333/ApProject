@@ -38,6 +38,7 @@ public class Cat extends Animal {
         if (x == destinationX && y == destinationY && items.contains(destinationItem)) {
             map.removeItem(destinationItem);
             map.getDepot().addStorable(destinationItem.getType());
+            System.out.println("Cat collected "+destinationItem.getType());
             destinationItem = null;
         }
         if (!items.contains(destinationItem)) {

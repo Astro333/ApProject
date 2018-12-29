@@ -7,6 +7,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class Cell {
 
@@ -14,7 +15,7 @@ public class Cell {
     private transient final HashMap<Long, Animal> pets = new HashMap<>();
     private transient final HashMap<Long, Item> items = new HashMap<>();
     private transient final BooleanProperty noGrass =
-            new SimpleBooleanProperty(this, "noGrass", false);
+            new SimpleBooleanProperty(this, "noGrass", true);
 
 
     private final int x;
@@ -103,5 +104,37 @@ public class Cell {
             wilds.put(animal.getId(), (Wild) animal);
         else
             pets.put(animal.getId(), animal);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("*********************************\nCell ("+x+", "+y+"):\n");
+        sb.append("Grass Left: ").append(grassInCell);
+        Iterator<? extends Animal> it = wilds.values().iterator();
+        if(it.hasNext())
+            sb.append("\nWilds:\n\t");
+        while (it.hasNext()){
+            sb.append(it.next().getType());
+            if(it.hasNext())
+                sb.append(", ");
+        }
+        it = pets.values().iterator();
+        if(it.hasNext())
+            sb.append("\nPets:\n\t");
+        while (it.hasNext()){
+            sb.append(it.next().getType());
+            if(it.hasNext())
+                sb.append(", ");
+        }
+        Iterator<Item> itemIterator = items.values().iterator();
+        if(itemIterator.hasNext())
+            sb.append("\nItems:\n\t");
+        while (itemIterator.hasNext()){
+            sb.append(itemIterator.next().getType());
+            if(itemIterator.hasNext())
+                sb.append(", ");
+        }
+        sb.append("\n*********************************");
+        return sb.toString();
     }
 }

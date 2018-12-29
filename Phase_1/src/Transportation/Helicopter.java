@@ -1,10 +1,12 @@
 package Transportation;
 
+import Interfaces.Processable;
 import Items.Item;
 import Map.Map;
 import Utilities.Constants;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
 
 import static Items.Item.ItemType;
@@ -16,6 +18,7 @@ public class Helicopter extends TransportationTool{
     public Helicopter(byte maxLevel, byte level){
         super(maxLevel, level);
         random = new Random();
+        capacity = level == 0 ? 40 : (1+2*level)*20;
     }
 
     @Override
@@ -33,7 +36,24 @@ public class Helicopter extends TransportationTool{
         return false;
     }
 
-    public HashMap<ItemType, Integer> getItemsInside(){
+    @Override
+    public void printElements() {
+        if(itemsInside.size() > 0){
+            System.out.println("Items inside:");
+            for (Object o : itemsInside.keySet()) {
+                ItemType type = (ItemType) o;
+                int amount = itemsInside.get(type);
+                System.out.println("\t" + type + " : " + amount +
+                        ", Total Price : " + Constants.getProductBuyCost(type.toString()) * amount +
+                        ", Total Volume : " + Constants.getProductSize(type.toString()) * amount);
+            }
+            System.out.println("\tItems Volume : "+itemsInsideVolume);
+            System.out.println("\tItems Price : "+itemsInsidePrice);
+        } else
+            System.out.println("No Items Inside.");
+    }
+
+    public HashMap<? super Processable, Integer> getItemsInside(){
         return itemsInside;
     }
 
@@ -45,11 +65,11 @@ public class Helicopter extends TransportationTool{
         /*
         * must handle parachute animation in phase 2
         * */
-        for(ItemType item : itemsInside.keySet()){
+        for(Object item : itemsInside.keySet()){
             for(int i = itemsInside.get(item); i > 0; --i) {
                 int pos_x = getRandomPosition(map.cellsWidth);
                 int pos_y = getRandomPosition(map.cellsHeight);
-                map.addItem(new Item(item, pos_x, pos_y));
+                map.addItem(new Item((ItemType) item, pos_x, pos_y));
             }
         }
         itemsInside.clear();

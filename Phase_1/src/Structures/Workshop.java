@@ -31,25 +31,30 @@ public class Workshop {
     private final Float pos_y = null;
 
     private final String realName = null;
+
     private final String demonstrativeName = null;
 
     private final Byte maxMaxLevel = null;
+
     private final Byte maxLevel = null;
     private byte level;
     private int processingMultiplier;
-
     private int multiplier = 1; //this is dependent on Workshop level
+
     private long timeToFinishTask = -1;
     private transient static final Gson gson = new GsonBuilder().registerTypeAdapter(Processable.class,
             new ProcessableDeserializer()).create();
-
     private transient final BooleanProperty isAtTask;
+
     private Workshop(){
         this.isAtTask = new SimpleBooleanProperty(this, "isAtTask", false);
     }
-
     public String getRealName() {
         return realName;
+    }
+
+    public String getDemonstrativeName() {
+        return demonstrativeName;
     }
 
     public static Workshop getInstance(String workshopName, int maxLevel,
@@ -123,6 +128,10 @@ public class Workshop {
                 multiplier = temp;
         }
         processingMultiplier = multiplier;
+        for(int i = 0; i < inputs.length; ++i){
+            depot.removeAllStorable(inputs[i], inputsAmount[i]*processingMultiplier);
+            System.out.println(demonstrativeName + " took "+inputsAmount[i]*multiplier + " " + inputs[i]+" from Depot.");
+        }
         isAtTaskProperty().set(true);
         timeToFinishTask = calculateTimeToFinishTask();
         return true;
@@ -177,7 +186,7 @@ public class Workshop {
         sb.append("\n");
         sb.append("Level: ").append(level).append(", MaxLevel: ").append(maxLevel).append(", TaskTime: ").append(calculateTimeToFinishTask()).append("\n");
         if(isAtTask()){
-            sb.append("Time to finish current Task: ").append(timeToFinishTask);
+            sb.append("Time to finish current Task: ").append(timeToFinishTask).append("\n");
         } else
             sb.append("No Task At Hand.\n");
         sb.append("*********************************\n");
