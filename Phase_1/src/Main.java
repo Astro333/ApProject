@@ -1,9 +1,10 @@
 import Controllers.MainMenuController;
+import Map.MapGraphics;
 
 public class Main {
-    private static final String pathToPlayersInfoDirectory = "PlayersData";
     public static void main(String[] args) {
         MainMenuController mainMenuController = new MainMenuController();
         mainMenuController.startProcessing();
+        MapGraphics.KillThread();
     }
 }

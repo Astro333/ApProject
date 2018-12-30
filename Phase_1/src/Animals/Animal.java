@@ -16,7 +16,7 @@ public abstract class Animal {
     protected int destinationX, destinationY;
     private final Long id;
     private final AnimalType type;
-    protected transient Random random = new Random();
+    protected transient Random random;
 
     protected void moveTowardDestination() {
         if (x != destinationX && y != destinationY) {
@@ -59,6 +59,7 @@ public abstract class Animal {
         this.type = type;
         this.speed = speed;
         this.runningSpeed = runningSpeed;
+        this.random = new Random();
     }
 
     @Override
@@ -72,6 +73,7 @@ public abstract class Animal {
                 s.append("Caged");
             else
                 s.append("Free");
+            s.append(", ID : ").append(id);
         }
         return s.toString();
     }

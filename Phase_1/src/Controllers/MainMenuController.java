@@ -38,14 +38,14 @@ public class MainMenuController extends Controller {
                 input = scanner.nextLine().trim();
                 boolean wasCanceled = false;
                 while (true) {
-                    if (!input.matches(PLAYER_NAME_REGEX)) {
-                        System.err.println("Invalid Player Name, Try Again.\nEnter Your Name:");
-                        input = scanner.nextLine().trim();
-                    } else if (Player.exists(input)) {
-                        System.err.println("A player with this name already exists.");
-                    } else if (input.equals("cancel process")) {
+                    if (input.equals("cancel process")) {
                         wasCanceled = true;
                         break;
+                    } else if (Player.exists(input)) {
+                        System.err.println("A player with this name already exists.");
+                    } else if (!input.matches(PLAYER_NAME_REGEX)) {
+                        System.err.println("Invalid Player Name, Try Again or write \"cancel process\".\nEnter Your Name:");
+                        input = scanner.nextLine().trim();
                     } else
                         break;
                 }
@@ -65,7 +65,8 @@ public class MainMenuController extends Controller {
                 System.out.println("Commands:");
                 System.out.println("\t\"new player\": create a new player");
                 System.out.println("\t\"play as [User_Name]\"");
-                System.out.println("\t\"show setting\"");
+                System.out.println("\t\"show shop\"");
+                System.out.println("\t\"exit game\"");
             } else {
                 System.err.println("Invalid Command");
             }

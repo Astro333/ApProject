@@ -14,7 +14,7 @@ public class RequirementsListener {
                 public void onChanged(Change<? extends Processable, ? extends Integer> change) {
                     if (levelController.getLevelRequirements().containsKey(change.getKey())) {
                         int newValue = change.getValueAdded();
-                        levelController.getLevelRequirements().computeIfPresent(change.getKey(), (k, v)->newValue);
+                        levelController.getLevelRequirements().computeIfPresent(change.getKey(), (k, v) -> newValue);
                         if (newValue >= levelController.levelData.getGoals().get(change.getKey())) {
                             levelController.getLevelRequirements().remove(change.getKey());
                             levelController.setAchieved(change.getKey());
@@ -30,22 +30,23 @@ public class RequirementsListener {
     }
 
     private transient final ChangeListener<Number> coinChangeListener;
+
     public RequirementsListener(LevelController levelController, boolean hasCoin) {
         this.levelController = levelController;
-        if(hasCoin)
-            coinChangeListener = new ChangeListener<>() {
-                @Override
-                public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                    if(newValue.intValue() >= levelController.getLevelRequirements().get(Item.ItemType.Coin)){
-                        levelController.getLevelRequirements().remove(Item.ItemType.Coin);
-                        levelController.setAchieved(Item.ItemType.Coin);
-                    }
+        if (hasCoin)
+            coinChangeListener = (observable, oldValue, newValue) -> {
+                int val = newValue.intValue();
+                levelController.getLevelRequirements().computeIfPresent(Item.ItemType.Coin, (k, v) -> val);
+                if (val >= levelController.levelData.getGoals().get(Item.ItemType.Coin)) {
+                    levelController.getLevelRequirements().remove(Item.ItemType.Coin);
+                    levelController.setAchieved(Item.ItemType.Coin);
                 }
             };
 
         else
             coinChangeListener = null;
     }
+
     public MapChangeListener<Processable, Integer> getMapChangeListener() {
         return mapChangeListener;
     }

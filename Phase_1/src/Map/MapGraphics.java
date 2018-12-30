@@ -3,7 +3,6 @@ package Map;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeType;
@@ -35,7 +34,7 @@ public class MapGraphics extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         synchronized (latch) {
             Platform.setImplicitExit(false);
             primaryStage.initStyle(StageStyle.UNDECORATED);
@@ -92,9 +91,13 @@ public class MapGraphics extends Application {
             Scene scene = new Scene(root, width, height);
             primaryStage.setScene(scene);
             primaryStage.show();
+            latch.notify();
         }
     }
-
+    public static void KillThread(){
+        Platform.setImplicitExit(true);
+        Platform.exit();
+    }
     public void terminate() {
         Platform.runLater(() -> primaryStage.close());
     }

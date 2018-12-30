@@ -18,7 +18,7 @@ public abstract class TransportationTool {
     protected final byte maxMaxLevel;
     protected byte level;
     protected int capacity;
-    private int turnsRemainedToFinishTask = -1;
+    protected int turnsRemainedToFinishTask = -1;
 
     protected final HashMap<? super Processable, Integer> itemsInside;
 

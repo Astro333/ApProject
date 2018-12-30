@@ -21,18 +21,20 @@ public class PlayerMenuController extends Controller {
     private transient final String PRINT_LEVELS_REGEX;
     private transient final String GO_TO_SHOP_REGEX;
     private transient final String EXIT_TO_MAIN_MENU_REGEX;
+    private transient final String LOAD_SAVE_REGEX;
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().registerTypeAdapter(Animal.class, new Utilities.AnimalDeserializer()).
             registerTypeAdapter(Processable.class, new Utilities.ProcessableDeserializer()).create();
 
     {
         UPGRADE_REGEX = "(?i:upgrade)\\s+[a-z]+";
-        RUN_LEVEL_REGEX = "(?i:((run)|(load))\\s+[0-9]+)";
+        RUN_LEVEL_REGEX = "(?i:run\\s+[0-9]+)";
+        LOAD_SAVE_REGEX = "(?i:load\\s+[a-zA-Z0-9-_]+\\.json)";
         GO_TO_SHOP_REGEX = "(?i:show\\s+shop)";
         EXIT_TO_MAIN_MENU_REGEX = "(?i:exit)";
         PRINT_LEVELS_REGEX = "(?i:print\\s+levels)";
         String s = "x";
-        s.matches(PRINT_LEVELS_REGEX);
+        s.matches(EXIT_TO_MAIN_MENU_REGEX);
     }
 
     private final String playerDataPath;
@@ -58,16 +60,15 @@ public class PlayerMenuController extends Controller {
         while (!input.matches(EXIT_TO_MAIN_MENU_REGEX)) {
             if (input.matches(RUN_LEVEL_REGEX)) {
                 String[] s = input.split("\\s+");
-                if (s[0].toLowerCase().equals("run")) {
-                    try {
-                        runLevel(Integer.parseInt(s[1]));
-                    } catch (FileNotFoundException e) {
-                        System.err.println("Level File Not Found.");
-                    }
-                } else {
-                    loadSavedGame(s[1]);
+                try {
+                    runLevel(Integer.parseInt(s[1]));
+                } catch (FileNotFoundException e) {
+                    System.err.println("Level File Not Found.");
                 }
-            } else if (input.matches(GO_TO_SHOP_REGEX)) {
+            } else if(input.matches(LOAD_SAVE_REGEX)){
+                String file = input.split("\\s+")[1];
+                loadSavedGame(file);
+            }else if (input.matches(GO_TO_SHOP_REGEX)) {
                 goToShop();
             } else if (input.matches(PRINT_LEVELS_REGEX)) {
                 try {
@@ -115,7 +116,7 @@ public class PlayerMenuController extends Controller {
         /*
          * find it in Player_Unfinished_Levels_Saves under pathToPlayerDataDirectory
          * */
-        String path = playerDataPath + "Player_Unfinished_Levels_Saves" + jsonFileName + ".json";
+        String path = playerDataPath + "/Player_Unfinished_Levels_Saves/" + jsonFileName;
         Reader reader;
         try {
             reader = new BufferedReader(new FileReader(path));
@@ -123,6 +124,7 @@ public class PlayerMenuController extends Controller {
             e.printStackTrace();
             return;
         }
+
         SaveData saveData = gson.fromJson(reader, SaveData.class);
         try {
             final Controller levelController = new LevelController(saveData, player);
@@ -175,9 +177,8 @@ public class PlayerMenuController extends Controller {
                                 e.printStackTrace();
                             }
                             System.out.println(element + " Was Upgraded to " + currentLevel + 1);
-                        }
-                        else
-                            System.err.println(element+" is At Maximum Level.");
+                        } else
+                            System.err.println(element + " is At Maximum Level.");
                     }
                 } else
                     System.err.println("Not Enough Money.");

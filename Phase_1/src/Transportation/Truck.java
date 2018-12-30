@@ -1,18 +1,32 @@
 package Transportation;
 
 import static Animals.Animal.AnimalType;
+
+import Interfaces.Processable;
+import Levels.SaveData;
 import Utilities.Constants;
 
 public class Truck extends TransportationTool{
 
     public Truck(byte maxLevel, byte level) {
         super(maxLevel, level);
-        capacity = level == 0 ? 20 : (1+2*level)*10;
+        capacity = level == 0 ? 40 : (1 + 2 * level) * 20;
+    }
+
+    public Truck(SaveData saveData){
+        this(saveData.getTruck().maxLevel, saveData.getTruck().level);
+        Truck it = (Truck) saveData.getTruck();
+        for(Object p : it.itemsInside.keySet())
+            itemsInside.put((Processable) p, it.itemsInside.get(p));
+        itemsInsidePrice = it.itemsInsidePrice;
+        itemsInsideVolume = it.itemsInsideVolume;
+        turnsRemainedToFinishTask = it.turnsRemainedToFinishTask;
+        isAtTaskProperty().set(turnsRemainedToFinishTask >= 0);
     }
 
     @Override
     protected int calculateTimeToFinish() {
-        return 20-level*5;
+        return 20 - 5 * level;
     }
 
     @Override
@@ -24,7 +38,7 @@ public class Truck extends TransportationTool{
     public boolean upgrade() {
         if (level < maxLevel) {
             ++level;
-            capacity += 20;
+            capacity = (1 + 2 * level) * 20;
             return true;
         }
         return false;

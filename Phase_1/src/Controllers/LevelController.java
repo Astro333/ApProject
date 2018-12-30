@@ -38,10 +38,7 @@ import javafx.collections.ObservableMap;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.*;
 
 import Map.GraphicalCell;
 import Map.MapGraphics;
@@ -59,9 +56,9 @@ public class LevelController extends Controller {
     private transient final String HELICOPTER_GO_REGEX;
     private transient final String TRUCK_GO_REGEX;
     private transient final String VEHICLE_ADD_REGEX;
-    private transient final String VEHICLE_CLEAR_REGEX;
     private transient final String PRINT_REGEX;
     private transient final String TURN_REGEX;
+    private transient final String SAVE_REGEX;
     private transient final String SHOW_TRANSPORTATION_TOOL_MENU;
 
     {
@@ -73,14 +70,14 @@ public class LevelController extends Controller {
         HELICOPTER_GO_REGEX = "(?i:helicopter\\s+go)";
         TRUCK_GO_REGEX = "(?i:truck\\s+go)";
         VEHICLE_ADD_REGEX = "(?i:((helicopter)|(truck))\\s+add\\s+[a-zA-Z]+\\s+\\d+)";
-        VEHICLE_CLEAR_REGEX = "(?i:((helicopter)|(truck))\\s+clear)";
         START_WORKSHOP_REGEX = "(?i:start\\s+[a-z]+)";
         UPGRADE_REGEX = "(?i:upgrade\\s+[a-z]+)";
         PRINT_REGEX = "(?i:print\\s+[a-z]+)";
         TURN_REGEX = "(?i:turn\\s+[1-9]\\d*)";
         SHOW_TRANSPORTATION_TOOL_MENU = "(?i:show\\s+((truck)|(helicopter))\\s+menu)";
+        SAVE_REGEX = "(?i:save\\s+game\\s+[0-9a-zA-Z\\-_]+.json)";
         String s = "s";
-        s.matches(VEHICLE_ADD_REGEX);
+        s.matches(SAVE_REGEX);
     }
 
     private transient final String PLAYER_ADD_REGEX;
@@ -118,21 +115,24 @@ public class LevelController extends Controller {
     private int timeRemainedToSpawnWild = 3;//serialize
     // this one is set when player first starts game
     private final HashMap<String, Byte> levelGameElementsLevel;
-    private ChangeListener<Boolean> vehicleFinishedJob = new ChangeListener<>() {
+
+    private transient ChangeListener<Boolean> vehicleFinishedJob = new ChangeListener<>() {
         @Override
         public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
             if (oldValue) {
                 TransportationTool vehicle = (TransportationTool) ((BooleanProperty) observable).getBean();
                 if (vehicle instanceof Truck) {
                     int gold = ((Truck) vehicle).receiveSoldGoodsMoney();
-                    coin.add(gold);
+                    coin.set(coin.get()+gold);
+                    System.out.println("Truck brought "+gold+" coin.");
                 } else if (vehicle instanceof Helicopter) {
+                    System.out.println("Helicopter Dropping items:");
                     ((Helicopter) helicopter).dropItemsRandomly(map);
                 }
             }
         }
     };
-    private ChangeListener<Boolean> workShopFinishedJob = new ChangeListener<>() {
+    private transient ChangeListener<Boolean> workShopFinishedJob = new ChangeListener<>() {
         @Override
         public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
             if (oldValue) {
@@ -195,12 +195,11 @@ public class LevelController extends Controller {
         } else
             requirementsListener = new RequirementsListener(
                     this, false);
-        Map map;
-        Depot depot = new Depot(player.getGameElementLevel("Depot"),
-                requirementsListener.getMapChangeListener());
-        map = new Map(depot, requirementsListener.getMapChangeListener());
-        levelLog = new StringBuilder();
 
+        Depot depot = new Depot(player.getGameElementLevel("Depot"), requirementsListener.getMapChangeListener());
+        Map map = new Map(depot, 10, 10, requirementsListener.getMapChangeListener());
+
+        levelLog = new StringBuilder();
         this.player = player;
         this.levelGameElementsLevel = new HashMap<>(player.getGameElementsLevel());
         this.map = map;
@@ -243,21 +242,37 @@ public class LevelController extends Controller {
     }
 
     public LevelController(SaveData saveData, Player player) throws FileNotFoundException {
+        this.player = player;
+
         this.levelGameElementsLevel = saveData.getGameElementsLevel();
         this.coin = new SimpleIntegerProperty(saveData.getCoin());
         this.workshops = new HashMap<>();
-        for (Workshop workshop : saveData.getWorkshops())
+        for (Workshop workshop : saveData.getWorkshops()) {
             workshops.put(workshop.getRealName(), workshop);
+            workshop.isAtTaskProperty().set(workshop.getTimeToFinishTask() >= 0);
+            workshop.isAtTaskProperty().addListener(workShopFinishedJob);
+        }
+        if(saveData.getHelicopter() != null) {
+            this.helicopter = new Helicopter(saveData);
+            this.helicopter.isAtTaskProperty().addListener(vehicleFinishedJob);
+        }
+        else
+            this.helicopter = null;
+        if(saveData.getTruck() != null) {
+            this.truck = new Truck(saveData);
+            this.truck.isAtTaskProperty().addListener(vehicleFinishedJob);
+        }
+        else
+            this.truck = null;
 
-        this.helicopter = saveData.getHelicopter();
-        this.truck = saveData.getTruck();
-        this.player = player;
-        this.map = saveData.getMap();
+
         this.well = saveData.getWell();
+        this.timePassed = saveData.getTimePassed();
+        this.timeRemainedToSpawnWild = saveData.getTimeRemainedToSpawnWild();
         this.levelLog = new StringBuilder(saveData.getLevelLog());
         cageLevel = levelGameElementsLevel.get("Cage");
         Reader reader = new BufferedReader(new FileReader(saveData.getPathToLevelJsonFile()));
-        Gson gson = new GsonBuilder().create();
+        Gson gson = new GsonBuilder().registerTypeAdapter(Processable.class, new ProcessableDeserializer()).create();
         levelData = gson.fromJson(reader, LevelData.class);
         levelRequirements = FXCollections.observableMap(saveData.getLevelRequirements());
         RequirementsListener requirementsListener;
@@ -269,7 +284,25 @@ public class LevelController extends Controller {
         } else
             requirementsListener = new RequirementsListener(
                     this, false);
-        map.getDepot().addListener(requirementsListener.getMapChangeListener());
+        this.map = new Map(saveData, requirementsListener.getMapChangeListener());
+
+        for (int i = 0; i < map.cellsWidth; ++i) {
+            for (int j = 0; j < map.cellsHeight; ++j) {
+                synchronized (MapGraphics.latch) {
+                    map.getGraphics().getMapCells()[i][j].setOnMouseClicked(event -> {
+                        GraphicalCell src = (GraphicalCell) event.getSource();
+                        switch (event.getButton()) {
+                            case PRIMARY:
+                                plant(src.getPos_X(), src.getPos_Y());
+                                break;
+                            case SECONDARY:
+                                System.out.println(map.getCell(src.getPos_X(), src.getPos_Y()));
+                                break;
+                        }
+                    });
+                }
+            }
+        }
     }
 
     public ObservableMap<Processable, Integer> getLevelRequirements() {
@@ -319,6 +352,7 @@ public class LevelController extends Controller {
                 throw new RuntimeException("Workshop instantiation failed.");
             }
             workshops.put(workshopName, workshop);
+            workshop.isAtTaskProperty().addListener(workShopFinishedJob);
         }
         return workshops;
     }
@@ -397,8 +431,8 @@ public class LevelController extends Controller {
             } else if (input.matches(START_WORKSHOP_REGEX)) {
                 String name = input.replaceFirst("start\\s+", "");
                 if (workshops.containsKey(name)) {
-                    if (!workshops.get(name).startWorking(map.getDepot())) {
-                        System.err.println("Not Enough Components for " + name + " to work.");
+                    if (workshops.get(name).startWorking(map.getDepot())) {
+                        System.out.println(name+" is working.");
                     }
                 } else
                     System.err.println("No Such Workshop In Existence.");
@@ -495,7 +529,7 @@ public class LevelController extends Controller {
                                 System.err.println("Invalid Input");
                             input = scanner.nextLine().trim();
                         }
-                        if(!setToGo)
+                        if (!setToGo)
                             clearHelicopter();
                     } else
                         System.err.println("This Level Lacks Helicopter.");
@@ -508,15 +542,15 @@ public class LevelController extends Controller {
                                 String[] s = input.split("\\s+");
                                 int amount = Integer.parseInt(s[2]);
                                 Processable elementType = ItemType.getType(s[1]);
-                                if(elementType == null)
+                                if (elementType == null)
                                     elementType = Animal.AnimalType.getType(s[1]);
                                 if (elementType == null || elementType == ItemType.Coin) {
                                     System.err.println("Invalid element type.");
                                 } else {
-                                    if(elementType instanceof ItemType)
+                                    if (elementType instanceof ItemType)
                                         addElementsToTruck((ItemType) elementType, amount);
                                     else
-                                        addElementsToTruck((Animal.AnimalType)elementType, amount);
+                                        addElementsToTruck((Animal.AnimalType) elementType, amount);
                                 }
                             } else if (input.matches("(?i:print\\s+elements)")) {
                                 truck.printElements();
@@ -537,19 +571,21 @@ public class LevelController extends Controller {
                                 System.err.println("Invalid Input");
                             input = scanner.nextLine().trim();
                         }
-                        if(!setToGo)
+                        if (!setToGo)
                             clearTruck();
                     } else
                         System.err.println("This Level Lacks Truck.");
                 }
             } else if (input.toLowerCase().equals("help")) {
                 PRINT_HELP();
-            } else if (cheatsEnabled) {
-                handleCheatCommands(input);
             } else if (input.toLowerCase().equals("enable cheats")) {
                 cheatsEnabled = true;
             } else if (input.toLowerCase().equals("disable cheats")) {
                 cheatsEnabled = false;
+            } else if (input.matches(SAVE_REGEX)) {
+                saveGame(input.split("\\s+")[2]);
+            } else if (cheatsEnabled) {
+                handleCheatCommands(input);
             } else {
                 System.err.println("Invalid Command.");
             }
@@ -558,6 +594,32 @@ public class LevelController extends Controller {
             input = scanner.nextLine().trim();
         }
         map.terminateGraphics();
+    }
+
+    private void saveGame(String jsonFileName) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        SaveData data = new SaveData(map.cellsWidth, map.cellsHeight);
+        data.setWell(well);
+        map.fillSaveData(data);
+        data.setCoin(coin.get());
+        data.setHelicopter((Helicopter) helicopter);
+        data.setTruck((Truck) truck);
+        data.setLevelLog(levelLog.toString());
+        data.setTimePassed(timePassed);
+        data.setTimeRemainedToSpawnWild(timeRemainedToSpawnWild);
+        data.setWorkshops(new LinkedList<>(workshops.values()));
+        data.setGameElementsLevel(levelGameElementsLevel);
+        data.setPathToLevelJsonFile("Phase_1/DefaultGameData/LevelsInfo/level_" + levelData.getLevelId() + ".json");
+        data.setLevelRequirements(new HashMap<>(levelRequirements));
+        try {
+            Writer writer = new BufferedWriter(new FileWriter("Phase_1/PlayersData/"+player.getName()+"/Player_Unfinished_Levels_Saves/" + jsonFileName));
+            gson.toJson(data, writer);
+            writer.flush();
+            writer.close();
+            System.out.println("Saved Game Successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void handleCheatCommands(String input) {
@@ -637,6 +699,7 @@ public class LevelController extends Controller {
                 "\t\"plant [x y]\"\n" +
                 "\t\"pickup [x y]\"\n" +
                 "\t\"buy [Animal_Name]\"\n" +
+                "\t\"save game [json_file_Name.json]\"\n" +
                 "\t\"upgrade [workshop_name|well|truck|helicopter|depot]\"\n" +
                 "\t\"print [info|map|depot|well|workshops|truck|helicopter|money]\"\n" +
                 "\t\"turn [n]\": turns game forward(not recommended for n -> Infinity)\n" +
@@ -751,11 +814,7 @@ public class LevelController extends Controller {
     private void cage(int x, int y) {
         map.cageWilds(x, y, cageLevel * 2 + 6);
     }
-
     //Todo
-    private void saveGame(String jsonFileName) {
-
-    }
 
     private boolean helicopterGo() {
         int cost = helicopter.getItemsInsidePrice();
@@ -938,7 +997,7 @@ public class LevelController extends Controller {
             for (Wild wild : cell.getWilds().values()) {
                 if (wild.isCaged()) {
                     if (!depotWasFilled) {
-                        if (map.getDepot().addStorable((ItemType.getType("Caged"+wild.getType())))) {
+                        if (map.getDepot().addStorable((ItemType.getType("Caged" + wild.getType())))) {
                             map.removeAnimal(wild);
                         } else {
                             depotWasFilled = true;

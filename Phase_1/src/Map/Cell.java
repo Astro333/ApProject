@@ -22,7 +22,6 @@ public class Cell {
     private final int y;
     private int grassInCell;
 
-
     protected Cell(int x, int y) {
         this.x = x;
         this.y = y;
@@ -81,7 +80,7 @@ public class Cell {
         }
     }
 
-    protected void setGrassInCell(byte value) {
+    protected void setGrassInCell(int value) {
         grassInCell = value;
         if(grassInCell > 0)
             noGrass.set(false);

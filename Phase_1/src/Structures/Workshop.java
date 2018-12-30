@@ -42,19 +42,13 @@ public class Workshop {
     private int multiplier = 1; //this is dependent on Workshop level
 
     private long timeToFinishTask = -1;
+
     private transient static final Gson gson = new GsonBuilder().registerTypeAdapter(Processable.class,
             new ProcessableDeserializer()).create();
     private transient final BooleanProperty isAtTask;
 
     private Workshop(){
         this.isAtTask = new SimpleBooleanProperty(this, "isAtTask", false);
-    }
-    public String getRealName() {
-        return realName;
-    }
-
-    public String getDemonstrativeName() {
-        return demonstrativeName;
     }
 
     public static Workshop getInstance(String workshopName, int maxLevel,
@@ -74,6 +68,17 @@ public class Workshop {
         stringBuilder.append(",\"pos_y\":").append(pos.getValue());
         stringBuilder.append("}");
         return gson.fromJson(stringBuilder.toString(), Workshop.class);
+    }
+    public long getTimeToFinishTask() {
+        return timeToFinishTask;
+    }
+
+    public String getRealName() {
+        return realName;
+    }
+
+    public String getDemonstrativeName() {
+        return demonstrativeName;
     }
 
     public byte getPosition() {
@@ -117,24 +122,29 @@ public class Workshop {
      * */
 
     public boolean startWorking(Depot depot){
-
-        int multiplier = this.multiplier;
-        int temp;
-        for(int i = 0; i < inputs.length; ++i){
-            temp = depot.getItemAmount(inputs[i])/inputsAmount[i];
-            if(temp == 0)
-                return false;
-            if(temp < multiplier)
-                multiplier = temp;
+        if(!isAtTask.get()) {
+            int multiplier = this.multiplier;
+            int temp;
+            for (int i = 0; i < inputs.length; ++i) {
+                temp = depot.getItemAmount(inputs[i]) / inputsAmount[i];
+                if (temp == 0) {
+                    System.err.println("Not Enough Components in Depot.");
+                    return false;
+                }
+                if (temp < multiplier)
+                    multiplier = temp;
+            }
+            processingMultiplier = multiplier;
+            for (int i = 0; i < inputs.length; ++i) {
+                depot.removeAllStorable(inputs[i], inputsAmount[i] * processingMultiplier);
+                System.out.println(demonstrativeName + " took " + inputsAmount[i] * multiplier + " " + inputs[i] + " from Depot.");
+            }
+            isAtTaskProperty().set(true);
+            timeToFinishTask = calculateTimeToFinishTask();
+            return true;
         }
-        processingMultiplier = multiplier;
-        for(int i = 0; i < inputs.length; ++i){
-            depot.removeAllStorable(inputs[i], inputsAmount[i]*processingMultiplier);
-            System.out.println(demonstrativeName + " took "+inputsAmount[i]*multiplier + " " + inputs[i]+" from Depot.");
-        }
-        isAtTaskProperty().set(true);
-        timeToFinishTask = calculateTimeToFinishTask();
-        return true;
+        System.err.println("Another task is being done.");
+        return false;
     }
 
     private int calculateTimeToFinishTask(){
