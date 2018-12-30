@@ -199,7 +199,7 @@ public class Workshop {
             sb.append("Time to finish current Task: ").append(timeToFinishTask).append("\n");
         } else
             sb.append("No Task At Hand.\n");
-        sb.append("*********************************\n");
+        sb.append("*********************************");
         return sb.toString();
     }
 }

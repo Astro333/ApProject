@@ -37,7 +37,7 @@ public class Cell {
     public int getGrassInCell() {
         return grassInCell;
     }
-    public BooleanProperty noGrassProperty() {
+    BooleanProperty noGrassProperty() {
         return noGrass;
     }
 
@@ -68,10 +68,11 @@ public class Cell {
     protected void cageWilds(int timeToBreakCage) {
         for(Wild wild : wilds.values()){
             wild.setCaged(timeToBreakCage);
+            System.out.printf("%s At (%d, %d) was caged. will break it in %d turns.\n", wild.getType(), x, y, timeToBreakCage);
         }
     }
 
-    public void useGrass(byte amount){
+    public void useGrass(int amount){
         if(grassInCell > amount)
             grassInCell -= amount;
         else {
@@ -92,10 +93,9 @@ public class Cell {
         items.put(item.getId(), item);
     }
 
-    protected boolean removeAnimal(Animal animal) {
+    protected void removeAnimal(Animal animal) {
         wilds.remove(animal.getId());
         pets.remove(animal.getId());
-        return true;
     }
 
     protected void addAnimal(Animal animal) {

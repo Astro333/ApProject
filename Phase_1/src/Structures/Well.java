@@ -91,4 +91,18 @@ public class Well {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder s = new StringBuilder();
+        s.append("Well:\n").
+                append("\tLevel = ").append(level).append(", MaxLevel = ").append(maxLevel).append(", Status : ");
+        if(isRefilling){
+            s.append("Refilling, Time Remained = ").append(timeRemainedToRefill);
+        } else if(storedWater == 0){
+            s.append(" Empty");
+        } else
+            s.append(storedWater).append(" Water Unit Inside.");
+        return s.toString();
+    }
 }

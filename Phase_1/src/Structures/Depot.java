@@ -114,15 +114,15 @@ public class Depot {
     public String toString() {
         StringBuilder s = new StringBuilder();
         s.append("Depot:\n").append("Level = ").append(level).append(", MaxLevel = ").append(maxLevel).
-                append(", capacity = ").append(capacity).
+                append(", Capacity = ").append(capacity).
                 append(", storedItemsVolume = ").append(storedThingsVolume).append("\n");
         if (thingsStored.size() > 0) {
             s.append("Items:\n");
             for (ItemType item : thingsStored.keySet()) {
-                s.append(item).append(", amount = ").append(thingsStored.get(item)).append("\n");
+                s.append("\t").append(item).append(", Amount = ").append(thingsStored.get(item)).append("\n");
             }
         } else
-            s.append("No Items Inside.\n");
+            s.append("\tNo Items Inside.");
         return s.toString();
     }
 

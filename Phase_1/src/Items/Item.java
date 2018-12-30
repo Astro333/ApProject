@@ -66,22 +66,28 @@ public class Item {
 
     // implements Processable so that could be processed at workshops
     public enum ItemType implements Processable {
-        Adornment,
-        BrightHorn,
-        CagedBrownBear, CagedJaguar, CagedLion, CagedWhiteBear, Cake,
-        CarnivalDress, Cheese, CheeseFerment, ColoredPlume, Curd,
-        DriedEggs,
-        Egg,
-        Fabric, Flour, FlouryCake,
-        Horn,
-        Intermediate,
-        MegaPie,
-        Milk,
-        Plume,
-        Sewing, SourCream, Souvenir, SpruceBrownBear, SpruceGrizzly, SpruceJaguar, SpruceLion, SpruceWhiteBear,
-        Varnish,
-        Wool,
-        Coin;
+        Adornment(false),
+        BrightHorn(false),
+        CagedBrownBear(true), CagedJaguar(true), CagedLion(true), CagedWhiteBear(true), Cake(false),
+        CarnivalDress(false), Cheese(false), CheeseFerment(false), ColoredPlume(false), Curd(false),
+        DriedEggs(false),
+        Egg(false),
+        Fabric(false), Flour(false), FlouryCake(false),
+        Horn(false),
+        Intermediate(false),
+        MegaPie(false),
+        Milk(false),
+        Plume(false),
+        Sewing(false), SourCream(false), Souvenir(false),
+        SpruceBrownBear(true), SpruceGrizzly(true), SpruceJaguar(true), SpruceLion(true), SpruceWhiteBear(true),
+        Varnish(false),
+        Wool(false),
+        Coin(false);
+
+        public final boolean IS_ANIMAL;
+        ItemType(boolean IS_ANIMAL){
+            this.IS_ANIMAL = IS_ANIMAL;
+        }
         private static HashMap<String, ItemType> types;
         static {
             types = new HashMap<>();

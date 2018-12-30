@@ -56,7 +56,7 @@ public class Helicopter extends TransportationTool {
     @Override
     public void printElements() {
         if (itemsInside.size() > 0) {
-            System.out.println("Items inside:");
+            System.out.println("Items To Buy:");
             for (Object o : itemsInside.keySet()) {
                 ItemType type = (ItemType) o;
                 int amount = itemsInside.get(type);

@@ -123,8 +123,8 @@ public class LevelController extends Controller {
                 TransportationTool vehicle = (TransportationTool) ((BooleanProperty) observable).getBean();
                 if (vehicle instanceof Truck) {
                     int gold = ((Truck) vehicle).receiveSoldGoodsMoney();
-                    coin.set(coin.get()+gold);
-                    System.out.println("Truck brought "+gold+" coin.");
+                    coin.set(coin.get() + gold);
+                    System.out.println("Truck brought " + gold + " coin.");
                 } else if (vehicle instanceof Helicopter) {
                     System.out.println("Helicopter Dropping items:");
                     ((Helicopter) helicopter).dropItemsRandomly(map);
@@ -252,17 +252,15 @@ public class LevelController extends Controller {
             workshop.isAtTaskProperty().set(workshop.getTimeToFinishTask() >= 0);
             workshop.isAtTaskProperty().addListener(workShopFinishedJob);
         }
-        if(saveData.getHelicopter() != null) {
+        if (saveData.getHelicopter() != null) {
             this.helicopter = new Helicopter(saveData);
             this.helicopter.isAtTaskProperty().addListener(vehicleFinishedJob);
-        }
-        else
+        } else
             this.helicopter = null;
-        if(saveData.getTruck() != null) {
+        if (saveData.getTruck() != null) {
             this.truck = new Truck(saveData);
             this.truck.isAtTaskProperty().addListener(vehicleFinishedJob);
-        }
-        else
+        } else
             this.truck = null;
 
 
@@ -432,7 +430,7 @@ public class LevelController extends Controller {
                 String name = input.replaceFirst("start\\s+", "");
                 if (workshops.containsKey(name)) {
                     if (workshops.get(name).startWorking(map.getDepot())) {
-                        System.out.println(name+" is working.");
+                        System.out.println(name + " is working.");
                     }
                 } else
                     System.err.println("No Such Workshop In Existence.");
@@ -467,21 +465,30 @@ public class LevelController extends Controller {
                         } else
                             System.out.println("\tNone.");
                         break;
+                    case "items":
+                        System.out.println("Items:");
+                        if (map.getItems().size() > 0) {
+                            for (Item item : map.getItems()) {
+                                System.out.println("\t" + item);
+                            }
+                        } else
+                            System.out.println("\tNone.");
+                        break;
                     case "depot":
-                        System.out.print(map.getDepot());
+                        System.out.println(map.getDepot());
                         break;
                     case "well":
-                        System.out.print(well);
+                        System.out.println(well);
                         break;
                     case "workshops":
                         for (Workshop workshop : workshops.values())
-                            System.out.print(workshop);
+                            System.out.println(workshop);
                         break;
                     case "truck":
-                        System.out.print(truck);
+                        System.out.println(truck);
                         break;
                     case "helicopter":
-                        System.out.print(helicopter);
+                        System.out.println(helicopter);
                         break;
                     case "money":
                         System.out.println("Money : " + coin.get());
@@ -612,7 +619,7 @@ public class LevelController extends Controller {
         data.setPathToLevelJsonFile("Phase_1/DefaultGameData/LevelsInfo/level_" + levelData.getLevelId() + ".json");
         data.setLevelRequirements(new HashMap<>(levelRequirements));
         try {
-            Writer writer = new BufferedWriter(new FileWriter("Phase_1/PlayersData/"+player.getName()+"/Player_Unfinished_Levels_Saves/" + jsonFileName));
+            Writer writer = new BufferedWriter(new FileWriter("Phase_1/PlayersData/" + player.getName() + "/Player_Unfinished_Levels_Saves/" + jsonFileName));
             gson.toJson(data, writer);
             writer.flush();
             writer.close();
@@ -641,12 +648,25 @@ public class LevelController extends Controller {
             }
 
             if (ItemType.getType(s[1]) != null) {
-                if (s[1].equals("Coin")) {
+                ItemType type = ItemType.getType(s[1]);
+                if (type == ItemType.Coin) {
                     System.err.println("No Such Element In Existence.");
                 } else {
                     int i = 0;
                     while (i < amount) {
-                        map.addItem(new Item(ItemType.getType(s[1]), x, y));
+                        if (type.IS_ANIMAL) {
+                            if (type.toString().startsWith("Caged")) {
+                                Wild wild = (Wild) getRandomlyLocatedAnimalInstance(type.toString().replaceFirst("Caged", ""));
+                                wild.setX(x);
+                                wild.setY(y);
+                                wild.setCaged(2 * cageLevel + 6);
+                                map.addAnimal(wild);
+                            } else {
+                                map.addItem(new Item(type, x, y));
+                            }
+                        } else {
+                            map.addItem(new Item(ItemType.getType(s[1]), x, y));
+                        }
                         System.out.println(s[1] + " was added to (" + x + ", " + y + ")");
                         ++i;
                     }
@@ -701,7 +721,7 @@ public class LevelController extends Controller {
                 "\t\"buy [Animal_Name]\"\n" +
                 "\t\"save game [json_file_Name.json]\"\n" +
                 "\t\"upgrade [workshop_name|well|truck|helicopter|depot]\"\n" +
-                "\t\"print [info|map|depot|well|workshops|truck|helicopter|money]\"\n" +
+                "\t\"print [info|map|depot|well|items|workshops|truck|helicopter|money]\"\n" +
                 "\t\"turn [n]\": turns game forward(not recommended for n -> Infinity)\n" +
                 "";
         System.out.println(s);
@@ -980,9 +1000,12 @@ public class LevelController extends Controller {
     private void pickup(int x, int y) {
         boolean depotWasFilled = false;
         Cell cell = map.getCell(x, y);
-        for (Item item : cell.getItems().values()) {
+        Iterator<Item> it = cell.getItems().values().iterator();
+        while (it.hasNext()) {
+            Item item = it.next();
             if (!depotWasFilled) {
                 if (map.getDepot().addStorable(item.getType())) {
+                    it.remove();
                     map.removeItem(item);
                     System.out.println(item + " was picked up.");
                 } else {
@@ -994,10 +1017,13 @@ public class LevelController extends Controller {
             }
         }
         if (!depotWasFilled) {
-            for (Wild wild : cell.getWilds().values()) {
+            Iterator<Wild> wilds = cell.getWilds().values().iterator();
+            while (wilds.hasNext()) {
+                Wild wild = wilds.next();
                 if (wild.isCaged()) {
                     if (!depotWasFilled) {
                         if (map.getDepot().addStorable((ItemType.getType("Caged" + wild.getType())))) {
+                            wilds.remove();
                             map.removeAnimal(wild);
                         } else {
                             depotWasFilled = true;

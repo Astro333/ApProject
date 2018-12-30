@@ -297,7 +297,7 @@ public class Map {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < cellsWidth; ++i) {
             for (int j = 0; j < cellsHeight; ++j)
-                sb.append(cells[i][j].toString());
+                sb.append(cells[i][j].toString()).append("\n");
         }
         return sb.toString();
     }
