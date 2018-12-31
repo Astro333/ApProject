@@ -50,6 +50,7 @@ public class Cat extends Animal {
             map.getDepot().addStorable(destinationItem.getType());
             System.out.println("Cat collected "+destinationItem.getType());
             destinationItemId = null;
+            destinationItem = null;
         }
         if (!items.contains(destinationItem)) {
             // if there is any item in map
