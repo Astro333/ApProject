@@ -44,7 +44,7 @@ public class PlayerMenuController extends Controller {
         super();
         try {
             player = Player.loadPlayer(playerName);
-            playerDataPath = "Phase_1/PlayersData/" + playerName;
+            playerDataPath = "PlayersData/" + playerName;
         } catch (FileNotFoundException e) {
             throw new PlayerNotFoundException();
         }
@@ -52,7 +52,7 @@ public class PlayerMenuController extends Controller {
 
     public PlayerMenuController(Player player) {
         this.player = player;
-        playerDataPath = "Phase_1/PlayersData/" + player.getName();
+        playerDataPath = "PlayersData/" + player.getName();
     }
 
     public void startProcessing() {
@@ -80,7 +80,7 @@ public class PlayerMenuController extends Controller {
                 System.out.println("Commands:");
                 System.out.println("\t\"Show Shop\"");
                 System.out.println("\t\"[Element] info\"");
-                System.out.println("\t\"exit\": exit to Main Menu");
+                System.out.println("\t\"exit\": exit to Bin.Main Menu");
                 System.out.println("\t\"Run [Level_Number]\"");
                 System.out.println("\t\"Load [path_to_save_data]\": load a saved game");
             } else
@@ -90,14 +90,14 @@ public class PlayerMenuController extends Controller {
     }
 
     private void runLevel(int levelId) throws FileNotFoundException {
-        String path = "Phase_1/DefaultGameData/LevelsInfo/level_" + levelId + ".json";
+        String path = "DefaultGameData/LevelsInfo/level_" + levelId + ".json";
         LevelController levelController = new LevelController(path, player);
         levelController.startProcessing();
     }
 
     private void printLevels() throws FileNotFoundException {
         int i = 1;
-        File levelFile = new File("Phase_1/DefaultGameData/LevelsInfo/level_1.json");
+        File levelFile = new File("DefaultGameData/LevelsInfo/level_1.json");
         while (levelFile.exists()) {
             System.out.println("**********************************");
             System.out.println("##############");
@@ -108,7 +108,7 @@ public class PlayerMenuController extends Controller {
             for (String s : object.keySet())
                 System.out.println(s + " : " + object.get(s).toString());
             ++i;
-            levelFile = new File("Phase_1/DefaultGameData/LevelsInfo/level_" + i + ".json");
+            levelFile = new File("DefaultGameData/LevelsInfo/level_" + i + ".json");
         }
     }
 

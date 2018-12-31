@@ -54,7 +54,7 @@ public class Workshop {
     public static Workshop getInstance(String workshopName, int maxLevel,
                                        byte workshopPosition, String continent) throws FileNotFoundException {
         workshopName = workshopName.replace("Workshop", "");
-        String workshopDataFile = "Phase_1/DefaultGameData/DefaultWorkshops/"+workshopName+"/"+workshopName+"Workshop.json";
+        String workshopDataFile = "DefaultGameData/DefaultWorkshops/"+workshopName+"/"+workshopName+"Workshop.json";
 
         Scanner scanner = new Scanner(new File(workshopDataFile));
         StringBuilder stringBuilder = new StringBuilder(scanner.useDelimiter("\\A").next());

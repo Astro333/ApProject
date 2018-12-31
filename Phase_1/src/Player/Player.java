@@ -22,12 +22,12 @@ public class Player {
 
     public static Player create(String name) throws IOException {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        Reader reader = new BufferedReader(new FileReader("Phase_1/PlayersData/newPlayerProgress.json"));
+        Reader reader = new BufferedReader(new FileReader("PlayersData/newPlayerProgress.json"));
         JsonObject object = gson.fromJson(reader, JsonObject.class);
         object.remove("name");
         object.addProperty("name", name);
 
-        String playerDataDir = "Phase_1/PlayersData/"+name+"/";
+        String playerDataDir = "PlayersData/"+name+"/";
 
         new File(playerDataDir).mkdir();
         new File(playerDataDir+"Player_Custom_Workshops/").mkdir();
@@ -43,7 +43,7 @@ public class Player {
 
     public static Player loadPlayer(String name) throws FileNotFoundException {
         Gson gson = new Gson();
-        Reader reader = new BufferedReader(new FileReader("Phase_1/PlayersData/"+name+"/progress.json"));
+        Reader reader = new BufferedReader(new FileReader("PlayersData/"+name+"/progress.json"));
         JsonObject object = gson.fromJson(reader, JsonObject.class);
         object.remove("name");
         object.addProperty("name", name);
@@ -52,7 +52,7 @@ public class Player {
 
     public static void updatePlayer(Player player) throws IOException {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        Writer writer = new BufferedWriter(new FileWriter("Phase_1/PlayersData/"+player.getName()+"/progress.json"));
+        Writer writer = new BufferedWriter(new FileWriter("PlayersData/"+player.getName()+"/progress.json"));
         gson.toJson(player, writer);
         writer.flush();
         writer.close();
@@ -63,7 +63,7 @@ public class Player {
     }
 
     public static boolean exists(String playerName) {
-        return new File("Phase_1/PlayersData/"+playerName).exists();
+        return new File("PlayersData/"+playerName).exists();
     }
 
     public String getName() {

@@ -60,7 +60,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "Phase_1/DefaultGameData/productsDepotSize.json"),
+                    "DefaultGameData/productsDepotSize.json"),
                     StandardCharsets.UTF_8);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -72,7 +72,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "Phase_1/DefaultGameData/productsSaleCost.json"));
+                    "DefaultGameData/productsSaleCost.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -81,7 +81,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "Phase_1/DefaultGameData/productsBuyCost.json"));
+                    "DefaultGameData/productsBuyCost.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -89,7 +89,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "Phase_1/DefaultGameData/animalsClassPath.json"));
+                    "DefaultGameData/animalsClassPath.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -101,7 +101,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "Phase_1/DefaultGameData/animalsBuyCost.json"));
+                    "DefaultGameData/animalsBuyCost.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -113,7 +113,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "Phase_1/DefaultGameData/animalsDepotSize.json"));
+                    "DefaultGameData/animalsDepotSize.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -129,7 +129,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "Phase_1/DefaultGameData/elementsLevelUpgradeCost.json"));
+                    "DefaultGameData/elementsLevelUpgradeCost.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -138,7 +138,7 @@ public class Constants {
 
         try {
             reader = new InputStreamReader(new FileInputStream(
-                    "Phase_1/DefaultGameData/elementsMaxLevelUpgradeCost.json"));
+                    "DefaultGameData/elementsMaxLevelUpgradeCost.json"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
