@@ -122,7 +122,7 @@ public class Depot {
                 s.append("\t").append(item).append(", Amount = ").append(thingsStored.get(item)).
                         append(", Unit Cost : ").append(Constants.getProductSaleCost(item.toString())).append("\n");
             }
-            s.deleteCharAt(s.length()-1);
+            s.deleteCharAt(s.length() - 1);
         } else
             s.append("\tNo Items Inside.");
         return s.toString();

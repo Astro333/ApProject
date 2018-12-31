@@ -22,10 +22,10 @@ public class Helicopter extends TransportationTool {
         capacity = level == 0 ? 40 : (1 + 2 * level) * 20;
     }
 
-    public Helicopter(SaveData saveData){
+    public Helicopter(SaveData saveData) {
         this(saveData.getHelicopter().maxLevel, saveData.getHelicopter().level);
         Helicopter it = (Helicopter) saveData.getHelicopter();
-        for(Object p : it.itemsInside.keySet())
+        for (Object p : it.itemsInside.keySet())
             itemsInside.put((Processable) p, it.itemsInside.get(p));
         itemsInsidePrice = it.itemsInsidePrice;
         itemsInsideVolume = it.itemsInsideVolume;
@@ -35,7 +35,7 @@ public class Helicopter extends TransportationTool {
 
     @Override
     protected int calculateTimeToFinish() {
-        return  12 - level*3;
+        return 12 - level * 3;
     }
 
     @Override

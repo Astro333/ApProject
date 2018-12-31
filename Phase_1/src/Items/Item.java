@@ -7,9 +7,7 @@ import java.util.HashMap;
 
 public class Item {
     private int x, y;
-
     private final ItemType type;
-    private final int itemPrice;
     private Long id;
 
     /**
@@ -17,7 +15,6 @@ public class Item {
      */
     public Item(ItemType type, int x, int y) {
         this.type = type;
-        this.itemPrice = Utilities.Constants.getProductBuyCost(type.toString());
         id = SUID.generateId();
         this.x = x;
         this.y = y;
@@ -25,7 +22,6 @@ public class Item {
 
     public Item(ItemType type) {
         this.type = type;
-        this.itemPrice = Utilities.Constants.getProductBuyCost(type.toString());
         id = SUID.generateId();
         x = 0;
         y = 0;
@@ -33,10 +29,6 @@ public class Item {
 
     public long getId() {
         return id;
-    }
-
-    public int getItemPrice() {
-        return itemPrice;
     }
 
     public ItemType getType() {

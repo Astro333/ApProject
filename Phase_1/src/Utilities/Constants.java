@@ -161,7 +161,7 @@ public class Constants {
         elementsMaxLevelUpgradeCost = gson.fromJson(reader, type);
     }
 
-    public static float getAnimalDepotSize(Animal.AnimalType type){
+    public static float getAnimalDepotSize(Animal.AnimalType type) {
         return animalsDepotSize.getOrDefault(type, -1F);
     }
 
@@ -198,7 +198,7 @@ public class Constants {
     }
 
     public static int getElementMaxLevelUpgradeCost(String element, int nextLevel) {
-        return elementsMaxLevelUpgradeCost.get(element)[nextLevel-1];
+        return elementsMaxLevelUpgradeCost.get(element)[nextLevel - 1];
     }
 
     public static String getAnimalClassPath(Animal.AnimalType animal) {

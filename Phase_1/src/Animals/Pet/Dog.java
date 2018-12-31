@@ -18,7 +18,8 @@ public class Dog extends Animal {
         super(x, y, 1, 1, AnimalType.Dog);
     }
 
-    private Dog(){}
+    private Dog() {
+    }
 
     /**
      * @param map map it'sself
@@ -35,6 +36,10 @@ public class Dog extends Animal {
         //check if wild still exists
         if (!wilds.contains(target)) {
             targetId = null;
+            target = null;
+        } else {
+            destinationX = target.getX();
+            destinationY = target.getY();
         }
 
         if (!wilds.contains(target)) {

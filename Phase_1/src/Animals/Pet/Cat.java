@@ -23,7 +23,7 @@ public class Cat extends Animal {
         this.intelligence = intelligence;
     }
 
-    private Cat(){
+    private Cat() {
         intelligence = 0;
     }
 
@@ -48,7 +48,7 @@ public class Cat extends Animal {
         if (x == destinationX && y == destinationY && items.contains(destinationItem)) {
             map.removeItem(destinationItem);
             map.getDepot().addStorable(destinationItem.getType());
-            System.out.println("Cat collected "+destinationItem.getType());
+            System.out.println("Cat collected " + destinationItem.getType());
             destinationItemId = null;
             destinationItem = null;
         }
