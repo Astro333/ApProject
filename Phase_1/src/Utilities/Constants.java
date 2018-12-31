@@ -178,7 +178,7 @@ public class Constants {
     }
 
     public static Integer getProductSaleCost(String product) {
-        return productsBuyCost.getOrDefault(product, null);
+        return productsSaleCost.getOrDefault(product, null);
     }
 
     public static Integer getProductBuyCost(String product) {

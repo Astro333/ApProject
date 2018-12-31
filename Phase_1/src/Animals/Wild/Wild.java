@@ -13,6 +13,8 @@ public abstract class Wild extends Animal {
         super(x, y, speed, runningSpeed, type);
     }
 
+    protected Wild(){}
+
     public int getTossingBuffer() {
         return tossingBuffer;
     }

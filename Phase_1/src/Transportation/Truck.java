@@ -3,20 +3,21 @@ package Transportation;
 import static Animals.Animal.AnimalType;
 
 import Interfaces.Processable;
+import Items.Item;
 import Levels.SaveData;
 import Utilities.Constants;
 
-public class Truck extends TransportationTool{
+public class Truck extends TransportationTool {
 
     public Truck(byte maxLevel, byte level) {
         super(maxLevel, level);
         capacity = level == 0 ? 40 : (1 + 2 * level) * 20;
     }
 
-    public Truck(SaveData saveData){
+    public Truck(SaveData saveData) {
         this(saveData.getTruck().maxLevel, saveData.getTruck().level);
         Truck it = (Truck) saveData.getTruck();
-        for(Object p : it.itemsInside.keySet())
+        for (Object p : it.itemsInside.keySet())
             itemsInside.put((Processable) p, it.itemsInside.get(p));
         itemsInsidePrice = it.itemsInsidePrice;
         itemsInsideVolume = it.itemsInsideVolume;
@@ -31,7 +32,7 @@ public class Truck extends TransportationTool{
 
     @Override
     public int getUpgradeCost() {
-        return level == maxLevel ? Integer.MIN_VALUE : Constants.getElementLevelUpgradeCost("Truck", level+1);
+        return level == maxLevel ? Integer.MIN_VALUE : Constants.getElementLevelUpgradeCost("Truck", level + 1);
     }
 
     @Override
@@ -44,16 +45,15 @@ public class Truck extends TransportationTool{
         return false;
     }
 
-    public boolean addAll(AnimalType type, int amount){
-        if(hasCapacityFor(type, amount)){
-            itemsInsidePrice += Constants.getAnimalBuyCost(type) * amount/2;
-            if(itemsInside.containsKey(type)){
+    public boolean addAll(AnimalType type, int amount) {
+        if (hasCapacityFor(type, amount)) {
+            itemsInsidePrice += Constants.getAnimalBuyCost(type) * amount / 2;
+            if (itemsInside.containsKey(type)) {
                 itemsInside.compute(type, (k, v) -> v + amount);
-            }
-            else {
+            } else {
                 itemsInside.put(type, amount);
             }
-            itemsInsideVolume += Constants.getAnimalDepotSize(type)*amount;
+            itemsInsideVolume += Constants.getAnimalDepotSize(type) * amount;
             return true;
         }
         return false;
@@ -61,16 +61,21 @@ public class Truck extends TransportationTool{
 
     @Override
     public void printElements() {
-        if(itemsInside.size() > 0){
+        if (itemsInside.size() > 0) {
             System.out.println("Elements To Sell:");
-            for(Object element : itemsInside.keySet()){
+            for (Object element : itemsInside.keySet()) {
                 int amount = itemsInside.get(element);
-                if(element instanceof AnimalType){
-                    System.out.println("\t"+element+" : "+amount+
-                            ", Total Price : " + (Constants.getAnimalBuyCost((AnimalType) element)/2) * amount +
-                            ", Total Volume : " + Constants.getAnimalDepotSize((AnimalType)element) * amount);
+                if (element instanceof AnimalType) {
+                    System.out.println("\t" + element + " : " + amount +
+                            ", Total Price : " + (Constants.getAnimalBuyCost((AnimalType) element) / 2) * amount +
+                            ", Total Volume : " + Constants.getAnimalDepotSize((AnimalType) element) * amount);
                 } else {
-
+                    Item.ItemType type = (Item.ItemType) element;
+                    System.out.println("\t" + type + " : " + amount +
+                            ", Total Price : " + Constants.getProductSaleCost(type.toString()) * amount +
+                            ", Total Volume : " + Constants.getProductSize(type.toString()) * amount);
+                    System.out.println("\tItems Volume : " + itemsInsideVolume);
+                    System.out.println("\tItems Price : " + itemsInsidePrice);
                 }
             }
         } else

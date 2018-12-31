@@ -692,8 +692,10 @@ public class LevelController extends Controller {
                     coin.set(coin.get() + amount);
                     System.out.println(amount + " of Coin Added.");
                 } else {
-                    map.getDepot().addAllStorable(type, amount);
-                    System.out.println(amount + " of " + type + " was added to depot.");
+                    if(map.getDepot().addAllStorable(type, amount)) {
+                        System.out.println(amount + " of " + type + " was added to depot.");
+                    } else
+                        PRINT_DEPOT_FULL(type.toString());
                 }
             }
         } else if (input.matches(PLAYER_ADD_REGEX)) {

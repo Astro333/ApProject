@@ -8,6 +8,9 @@ public class Buffalo extends Pet {
         super(x, y, 1, 1, 6, AnimalType.Buffalo);
     }
 
+    private Buffalo() {
+    }
+
     @Override
     public Item produce() {
         return new Item(Item.ItemType.Horn, x, y);

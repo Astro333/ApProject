@@ -2,21 +2,23 @@ package Animals.Pet;
 
 import Animals.Animal;
 import Animals.Wild.Wild;
-import Items.Item;
 import Map.Map;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Random;
 
 import static Utilities.Math_C.distance;
 
 public class Dog extends Animal {
 
-    private Wild target = null;
+    private Long targetId;
 
     public Dog(int x, int y) {
         super(x, y, 1, 1, AnimalType.Dog);
     }
+
+    private Dog(){}
 
     /**
      * @param map map it'sself
@@ -26,11 +28,13 @@ public class Dog extends Animal {
     public int[] updatePosition(Map map) {
 
         moveTowardDestination();
-        HashSet<Wild> wilds = map.getWilds();
+        moveTowardDestination();
 
+        HashSet<Wild> wilds = map.getWilds();
+        Wild target = map.getCells()[destinationX][destinationY].getWilds().get(targetId);
         //check if wild still exists
         if (!wilds.contains(target)) {
-            target = null;
+            targetId = null;
         }
 
         if (!wilds.contains(target)) {
@@ -46,11 +50,16 @@ public class Dog extends Animal {
                 }
                 destinationX = target.getX();
                 destinationY = target.getY();
+                targetId = target.getId();
             } else {
                 destinationX = random.nextInt(map.cellsWidth);
                 destinationY = random.nextInt(map.cellsHeight);
             }
         }
         return new int[]{x, y};
+    }
+
+    public Long getTargetId() {
+        return targetId;
     }
 }

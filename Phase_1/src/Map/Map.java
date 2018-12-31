@@ -163,23 +163,6 @@ public class Map {
 
     public void update() {
         detectCollisions();
-        Iterator<Wild> wildIterator = wilds.iterator();
-        while (wildIterator.hasNext()) {
-            Wild wild = wildIterator.next();
-            int prevX = wild.getX();
-            int prevY = wild.getY();
-            cells[prevX][prevY].removeAnimal(wild);
-
-            int[] newXY = wild.updatePosition(cellsWidth, cellsHeight);
-            if (newXY == null) {
-                wildIterator.remove();
-                removeAnimal(wild);
-                System.err.println(wild.getType() + " Broke Cage!");
-            } else {
-                cells[prevX][prevY].removeAnimal(wild);
-                cells[newXY[0]][newXY[1]].addAnimal(wild);
-            }
-        }
         Iterator<Animal> petIterator = pets.iterator();
         while (petIterator.hasNext()) {
             Animal pet = petIterator.next();
@@ -202,6 +185,23 @@ public class Map {
             } else
                 throw new RuntimeException();
             cells[newXY[0]][newXY[1]].addAnimal(pet);
+        }
+        Iterator<Wild> wildIterator = wilds.iterator();
+        while (wildIterator.hasNext()) {
+            Wild wild = wildIterator.next();
+            int prevX = wild.getX();
+            int prevY = wild.getY();
+            cells[prevX][prevY].removeAnimal(wild);
+
+            int[] newXY = wild.updatePosition(cellsWidth, cellsHeight);
+            if (newXY == null) {
+                wildIterator.remove();
+                removeAnimal(wild);
+                System.err.println(wild.getType() + " Broke Cage!");
+            } else {
+                cells[prevX][prevY].removeAnimal(wild);
+                cells[newXY[0]][newXY[1]].addAnimal(wild);
+            }
         }
         graphics.updateElementsPosition();
     }

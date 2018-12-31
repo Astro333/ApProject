@@ -9,6 +9,8 @@ public class Sheep extends Pet{
         super(x, y, 1, 1, 6, AnimalType.Sheep);
     }
 
+    private Sheep() {}
+
     @Override
     public Item produce() {
         return new Item(Item.ItemType.Wool, x, y);

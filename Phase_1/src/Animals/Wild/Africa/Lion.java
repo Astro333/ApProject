@@ -8,6 +8,8 @@ public class Lion extends Wild {
         super(x, y, 1, 1, AnimalType.Lion);
     }
 
+    private Lion(){}
+
     @Override
     protected int calculateTossingBuffer() {
         return 10;

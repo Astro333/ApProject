@@ -21,7 +21,9 @@ public abstract class Pet extends Animal implements Productive {
         this.PRODUCTION_TIME = PRODUCTION_TIME;
         timeRemainedToProduce = PRODUCTION_TIME/2;
     }
-
+    protected Pet(){
+        PRODUCTION_TIME = -1;
+    }
     public int getFullness() {
         return fullness;
     }

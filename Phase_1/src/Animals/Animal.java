@@ -1,5 +1,7 @@
 package Animals;
 
+import Animals.Pet.Cat;
+import Animals.Pet.Dog;
 import Animals.Pet.Pet;
 import Animals.Wild.Wild;
 import Interfaces.Processable;
@@ -59,7 +61,15 @@ public abstract class Animal {
         this.type = type;
         this.speed = speed;
         this.runningSpeed = runningSpeed;
-        this.random = new Random();
+        random = new Random();
+    }
+
+    protected Animal(){
+        this.speed = 0;
+        runningSpeed = 0;
+        id = null;
+        type = null;
+        random = new Random();
     }
 
     @Override
@@ -67,13 +77,28 @@ public abstract class Animal {
         StringBuilder s = new StringBuilder("type : " + type + ", At : (" + x + ", " + y+")");
         if (this instanceof Pet) {
             s.append(", fullness : ").append(((Pet) this).getFullness());
-        } else {
+        } else if(this instanceof Wild){
             s.append(", Status : ");
             if(((Wild)this).isCaged())
                 s.append("Caged");
             else
                 s.append("Free");
             s.append(", ID : ").append(id);
+        } else if(this instanceof Cat){
+            Cat This = (Cat) this;
+            s.append(", Intelligence : ").append(This.getIntelligence());
+            if(This.getDestinationItemId() != null){
+                s.append(", Destination Item Id : ").append(This.getDestinationItemId());
+            } else {
+                System.out.println(", Idle.");
+            }
+        } else if(this instanceof Dog){
+            Dog This = (Dog) this;
+            if(This.getTargetId() != null){
+                s.append(", In Pursuit of a wild with id ").append(This.getTargetId());
+            } else {
+                s.append(", Idle.");
+            }
         }
         return s.toString();
     }

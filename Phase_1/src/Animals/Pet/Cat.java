@@ -13,15 +13,26 @@ import static Utilities.Math_C.distance;
 public class Cat extends Animal {
 
     private final byte intelligence;
-    private final Random random;
-    private Item destinationItem = null;
+
+    private Long destinationItemId = null;
 
     public Cat(int x, int y, byte intelligence) {
         super(x, y, 1, 1, AnimalType.Cat);
         destinationX = 0;
         destinationY = 0;
         this.intelligence = intelligence;
-        this.random = new Random();
+    }
+
+    private Cat(){
+        intelligence = 0;
+    }
+
+    public Long getDestinationItemId() {
+        return destinationItemId;
+    }
+
+    public byte getIntelligence() {
+        return intelligence;
     }
 
     /**
@@ -32,14 +43,13 @@ public class Cat extends Animal {
     public int[] updatePosition(Map map) {
 
         HashSet<Item> items = map.getItems();
-
+        Item destinationItem = map.getCell(destinationX, destinationY).getItems().getOrDefault(destinationItemId, null);
         moveTowardDestination();
-
         if (x == destinationX && y == destinationY && items.contains(destinationItem)) {
             map.removeItem(destinationItem);
             map.getDepot().addStorable(destinationItem.getType());
             System.out.println("Cat collected "+destinationItem.getType());
-            destinationItem = null;
+            destinationItemId = null;
         }
         if (!items.contains(destinationItem)) {
             // if there is any item in map
@@ -56,10 +66,12 @@ public class Cat extends Animal {
                     }
                     destinationX = destinationItem.getX();
                     destinationY = destinationItem.getY();
+                    destinationItemId = destinationItem.getId();
                 } else {
                     destinationItem = items.iterator().next();
                     destinationX = destinationItem.getX();
                     destinationY = destinationItem.getY();
+                    destinationItemId = destinationItem.getId();
                 }
             } else {
                 destinationX = random.nextInt(map.cellsWidth);
