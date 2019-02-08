@@ -1,0 +1,10 @@
+.button {
+    -fx-background-color: #3277f9;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 15;
+    -fx-text-fill: GOLD;
+}
+.button:hover{
+    -fx-background-color: GOLD;
+    -fx-text-fill: #3277f9;
+}

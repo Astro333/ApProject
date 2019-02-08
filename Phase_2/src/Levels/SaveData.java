@@ -1,10 +1,10 @@
 package Levels;
 
 import Animals.Animal;
+import Buildings.Well;
+import Buildings.Workshop;
 import Interfaces.Processable;
 import Items.Item;
-import Structures.Well;
-import Structures.Workshop;
 import Transportation.Helicopter;
 import Transportation.TransportationTool;
 import Transportation.Truck;

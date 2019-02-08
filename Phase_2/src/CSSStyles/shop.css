@@ -1,0 +1,63 @@
+#background{
+    -fx-background-color: #ff354b;
+}
+
+#element{
+    -fx-background-color: GOLD;
+    -fx-alignment: center;
+}
+
+.button {
+    -fx-background-color: #3277f9;
+    -fx-text-fill: #74c9b8;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 19;
+}
+
+.button:hover {
+    -fx-background-color: #74c9b8;
+    -fx-text-fill: #3277f9;
+}
+
+.button:disabled{
+    -fx-opacity: 1;
+}
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-fill: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane > .scroll-bar {
+    -fx-background-color: #74c9b8;
+}
+
+.scroll-pane > .scroll-bar > .increment-button > .increment-arrow,
+.scroll-pane > .scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: #3277f9;
+}
+
+.scroll-pane > .scroll-bar > .increment-button,
+.scroll-pane > .scroll-bar > .decrement-button {
+    -fx-background-color: #74c9b8;
+}
+
+.scroll-pane > .corner {
+    -fx-background-color: blue;
+    -fx-background-insets: 0 1 1 0;
+}
+.scroll-pane > .scroll-bar > .increment-button:hover > .increment-arrow,
+.scroll-pane > .scroll-bar > .decrement-button:hover > .decrement-arrow {
+    -fx-background-color: blue;
+}
+
+.scroll-pane > .scroll-bar > .thumb {
+    -fx-background-color: #3277f9;
+}
+
+#elementContainer{
+    -fx-background-color: radial-gradient(radius 200%, #3277f9, derive(#de8c62, -30%), derive(burlywood, 30%));
+    -fx-background-radius: 3 3 3 3;
+    -fx-alignment: center;
+    -fx-spacing: 5;
+}

@@ -1,0 +1,24 @@
+{
+  "inputs": [
+    "Wool"
+  ],
+  "inputsAmount": [
+    1
+  ],
+  "outputs": [
+    "Sewing"
+  ],
+  "outputsAmount": [
+    1
+  ],
+  "demonstrativeName": "Spinnery",
+  "realName": "SpinneryWorkshop",
+  "productionTime": [
+    15,
+    14,
+    13,
+    11,
+    8
+  ],
+  "maxMaxLevel": 4
+}

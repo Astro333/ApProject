@@ -1,0 +1,10 @@
+{
+  "inputs" : ["Sewing"],
+  "inputsAmount":[1],
+  "outputs":["Fabric"],
+  "outputsAmount":[1],
+  "demonstrativeName":"Weaving Factory",
+  "realName":"Weaving Workshop",
+  "productionTime":[15, 14, 13, 11, 8],
+  "maxMaxLevel":4
+}

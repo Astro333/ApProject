@@ -1,0 +1,46 @@
+.button{
+    -fx-background-color: #3277f9;
+    -fx-text-fill: Gold;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 19;
+    -fx-pref-width: 180;
+}
+.button:hover{
+    -fx-background-color: Gold;
+    -fx-text-fill: #3277f9;
+}
+
+#rateText{
+    -fx-background-color: #3277f9;
+    -fx-font-family: Orbitron;
+    -fx-text-fill: #74c9b8;
+    -fx-font-size: 17;
+    -fx-background-radius: 2 0 0 2;
+    -fx-alignment: center;
+    -fx-pref-width: 90;
+}
+.text-field{
+    -fx-background-color: #3277f9;
+    -fx-font-family: IONA-U1;
+    -fx-text-fill: #74c9b8;
+    -fx-alignment: center;
+    -fx-font-size: 17;
+    -fx-background-radius: 0 2 2 0;
+    -fx-prompt-text-fill: RED;
+    -fx-accent: red;
+    -fx-pref-width: 90;
+}
+.text-field:focused{
+    -fx-background-color: #74c9b8;
+    -fx-text-fill: #3277f9;
+}
+.text-field:disabled{
+    -fx-opacity: 1;
+}
+
+#back{
+    -fx-background-color: radial-gradient(radius 200%, #3277f9, derive(#de8c62, -30%), derive(#00FF00, 30%));
+    -fx-background-radius: 3 3 3 3;
+    -fx-alignment: center;
+    -fx-padding: 20 20 20 20;
+}

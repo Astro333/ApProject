@@ -1,6 +1,5 @@
 package Utilities;
 
-import Animals.Animal;
 import Interfaces.Processable;
 import Items.Item;
 import com.google.gson.JsonDeserializationContext;
@@ -13,7 +12,7 @@ import java.lang.reflect.Type;
 public class ProcessableDeserializer implements JsonDeserializer<Processable> {
     @Override
     public Processable deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-        Processable var = Animal.AnimalType.getType(jsonElement.getAsString());
+        Processable var = AnimalType.getType(jsonElement.getAsString());
         if(var != null)
             return var;
         return Item.ItemType.getType(jsonElement.getAsString());

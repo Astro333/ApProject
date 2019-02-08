@@ -1,0 +1,54 @@
+{
+  "Buffalo": {
+    "HITBOX_CENTER_X": 68,
+    "HITBOX_CENTER_Y": 97,
+    "HITBOX_RADIUS_X": 53,
+    "HITBOX_RADIUS_Y": 30,
+    "RUNNING_SPEED": 300,
+    "BASE_SPEED": 50,
+    "HUNGER_RATE" : 4,
+    "EAT_SPEED":15,
+    "Head_Offset_X": 85,
+    "Head_Offset_Y": 15
+  },
+  "GuineaFowl": {
+    "HITBOX_CENTER_X": 68,
+    "HITBOX_CENTER_Y": 55,
+    "HITBOX_RADIUS_X": 30,
+    "HITBOX_RADIUS_Y": 23,
+    "RUNNING_SPEED": 300,
+    "BASE_SPEED": 50,
+    "HUNGER_RATE" : 2,
+    "EAT_SPEED":15,
+    "Head_Offset_X": 85,
+    "Head_Offset_Y": 15
+  },
+  "Ostrich": {
+    "HITBOX_CENTER_X": 68,
+    "HITBOX_CENTER_Y": 100,
+    "HITBOX_RADIUS_X": 40,
+    "HITBOX_RADIUS_Y": 30,
+    "RUNNING_SPEED": 300,
+    "BASE_SPEED": 50,
+    "HUNGER_RATE" : 5,
+    "EAT_SPEED":15,
+    "Head_Offset_X": 85,
+    "Head_Offset_Y": 15
+  },
+  "Dog": {
+    "HITBOX_CENTER_X": 33,
+    "HITBOX_CENTER_Y": 60,
+    "HITBOX_RADIUS_X": 40,
+    "HITBOX_RADIUS_Y": 30,
+    "RUNNING_SPEED": 300,
+    "BASE_SPEED": 50
+  },
+  "Cat":{
+    "HITBOX_CENTER_X": 33,
+    "HITBOX_CENTER_Y": 60,
+    "HITBOX_RADIUS_X": 34,
+    "HITBOX_RADIUS_Y": 25,
+    "RUNNING_SPEED": 300,
+    "BASE_SPEED": 50
+  }
+}

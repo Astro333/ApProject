@@ -1,0 +1,84 @@
+{
+  "depot": {
+    "itemCollectionX": 355,
+    "itemCollectionY": 565,
+    "layoutX": 265,
+    "layoutY": 447,
+    "upgradeButtonX": 160,
+    "upgradeButtonY": 100
+  },
+  "helicopter": {
+    "layoutX": 480,
+    "layoutY": 420
+  },
+  "truck": {
+    "layoutX": 150,
+    "layoutY": 460
+  },
+  "transportationService": {
+    "helicopter":{
+      "layoutX": 623,
+      "layoutY": 0
+    },
+    "truck":{
+      "layoutX": 630,
+      "layoutY": 31
+    }
+  },
+  "grassField": {
+    "centerX": 380,
+    "centerY": 320,
+    "radiusX": 210,
+    "radiusY": 130
+  },
+  "moneyIndicator": {
+    "layoutX": 490,
+    "layoutY": 0
+  },
+  "road":{
+    "layoutX":514,
+    "layoutY":0
+  },
+  "movementZone": [
+    196,
+    178,
+    588,
+    468
+  ],
+  "place1": {
+    "upgradeButtonX": 90,
+    "upgradeButtonY": 200,
+    "itemProduceX": 110,
+    "itemProduceY": 180
+  },
+  "place2": {
+    "upgradeButtonX": 80,
+    "upgradeButtonY": 320,
+    "itemProduceX": 90,
+    "itemProduceY": 310
+  },
+  "place3": {
+    "upgradeButtonX": 70,
+    "upgradeButtonY": 480,
+    "itemProduceX": 70,
+    "itemProduceY": 400
+  },
+  "place4": {
+    "upgradeButtonX": 620,
+    "upgradeButtonY": 200,
+    "itemProduceX": 590,
+    "itemProduceY": 200
+  },
+  "place5": {
+    "upgradeButtonX": 640,
+    "upgradeButtonY": 325,
+    "itemProduceX": 640,
+    "itemProduceY": 310
+  },
+  "place6": {
+    "upgradeButtonX": 640,
+    "upgradeButtonY": 470,
+    "itemProduceX": 640,
+    "itemProduceY": 455
+  }
+}

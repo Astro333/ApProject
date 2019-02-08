@@ -1,0 +1,10 @@
+{
+  "inputs" : ["DriedEggs"],
+  "inputsAmount":[1],
+  "outputs":["Cake"],
+  "outputsAmount":[1],
+  "demonstrativeName":"Cookie Bakery",
+  "realName":"CakeWorkshop",
+  "productionTime":[15, 14, 13, 11, 8, 4],
+  "maxMaxLevel":4
+}

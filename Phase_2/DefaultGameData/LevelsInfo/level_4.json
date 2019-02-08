@@ -1,0 +1,52 @@
+{
+  "goals": {
+    "Coin": 10000,
+    "Egg": 20,
+    "GuineaFowl": 5
+  },
+  "workshops": [
+    "DriedEggs",
+    "Cake",
+    "Incubator",
+    "FlouryCake",
+    "Spinnery",
+    "Weaving"
+  ],
+  "workshopsLevel": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "workshopsPosition": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "startingPets": [
+    "GuineaFowl",
+    "Ostrich"
+  ],
+  "startingPetsAmount": [
+    1,
+    1
+  ],
+  "continent": "Africa",
+  "truckLevel": 0,
+  "helicopterLevel": 0,
+  "wellLevel": 0,
+  "levelId": 2,
+  "startMoney": 5000,
+  "goldenTime": 120,
+  "goldenPrize": 1000,
+  "silverTime": 240,
+  "silverPrize": 850,
+  "bronzeTime": 360,
+  "bronzePrize": 750,
+  "prize": 500
+}

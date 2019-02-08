@@ -1,155 +1,272 @@
 package Animals;
 
-import Animals.Pet.Cat;
-import Animals.Pet.Dog;
-import Animals.Pet.Pet;
-import Animals.Wild.Wild;
-import Interfaces.Processable;
-import Utilities.SUID;
+import Animals.Pets.Cat;
+import Animals.Pets.Dog;
+import Animals.Pets.Pet;
+import Interfaces.Destructible;
+import Interfaces.Scalable;
+import Interfaces.Spawnable;
+import Utilities.*;
+import javafx.animation.Animation;
+import javafx.animation.AnimationTimer;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.CacheHint;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Ellipse;
+import javafx.util.Duration;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.UUID;
 
-public abstract class Animal {
+public abstract class Animal implements Scalable, Spawnable, Destructible {
 
-    protected int x, y;
-    protected final int speed;// for Phase 2
-    protected final int runningSpeed;// for Phase 2
-    protected int destinationX, destinationY;
-    private final Long id;
-    private final AnimalType type;
-    protected transient Random random;
+    protected static DoubleProperty GENERAL_TIME_MULTIPLIER = null;
 
-    protected void moveTowardDestination() {
-        if (x != destinationX && y != destinationY) {
-            if (random.nextBoolean()) {
-                if (x < destinationX)
-                    ++x;
-                else
-                    --x;
+    public static double getMaxX() {
+        return MAX_X;
+    }
+
+    public static double getMinX() {
+        return MIN_X;
+    }
+
+    public static double getMaxY() {
+        return MAX_Y;
+    }
+
+    public static double getMinY() {
+        return MIN_Y;
+    }
+
+    protected static double MAX_X = 500;
+
+    protected static double MIN_X = 50;
+    protected static double MAX_Y = 500;
+
+    protected static double MIN_Y = 50;
+    private static double sin_22_5 = 0.3826834323;
+
+    private static double cos_22_5 = 0.9238795325;
+    public final Ellipse hitBox;
+
+    protected double des_x, des_y;
+    protected final UnitVector movementVector;
+    public final double BASE_SPEED;
+
+    public final double RUNNING_SPEED;
+    protected double speed;
+    protected final double HITBOX_RADIUS_X;
+
+    protected final double HITBOX_RADIUS_Y;
+    protected final double HITBOX_CENTER_X;
+    protected final double HITBOX_CENTER_Y;
+    protected final AnimationTimer positionUpdaterThread;
+
+    protected final Random random;
+
+    protected transient final SpriteAnimation animation;
+    protected final Pane graphic;
+
+    protected final DoubleProperty scale;
+    public final long id;
+
+    protected final AnimalType type;
+    protected final IntegerProperty status;
+
+    public static Animal getInstance(AnimalType type, String continent) {
+        switch (type) {
+            case Cat:
+                return new Cat(continent, true);
+            case Dog:
+                return new Dog(continent);
+        }
+        String animalClassPath = Loader.getAnimalClassPath(type);
+        if (animalClassPath == null)
+            return null;
+        try {
+            Class clazz = Class.forName(animalClassPath);
+            Constructor constructor;
+            if (clazz.isAssignableFrom(Pet.class)) {
+                constructor = clazz.getDeclaredConstructor();
             } else {
-                if (y < destinationY)
-                    ++y;
-                else
-                    --y;
+                constructor = clazz.getDeclaredConstructor();
             }
-        } else if (x != destinationX) {
-            if (x < destinationX)
-                ++x;
-            else
-                --x;
-        } else if (y != destinationY) {
-            if (y < destinationY)
-                ++y;
-            else
-                --y;
+            constructor.setAccessible(true);
+            Animal instance = (Animal) constructor.newInstance();
+            constructor.setAccessible(false);
+            return instance;
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
+                InstantiationException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
-    public void setX(int x) {
-        this.x = x;
-    }
+    public abstract void stopMoving();
 
-    public void setY(int y) {
-        this.y = y;
-    }
+    public abstract void startMoving();
 
-    protected Animal(int x, int y, int speed, int runningSpeed, AnimalType type) {
-        id = SUID.generateId();
-        this.x = x;
-        this.y = y;
+    protected Animal(AnimalType type) {
         this.type = type;
-        this.speed = speed;
-        this.runningSpeed = runningSpeed;
+        id = UUID.randomUUID().getLeastSignificantBits();
         random = new Random();
+        scale = new SimpleDoubleProperty(1);
+        movementVector = new UnitVector(random.nextDouble(), random.nextDouble());
+        graphic = new Pane();
+        graphic.setPickOnBounds(false);
+        graphic.setCacheShape(true);
+        graphic.setCache(true);
+        graphic.setCacheHint(CacheHint.SPEED);
+
+
+        status = new SimpleIntegerProperty(this, "status", 0);
+
+
+        animation = new SpriteAnimation(GENERAL_TIME_MULTIPLIER, Duration.millis(1000));
+        animation.setCycleCount(Animation.INDEFINITE);
+
+
+        HashMap<String, Number> data = type.IS_WILD ? Loader.getWildsData().get(type) : Loader.getPetsData().get(type);
+        this.HITBOX_RADIUS_X = data.get("HITBOX_RADIUS_X").doubleValue();
+        this.HITBOX_RADIUS_Y = data.get("HITBOX_RADIUS_Y").doubleValue();
+        this.HITBOX_CENTER_X = data.get("HITBOX_CENTER_X").doubleValue();
+        this.HITBOX_CENTER_Y = data.get("HITBOX_CENTER_Y").doubleValue();
+
+        this.BASE_SPEED = data.get("BASE_SPEED").doubleValue();
+        this.RUNNING_SPEED = data.get("RUNNING_SPEED").doubleValue();
+
+        speed = BASE_SPEED;
+        hitBox = new Ellipse(HITBOX_CENTER_X, HITBOX_CENTER_Y, HITBOX_RADIUS_X, HITBOX_RADIUS_Y);
+        hitBox.setFill(Color.rgb(255, 0, 0, 0.3));
+
+        graphic.viewOrderProperty().bind(graphic.layoutYProperty().add(hitBox.getCenterY()).multiply(-1));
+
+        positionUpdaterThread = setupPositionUpdaterThread();
     }
 
-    protected Animal() {
-        this.speed = 0;
-        runningSpeed = 0;
-        id = null;
-        type = null;
-        random = new Random();
+    protected State getDirection(UnitVector movementVector) {
+
+        double tx = movementVector.getX();
+        double ty = -(movementVector.getY());
+
+        double delta_x = tx * cos_22_5 - ty * sin_22_5;
+        double delta_y = tx * sin_22_5 + ty * cos_22_5;
+
+        double tan = delta_y / delta_x;
+
+        int i = tan < 0 ? 0 : 1;
+        int j = delta_x < 0 ? 0 : 2;
+        tan = tan < 0 ? -tan : tan;
+        int k = tan < 1 ? 0 : 4;
+        int index = i | j | k;
+        return State.get(index);
     }
 
-    @Override
-    public String toString() {
-        StringBuilder s = new StringBuilder("type : " + type + ", At : (" + x + ", " + y + ")");
-        if (this instanceof Pet) {
-            s.append(", fullness : ").append(((Pet) this).getFullness());
-        } else if (this instanceof Wild) {
-            s.append(", Status : ");
-            if (((Wild) this).isCaged())
-                s.append("Caged");
-            else
-                s.append("Free");
-            s.append(", ID : ").append(id);
-        } else if (this instanceof Cat) {
-            Cat This = (Cat) this;
-            s.append(", Intelligence : ").append(This.getIntelligence());
-            if (This.getDestinationItemId() != null) {
-                s.append(", Destination Item Id : ").append(This.getDestinationItemId());
-            } else {
-                System.out.println(", Idle.");
-            }
-        } else if (this instanceof Dog) {
-            Dog This = (Dog) this;
-            if (This.getTargetId() != null) {
-                s.append(", In Pursuit of a wild with id ").append(This.getTargetId());
-            } else {
-                s.append(", Idle.");
-            }
+    protected boolean isPaused = false;
+
+    public void togglePause() {
+        if (isPaused) {
+            isPaused = false;
+            if ((status.get() & (State.Spawning.value | State.Eat.value | State.BeingTossed.value)) == 0)
+                startMoving();
+        } else {
+            isPaused = true;
+            if ((status.get() & (State.Spawning.value | State.Eat.value | State.BeingTossed.value)) == 0)
+                stopMoving();
         }
-        return s.toString();
     }
+
+    public static void setMinY(double minY) {
+        MIN_Y = minY;
+    }
+
+    protected State getDirection(double des_x, double des_y) {
+
+        double tx = des_x - (graphic.getLayoutX() + hitBox.getCenterX());
+        double ty = -(des_y - (graphic.getLayoutY() + hitBox.getCenterY()));
+
+        double delta_x = tx * cos_22_5 - ty * sin_22_5;
+        double delta_y = tx * sin_22_5 + ty * cos_22_5;
+
+        double tan = delta_y / delta_x;
+
+        int i = tan < 0 ? 0 : 1;
+        int j = delta_x < 0 ? 0 : 2;
+        tan = tan < 0 ? -tan : tan;
+        int k = tan < 1 ? 0 : 4;
+        int index = i | j | k;
+        return State.get(index);
+    }
+
+    public static void setGeneralTimeMultiplier(DoubleProperty GENERAL_TIME_MULTIPLIER) {
+        Animal.GENERAL_TIME_MULTIPLIER = GENERAL_TIME_MULTIPLIER;
+    }
+
+    public void moveTowardRandomLocation() {
+        moveToward(MIN_X + (MAX_X - MIN_X) * random.nextDouble(),
+                MIN_Y + (MAX_Y - MIN_Y) * random.nextDouble());
+    }
+
+    public double getY() {
+        return graphic.getLayoutY() + hitBox.getCenterY();
+    }
+
+    public double getX() {
+        return graphic.getLayoutX() + hitBox.getCenterX();
+    }
+
+    public void setX(double x) {
+        graphic.setLayoutX(x - hitBox.getCenterX());
+    }
+
+    public void setY(double y) {
+        graphic.setLayoutY(y - hitBox.getCenterY());
+    }
+
+    public void setTextureX(double x) {
+        graphic.setLayoutX(x);
+    }
+
+    public void setTextureY(double y) {
+        graphic.setLayoutY(y);
+    }
+
+    public abstract void moveToward(double des_x, double des_y);
+
+    protected abstract AnimationTimer setupPositionUpdaterThread();
 
     public AnimalType getType() {
         return type;
     }
 
-    public long getId() {
-        return id;
+    public Pane getGraphic() {
+        return graphic;
     }
 
-    public int getX() {
-        return x;
+    public int getStatus() {
+        return status.get();
     }
 
-    public int getY() {
-        return y;
+    public static void setMaxX(double maxX) {
+        MAX_X = maxX;
     }
 
-    public int getDestinationX() {
-        return destinationX;
+    public static void setMinX(double minX) {
+        MIN_X = minX;
     }
 
-    public int getDestinationY() {
-        return destinationY;
+    public static void setMaxY(double maxY) {
+        MAX_Y = maxY;
     }
 
-    public enum AnimalType implements Processable {
-        BrownBear(true), WhiteBear(true), Grizzly(true), Lion(true), Jaguar(true),
-
-        Cat(false), Dog(false),
-        Sheep(false), GuineaFowl(false), Ostrich(false), Cow(false), Buffalo(false),
-        Turkey(false), Chicken(false), Penguin(false), Llama(false), BrownCow(false), Walrus(false),
-        Yak(false), KingPenguin(false), Goose(false), Goat(false);
-        public final boolean IS_WILD;
-        private static HashMap<String, AnimalType> animalTypeHashMap;
-
-        private AnimalType(boolean IS_WILD) {
-            this.IS_WILD = IS_WILD;
-        }
-
-        static {
-            animalTypeHashMap = new HashMap<>();
-            for (AnimalType type : AnimalType.values()) {
-                animalTypeHashMap.put(type.toString(), type);
-            }
-        }
-
-        public static AnimalType getType(String name) {
-            return animalTypeHashMap.getOrDefault(name, null);
-        }
+    public IntegerProperty statusProperty() {
+        return status;
     }
 }

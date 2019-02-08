@@ -1,0 +1,51 @@
+#bar{
+    -fx-background-color: transparent;
+}
+.text-area{
+    -fx-font-size: 13;
+    -fx-text-fill: #44c553;
+    -fx-background-color: black;
+    -fx-fill: black;
+    -fx-font-family: Orbitron;
+    -fx-font-smoothing-type: sub;
+}
+.text-area .content {
+    -fx-cursor: text;
+    -fx-background-color: black;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+}
+.send-button{
+    -fx-font-size: 20;
+    -fx-background-color: transparent;
+    -fx-background-size: 30px;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: 50%;
+    -fx-background-image: url('../res/Buttons/Chat/45-Send-512.png');
+    -fx-text-fill: #44c553;
+    -fx-font-family: Orbitron;
+    -fx-border-width: 0 1 1 0;
+    -fx-border-color: #44c553;
+    -fx-background-radius: 0;
+}
+.send-button:hover{
+    -fx-background-color: #44c553;
+    -fx-background-image: url('../res/Buttons/Chat/Send-disabled.png');
+}
+
+.attach-file{
+    -fx-background-color: transparent;
+    -fx-background-size: 30px;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: 50%;
+    -fx-background-image: url('../res/Buttons/Chat/attach_file_enabled.png');
+    -fx-text-fill: #44c553;
+    -fx-font-family: Orbitron;
+    -fx-border-width: 0 1 1 0;
+    -fx-border-color: #44c553;
+    -fx-background-radius: 0;
+}
+.attach-file:hover{
+    -fx-background-color: #44c553;
+    -fx-background-image: url('../res/Buttons/Chat/attach_file_disabled.png');
+}

@@ -1,1054 +1,1021 @@
 package Controllers;
 
 import Animals.Animal;
-import Animals.Pet.Cat;
-import Animals.Pet.Dog;
-import Animals.Pet.Pet;
-import Animals.Wild.Wild;
-import Exceptions.IllegalConstructorArgumentException;
+import Animals.Pets.Cat;
+import Animals.Pets.Dog;
+import Animals.Pets.Pet;
+import Animals.Wilds.Wild;
+import Buildings.Depot;
+import Buildings.Well;
+import Buildings.Workshop;
+import Ground.GrassField;
 import Interfaces.Processable;
 import Items.Item;
 import Levels.LevelData;
 import Levels.RequirementsListener;
-import Levels.SaveData;
-import Map.Cell;
-import Map.GraphicalCell;
-import Map.Map;
-import Map.MapGraphics;
 import Player.Player;
-import Structures.Depot;
-import Structures.Well;
-import Structures.Workshop;
 import Transportation.Helicopter;
 import Transportation.TransportationTool;
 import Transportation.Truck;
-import Utilities.Constants;
-import Utilities.Pair;
-import Utilities.ProcessableDeserializer;
+import Utilities.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import javafx.beans.property.BooleanProperty;
+import com.google.gson.JsonObject;
+import javafx.animation.AnimationTimer;
+import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.effect.GaussianBlur;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.paint.Color;
+import javafx.stage.Modality;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.Duration;
 
-import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Random;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
-import static Items.Item.ItemType;
+public class LevelController {
 
-// this Controller is Used For Any LevelData Being Played
-public class LevelController extends Controller {
-
-    private transient final String PLANT_REGEX;
-    private transient final String CAGE_REGEX;
-    private transient final String BUY_REGEX;
-    private transient final String PICKUP_REGEX;
-    private transient final String WELL_REGEX;
-    private transient final String START_WORKSHOP_REGEX;
-    private transient final String UPGRADE_REGEX;
-    private transient final String HELICOPTER_GO_REGEX;
-    private transient final String TRUCK_GO_REGEX;
-    private transient final String VEHICLE_ADD_REGEX;
-    private transient final String PRINT_REGEX;
-    private transient final String TURN_REGEX;
-    private transient final String SAVE_REGEX;
-    private transient final String SHOW_TRANSPORTATION_TOOL_MENU;
+    private boolean isSetup = false;
+    private double deltaX, deltaY;
+    private Scene prevScene = null;
+    private boolean paused = false;
+    private boolean levelIsFinished = false;
+    public transient LevelData levelData; //don't serialize
+    private transient GraphicalChronometer timer;
+    private transient final Random random = new Random();//don't serialize
+    private transient Player player;//only Serialize levelGameElementsLevel, name
+    private ObservableMap<Processable, Integer> levelRequirements;//serialize
+    private IntegerProperty coin;//serialize
+    private HashMap<String, Workshop> workshops;//serialize
+    private GrassField grassField;
+    private Well well;
+    private transient MoneyIndicator moneyIndicator;
+    private Depot depot;
+    private ObservableMap<AnimalType, Integer> animalsAmount;
+    private HashMap<Long, Animal> pets;
+    private HashMap<Long, Wild> wilds;
+    private HashMap<Long, Item> items;
+    private MediaPlayer MUSIC = new MediaPlayer(new Media(getClass().getResource("/res/CommonSounds/music.mp3").toExternalForm()));
 
     {
-        PLANT_REGEX = "(?i:plant\\s+\\d+\\s+\\d+)";
-        CAGE_REGEX = "(?i:cage\\s+\\d+\\s+\\d+)";
-        BUY_REGEX = "(?i:buy\\s+[a-z]+)";
-        PICKUP_REGEX = "(?i:pickup\\s+\\d+\\s+\\d+)";
-        WELL_REGEX = "(?i:well)";
-        HELICOPTER_GO_REGEX = "(?i:helicopter\\s+go)";
-        TRUCK_GO_REGEX = "(?i:truck\\s+go)";
-        VEHICLE_ADD_REGEX = "(?i:((helicopter)|(truck))\\s+add\\s+[a-zA-Z]+\\s+\\d+)";
-        START_WORKSHOP_REGEX = "(?i:start\\s+[a-z]+)";
-        UPGRADE_REGEX = "(?i:upgrade\\s+[a-z]+)";
-        PRINT_REGEX = "(?i:print\\s+[a-z]+)";
-        TURN_REGEX = "(?i:turn\\s+[1-9]\\d*)";
-        SHOW_TRANSPORTATION_TOOL_MENU = "(?i:show\\s+((truck)|(helicopter))\\s+menu)";
-        SAVE_REGEX = "(?i:save\\s+game\\s+[0-9a-zA-Z\\-_]+.json)";
-        String s = "s";
-        s.matches(SAVE_REGEX);
+        MUSIC.setCycleCount(MediaPlayer.INDEFINITE);
+        MUSIC.setVolume(0.8);
     }
+    private double scale = 1;
+    private double deltaX1;
+    private double deltaY1;
 
-    private transient final String PLAYER_ADD_REGEX;
-    private transient final String FILL_WELL_IMMEDIATELY;
-    private transient final String ADD_ELEMENT_TO_REGEX;
-    private transient final String ADD_ELEMENT_REGEX;
+    private DoubleProperty GENERAL_TIME_MULTIPLIER;
+
+    private HBox animalsBuyButtons;
+
+    private EllipseCollisionTester collisionTester = new EllipseCollisionTester(4);
+    private HelicopterController helicopterController;
+    private TruckController truckController;
+    private Helicopter helicopter;
+    private Truck truck;
+    private Scene helicopterScene;
+    private Scene truckScene;
+    private Scene levelScene = null;
+    private Stage stage;
+    private ImageView roadView;
+    private AimContainer aimContainer;
+    @FXML
+    private transient Pane background;
+
+    private ScheduledExecutorService wildSpawnTimer;
+    private ScheduledFuture<?> wildSpawnTask;
+
+    private final Alert playerNotFound = new Alert(Alert.AlertType.CONFIRMATION, "Create New Player?", ButtonType.YES, ButtonType.NO);
+    private final DialogPane dialogPane1 = playerNotFound.getDialogPane();
 
     {
-        PLAYER_ADD_REGEX = "(?i:player.add\\s+[a-zA-Z]+\\s+\\d+)";
-        FILL_WELL_IMMEDIATELY = "(?i:fill\\s+well\\s+immediately)";
-        ADD_ELEMENT_TO_REGEX = "(?i:add\\s+[a-zA-Z]+\\s+\\d+\\s+to\\s+\\d+\\s+\\d+)";
-        ADD_ELEMENT_REGEX = "(?i:add\\s+[a-zA-Z]+\\s+\\d+)";
-        String s = "s";
-        s.matches(ADD_ELEMENT_REGEX);
+        dialogPane1.lookupButton(ButtonType.NO).setTranslateX(-230);
+        dialogPane1.lookupButton(ButtonType.NO).setTranslateY(5);
+        dialogPane1.getStylesheets().add("CSSStyles/mainMenuStyle.css");
+        dialogPane1.setHeaderText("Player Not Found!");
+
+        dialogPane1.lookupButton(ButtonType.YES).setTranslateX(50);
+        dialogPane1.lookupButton(ButtonType.YES).setTranslateY(5);
+        playerNotFound.initStyle(StageStyle.UNDECORATED);
+
     }
 
-    public transient final LevelData levelData; //don't serialize
-    private transient final Random randomGenerator = new Random();//don't serialize
-    private transient final Player player;//only Serialize levelGameElementsLevel, name
+    public void setup(byte levelNumber, Player player) throws IOException {
+        if (!isSetup) {
+            MUSIC.play();
+            GENERAL_TIME_MULTIPLIER = new SimpleDoubleProperty(1);
+            wildSpawnTimer = Executors.newScheduledThreadPool(1);
+            wildSpawnTask = wildSpawnTimer.schedule(wildSpawner, (long) (10_000 / GENERAL_TIME_MULTIPLIER.get()), TimeUnit.MILLISECONDS);
+            this.player = player;
+            Reader reader = new BufferedReader(new FileReader("DefaultGameData/LevelsInfo/" + "level_" + levelNumber + ".json"));
+            Gson gson = new GsonBuilder().registerTypeAdapter(Processable.class, new ProcessableDeserializer()).create();
+            levelData = gson.fromJson(reader, LevelData.class);
+            Item.setupTextures(levelData.getContinent());
+            coin = new SimpleIntegerProperty(levelData.getStartMoney());
+            levelRequirements = FXCollections.observableHashMap();
 
-    private final IntegerProperty coin;//serialize
-    private final Map map;//serialize
-    private boolean levelIsFinished = false;//serialize
-
-    private boolean cheatsEnabled = false;
-
-    private final ObservableMap<Processable, Integer> levelRequirements;//serialize
-    private final HashMap<String, Workshop> workshops;//serialize
-    private final TransportationTool helicopter;// serialize
-    private final TransportationTool truck;//serialize
-    private final Well well;//serialize
-    private final StringBuilder levelLog;//serialize
-    private int timePassed;//serialize
-    private final int cageLevel;//serialize
-    private int timeRemainedToSpawnWild = 3;//serialize
-    // this one is set when player first starts game
-    private final HashMap<String, Byte> levelGameElementsLevel;
-
-    private transient ChangeListener<Boolean> vehicleFinishedJob = new ChangeListener<>() {
-        @Override
-        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-            if (oldValue) {
-                TransportationTool vehicle = (TransportationTool) ((BooleanProperty) observable).getBean();
-                if (vehicle instanceof Truck) {
-                    int gold = ((Truck) vehicle).receiveSoldGoodsMoney();
-                    coin.set(coin.get() + gold);
-                    System.out.println("Truck brought " + gold + " coin.");
-                } else if (vehicle instanceof Helicopter) {
-                    System.out.println("Helicopter Dropping items:");
-                    ((Helicopter) helicopter).dropItemsRandomly(map);
-                }
+            JsonObject continentData = Loader.loadContinentData(levelData.getContinent());
+            TransportationTool.setGeneralTimeMultiplier(GENERAL_TIME_MULTIPLIER);
+            LinkedList<String> workshopsNames = new LinkedList<>(Arrays.asList(levelData.getWorkshops()));
+            Workshop.setupTextures(workshopsNames);
+            Depot.setPlayerCoin(coin);
+            Workshop.setPlayerCoin(coin);
+            Well.setPlayerCoin(coin);
+            Well.setGeneralTimeMultiplier(GENERAL_TIME_MULTIPLIER);
+            Workshop.setGeneralTimeMultiplier(GENERAL_TIME_MULTIPLIER);
+            Wild.setCageLevel(player.getGameElementLevel("Cage"));
+            int[] movementZone = gson.fromJson(continentData.get("movementZone"), int[].class);
+            Animal.setMinX(movementZone[0]);
+            Animal.setMinY(movementZone[1]);
+            Animal.setMaxX(movementZone[2]);
+            Animal.setMaxY(movementZone[3]);
+            Animal.setGeneralTimeMultiplier(GENERAL_TIME_MULTIPLIER);
+            pets = new HashMap<>();
+            wilds = new HashMap<>();
+            items = new HashMap<>();
+            animalsAmount = FXCollections.observableHashMap();
+            Dog.setWilds(wilds);
+            Cat.setItems(items);
+            animalsBuyButtons = Utility.createAnimalsMenu(levelData.getContinent());
+            for (int i = 0; i < animalsBuyButtons.getChildren().size(); ++i) {
+                AnimalBuyButton button = (AnimalBuyButton) animalsBuyButtons.getChildren().get(i);
+                button.setOnAction(event -> buyAnimal(button.getAnimalType()));
+                button.disableProperty().bind(coin.lessThan(button.getPrice()));
             }
-        }
-    };
-    private transient ChangeListener<Boolean> workShopFinishedJob = new ChangeListener<>() {
-        @Override
-        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-            if (oldValue) {
-                Workshop workshop = (Workshop) (((BooleanProperty) observable).getBean());
-                int processingMultiplier = workshop.getProcessingMultiplier();
-                Integer[] amounts = workshop.getOutputsAmount();
-                Processable[] outputs = workshop.getOutputs();
-                Pair<Integer, Integer> dropZone =
-                        Constants.getWorkshopDropZone(levelData.getContinent(), workshop.getPosition());
 
-                if (dropZone == null)
-                    throw new RuntimeException("Why DropZone Was Null?");
+            background.getChildren().add(animalsBuyButtons);
 
-                for (int i = 0; i < amounts.length; ++i) {
-                    int j = 0;
-                    if (outputs[i] instanceof Animal.AnimalType) {
-                        while (j < amounts[i] * processingMultiplier) {
-                            Animal animal = getRandomlyLocatedAnimalInstance(outputs[i].toString());
-                            if (animal == null)
-                                break;
-                            animal.setX(dropZone.getKey());
-                            animal.setY(dropZone.getValue());
-                            map.addAnimal(animal);
-                            System.out.println(workshop.getDemonstrativeName() + " Produced " + animal.getType() +
-                                    " At (" + dropZone.getKey() + ", " + dropZone.getValue() + ")");
-                            ++j;
-                        }
-                    } else if (outputs[i] instanceof Item.ItemType) {
-                        while (j < amounts[i] * processingMultiplier) {
-                            map.addItem(new Item((Item.ItemType) outputs[i], dropZone.getKey(), dropZone.getValue()));
-                            System.out.println(workshop.getDemonstrativeName() + " Produced " + outputs[i] +
-                                    " At (" + dropZone.getKey() + ", " + dropZone.getValue() + ")");
-                            ++j;
-                        }
-                    }
-                }
-            }
-        }
-    };
+            RequirementsListener requirementsListener;
 
-    /**
-     * @param pathToLevelJsonFile path to level json file.
-     * @param player              needed to determine max level for workshops, saveGame, etc.
-     */
-    public LevelController(String pathToLevelJsonFile, Player player) throws FileNotFoundException {
-        super();
-        Reader reader = new BufferedReader(new FileReader(pathToLevelJsonFile));
-        Gson gson = new GsonBuilder().registerTypeAdapter(Processable.class, new ProcessableDeserializer()).create();
-        levelData = gson.fromJson(reader, LevelData.class);
-        RequirementsListener requirementsListener;
-        levelRequirements = FXCollections.observableHashMap();
-        coin = new SimpleIntegerProperty(levelData.getStartMoney());
-        for (Processable levelRequirement : levelData.getGoals().keySet())
-            levelRequirements.put(levelRequirement, 0);
-        if (levelData.getGoals().containsKey(ItemType.Coin)) {
-            requirementsListener = new RequirementsListener(
-                    this, true);
-            coin.addListener(requirementsListener.getCoinChangeListener());
-            levelRequirements.computeIfPresent(ItemType.Coin, (k, v) -> levelData.getStartMoney());
-        } else
-            requirementsListener = new RequirementsListener(
-                    this, false);
-
-        Depot depot = new Depot(player.getGameElementLevel("Depot"), requirementsListener.getMapChangeListener());
-        Map map = new Map(depot, 10, 10, requirementsListener.getMapChangeListener());
-
-        levelLog = new StringBuilder();
-        this.player = player;
-        this.levelGameElementsLevel = new HashMap<>(player.getGameElementsLevel());
-        this.map = map;
-        this.helicopter = getHelicopterInstance();
-        this.truck = getTruckInstance();
-        this.well = getWellInstance();
-        this.workshops = getWorkshopsInstance();
-        this.timePassed = 0;
-        cageLevel = levelGameElementsLevel.get("Cage");
-
-        if (helicopter != null) {
-            helicopter.isAtTaskProperty().addListener(vehicleFinishedJob);
-        }
-
-        if (truck != null) {
-            truck.isAtTaskProperty().addListener(vehicleFinishedJob);
-        }
-        if (workshops != null) {
-            for (Workshop workshop : workshops.values()) {
-                workshop.isAtTaskProperty().addListener(workShopFinishedJob);
-            }
-        }
-        for (int i = 0; i < map.cellsWidth; ++i) {
-            for (int j = 0; j < map.cellsHeight; ++j) {
-                synchronized (MapGraphics.latch) {
-                    map.getGraphics().getMapCells()[i][j].setOnMouseClicked(event -> {
-                        GraphicalCell src = (GraphicalCell) event.getSource();
-                        switch (event.getButton()) {
-                            case PRIMARY:
-                                plant(src.getPos_X(), src.getPos_Y());
-                                break;
-                            case SECONDARY:
-                                System.out.println(map.getCell(src.getPos_X(), src.getPos_Y()));
-                                break;
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-    public LevelController(SaveData saveData, Player player) throws FileNotFoundException {
-        this.player = player;
-
-        this.levelGameElementsLevel = saveData.getGameElementsLevel();
-        this.coin = new SimpleIntegerProperty(saveData.getCoin());
-        this.workshops = new HashMap<>();
-        for (Workshop workshop : saveData.getWorkshops()) {
-            workshops.put(workshop.getRealName(), workshop);
-            workshop.isAtTaskProperty().set(workshop.getTimeToFinishTask() >= 0);
-            workshop.isAtTaskProperty().addListener(workShopFinishedJob);
-        }
-        if (saveData.getHelicopter() != null) {
-            this.helicopter = new Helicopter(saveData);
-            this.helicopter.isAtTaskProperty().addListener(vehicleFinishedJob);
-        } else
-            this.helicopter = null;
-        if (saveData.getTruck() != null) {
-            this.truck = new Truck(saveData);
-            this.truck.isAtTaskProperty().addListener(vehicleFinishedJob);
-        } else
-            this.truck = null;
-
-
-        this.well = saveData.getWell();
-        this.timePassed = saveData.getTimePassed();
-        this.timeRemainedToSpawnWild = saveData.getTimeRemainedToSpawnWild();
-        this.levelLog = new StringBuilder(saveData.getLevelLog());
-        cageLevel = levelGameElementsLevel.get("Cage");
-        Reader reader = new BufferedReader(new FileReader(saveData.getPathToLevelJsonFile()));
-        Gson gson = new GsonBuilder().registerTypeAdapter(Processable.class, new ProcessableDeserializer()).create();
-        levelData = gson.fromJson(reader, LevelData.class);
-        levelRequirements = FXCollections.observableMap(saveData.getLevelRequirements());
-        RequirementsListener requirementsListener;
-        if (levelData.getGoals().containsKey(ItemType.Coin)) {
-            requirementsListener = new RequirementsListener(
-                    this, true);
-            coin.addListener(requirementsListener.getCoinChangeListener());
-            levelRequirements.computeIfPresent(ItemType.Coin, (k, v) -> levelData.getStartMoney());
-        } else
-            requirementsListener = new RequirementsListener(
-                    this, false);
-        this.map = new Map(saveData, requirementsListener.getMapChangeListener());
-
-        for (int i = 0; i < map.cellsWidth; ++i) {
-            for (int j = 0; j < map.cellsHeight; ++j) {
-                synchronized (MapGraphics.latch) {
-                    map.getGraphics().getMapCells()[i][j].setOnMouseClicked(event -> {
-                        GraphicalCell src = (GraphicalCell) event.getSource();
-                        switch (event.getButton()) {
-                            case PRIMARY:
-                                plant(src.getPos_X(), src.getPos_Y());
-                                break;
-                            case SECONDARY:
-                                System.out.println(map.getCell(src.getPos_X(), src.getPos_Y()));
-                                break;
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-    public ObservableMap<Processable, Integer> getLevelRequirements() {
-        return levelRequirements;
-    }
-
-    private Helicopter getHelicopterInstance() {
-        if (levelData.getHelicopterLevel() == null)
-            return null;
-        return new Helicopter(levelGameElementsLevel.get("Helicopter"),
-                levelData.getHelicopterLevel());
-    }
-
-    private Truck getTruckInstance() {
-        if (levelData.getTruckLevel() == null)
-            return null;
-        return new Truck(levelGameElementsLevel.get("Truck"),
-                levelData.getTruckLevel());
-    }
-
-    private Well getWellInstance() {
-        byte level = levelData.getWellLevel();
-        byte maxLevel = levelGameElementsLevel.get("Well");
-        Well well = null;
-        try {
-            well = new Well(maxLevel, level);
-        } catch (IllegalConstructorArgumentException e) {
-            e.printStackTrace();
-        }
-        return well;
-    }
-
-    private HashMap<String, Workshop> getWorkshopsInstance() {
-        if (levelData.getWorkshops().length == 0) {
-            return null;
-        }
-        HashMap<String, Workshop> workshops = new HashMap<>();
-        String[] ws = levelData.getWorkshops();
-        for (int i = 0; i < ws.length; ++i) {
-            String workshopName = ws[i];
-            int maxLevel = levelGameElementsLevel.get(workshopName);
-            Workshop workshop;
-            try {
-                workshop = Workshop.getInstance(workshopName, maxLevel,
-                        levelData.getWorkshopsPosition()[i], levelData.getContinent());
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException("Workshop instantiation failed.");
-            }
-            workshops.put(workshopName, workshop);
-            workshop.isAtTaskProperty().addListener(workShopFinishedJob);
-        }
-        return workshops;
-    }
-
-    public void startProcessing() {
-        String input = scanner.nextLine().trim();
-
-        while (!(input.toLowerCase().equals("exit level"))) {
-            if (input.matches(PLANT_REGEX)) {
-                String[] s = input.replaceFirst("(?i:plant\\s+)", "").
-                        split("\\s+");
-                plant(Integer.parseInt(s[0]), Integer.parseInt(s[1]));
-
-            } else if (input.matches(CAGE_REGEX)) {
-
-                String[] s = input.replaceFirst("(?:cage\\s+)", "").
-                        split("\\s+");
-                cage(Integer.parseInt(s[0]), Integer.parseInt(s[1]));
-
-            } else if (input.matches(PICKUP_REGEX)) {
-                String[] s = input.replaceFirst("(?i:pickup\\s+)", "").
-                        split("\\s+");
-                pickup(Integer.parseInt(s[0]), Integer.parseInt(s[1]));
-
-            } else if (input.matches(BUY_REGEX)) {
-                String s = input.replaceFirst("(?i:buy\\s+)", "");
-                int cost = Constants.getAnimalBuyCost(Animal.AnimalType.getType(s));
-                if (cost < 0) {
-                    System.err.println("No Such Animal In Existence.");
-                } else {
-                    Animal animal = getRandomlyLocatedAnimalInstance(s);
-                    if (coin.get() >= cost) {
-                        if (animal != null) {
-                            map.addAnimal(animal);
-                            coin.set(coin.get() - cost);
-                            System.out.println(s + " Was Bought.");
-                        } else
-                            System.err.println("No Such Animal In Existence.");
-                    } else
-                        PRINT_NOT_ENOUGH_MONEY();
-                }
-            } else if (input.matches(WELL_REGEX)) {
-                well();
-            } else if (input.matches(UPGRADE_REGEX)) {
-                String name = input.replaceFirst("(?i:upgrade\\s+)", "");
-                switch (name.toLowerCase()) {
-                    case "well":
-                        upgradeWell();
-                        break;
-                    case "truck":
-                        upgradeTruck();
-                        break;
-                    case "helicopter":
-                        upgradeHelicopter();
-                        break;
-                    case "depot":
-                        upgradeDepot();
-                        break;
-                }
-                if (workshops.containsKey(name)) {
-                    Workshop workshop = workshops.get(name);
-                    int cost = workshop.getUpgradeCost();
-                    if (coin.get() >= cost) {
-                        if (workshop.upgrade()) {
-                            coin.set(coin.get() - cost);
-                            System.out.println(name + " was upgraded to level " + workshop.getLevel() + "\n");
-                        } else {
-                            System.err.println(name + " is At Maximum LevelData.");
-                        }
-                    } else {
-                        System.err.println("Not Enough Money.");
-                    }
-                } else {
-                    System.err.println("Invalid Argument For Upgrade Instruction.");
-                }
-            } else if (input.matches(START_WORKSHOP_REGEX)) {
-                String name = input.replaceFirst("start\\s+", "");
-                if (workshops.containsKey(name)) {
-                    if (workshops.get(name).startWorking(map.getDepot())) {
-                        System.out.println(name + " is working.");
-                    }
-                } else
-                    System.err.println("No Such Workshop In Existence.");
-            } else if (input.matches(PRINT_REGEX)) {
-                String s = input.replaceFirst("print\\s+", "");
-                switch (s) {
-                    case "info":
-                        PRINT_INFO();
-                        break;
-                    case "map":
-                        System.out.print(map);
-                        break;
-                    case "pets":
-                        for (Animal animal : map.getPets())
-                            System.out.println(animal);
-                        break;
-
-                    case "animals":
-                        System.out.println("Pets:");
-                        if (map.getPets().size() > 0) {
-                            for (Animal animal : map.getPets()) {
-                                System.out.println("\t" + animal);
-                            }
-                        } else
-                            System.out.println("\tNone.");
-
-                        System.out.println("Wilds:");
-                        if (map.getWilds().size() > 0) {
-                            for (Wild wild : map.getWilds()) {
-                                System.out.println("\t" + wild);
-                            }
-                        } else
-                            System.out.println("\tNone.");
-                        break;
-                    case "items":
-                        System.out.println("Items:");
-                        if (map.getItems().size() > 0) {
-                            for (Item item : map.getItems()) {
-                                System.out.println("\t" + item);
-                            }
-                        } else
-                            System.out.println("\tNone.");
-                        break;
-                    case "depot":
-                        System.out.println(map.getDepot());
-                        break;
-                    case "well":
-                        System.out.println(well);
-                        break;
-                    case "workshops":
-                        for (Workshop workshop : workshops.values())
-                            System.out.println(workshop);
-                        break;
-                    case "truck":
-                        System.out.println(truck);
-                        break;
-                    case "helicopter":
-                        System.out.println(helicopter);
-                        break;
-                    case "money":
-                        System.out.println("Money : " + coin.get());
-                        break;
-                    default:
-                        System.err.println("Invalid Argument For Print Instruction.");
-                        break;
-                }
-            } else if (input.matches(TURN_REGEX)) {
-                int turns = Integer.parseInt(input.split("\\s+")[1]);
-                timePassed += turns;
-                update(turns);
-            } else if (input.matches(SHOW_TRANSPORTATION_TOOL_MENU)) {
-                String type = input.split("\\s+")[1];
-                if (type.equals("helicopter")) {
-                    if (helicopter != null) {
-                        input = scanner.nextLine().trim();
-                        boolean setToGo = false;
-                        while (!input.matches("exit helicopter")) {
-                            if (input.matches("(?i:add\\s+[a-zA-Z]+\\s+\\d+)")) {
-                                String[] s = input.split("\\s+");
-                                int amount = Integer.parseInt(s[2]);
-                                ItemType itemType = ItemType.getType(s[1]);
-                                if (itemType == null || itemType == ItemType.Coin) {
-                                    System.err.println("Invalid element type.");
-                                } else {
-                                    addItemsToHelicopter(itemType, amount);
-                                }
-                            } else if (input.matches("(?i:print\\s+items)")) {
-                                helicopter.printElements();
-                            } else if (input.matches("(?i:print)")) {
-                                System.out.println(helicopter);
-                            } else if (input.matches(HELICOPTER_GO_REGEX)) {
-                                if (helicopterGo()) {
-                                    setToGo = true;
-                                    break;
-                                }
-                            } else if (input.toLowerCase().equals("help")) {
-                                System.out.println("Commands:");
-                                System.out.println("\t\"print items\"");
-                                System.out.println("\t\"print\"");
-                                System.out.println("\t\"add [Item_Type] [count]\"");
-                                System.out.println("\t\"exit helicopter\"");
-                            } else
-                                System.err.println("Invalid Input");
-                            input = scanner.nextLine().trim();
-                        }
-                        if (!setToGo)
-                            clearHelicopter();
-                    } else
-                        System.err.println("This Level Lacks Helicopter.");
-                } else {
-                    if (truck != null) {
-                        boolean setToGo = false;
-                        input = scanner.nextLine().trim();
-                        while (!input.matches("exit truck")) {
-                            if (input.matches("(?i:add\\s+[a-zA-Z]+\\s+\\d+)")) {
-                                String[] s = input.split("\\s+");
-                                int amount = Integer.parseInt(s[2]);
-                                Processable elementType = ItemType.getType(s[1]);
-                                if (elementType == null)
-                                    elementType = Animal.AnimalType.getType(s[1]);
-                                if (elementType == null || elementType == ItemType.Coin) {
-                                    System.err.println("Invalid element type.");
-                                } else {
-                                    if (elementType instanceof ItemType)
-                                        addElementsToTruck((ItemType) elementType, amount);
-                                    else
-                                        addElementsToTruck((Animal.AnimalType) elementType, amount);
-                                }
-                            } else if (input.matches("(?i:print\\s+elements)")) {
-                                truck.printElements();
-                            } else if (input.matches("(?i:print)")) {
-                                System.out.println(truck);
-                            } else if (input.matches(TRUCK_GO_REGEX)) {
-                                if (truckGo()) {
-                                    setToGo = true;
-                                    break;
-                                }
-                            } else if (input.toLowerCase().equals("help")) {
-                                System.out.println("Commands:");
-                                System.out.println("\t\"print elements\"");
-                                System.out.println("\t\"print\"");
-                                System.out.println("\t\"add [Item_Type|Animal_Type] [count]\"");
-                                System.out.println("\t\"exit truck\"");
-                            } else
-                                System.err.println("Invalid Input");
-                            input = scanner.nextLine().trim();
-                        }
-                        if (!setToGo)
-                            clearTruck();
-                    } else
-                        System.err.println("This Level Lacks Truck.");
-                }
-            } else if (input.toLowerCase().equals("help")) {
-                PRINT_HELP();
-            } else if (input.toLowerCase().equals("enable cheats")) {
-                cheatsEnabled = true;
-            } else if (input.toLowerCase().equals("disable cheats")) {
-                cheatsEnabled = false;
-            } else if (input.matches(SAVE_REGEX)) {
-                saveGame(input.split("\\s+")[2]);
-            } else if (cheatsEnabled) {
-                handleCheatCommands(input);
+            for (Processable levelRequirement : levelData.getGoals().keySet())
+                levelRequirements.put(levelRequirement, 0);
+            if (levelData.getGoals().containsKey(Item.ItemType.Coin)) {
+                requirementsListener = new RequirementsListener(this, true);
+                coin.addListener(requirementsListener.getCoinChangeListener());
+                levelRequirements.computeIfPresent(Item.ItemType.Coin, (k, v) -> levelData.getStartMoney());
             } else {
-                System.err.println("Invalid Command.");
+                requirementsListener = new RequirementsListener(
+                        this, false);
             }
-            if (levelIsFinished)
-                return;
-            input = scanner.nextLine().trim();
+            animalsAmount.addListener(requirementsListener.getMapChangeListener());
+            aimContainer = new AimContainer(levelRequirements, levelData.getGoals());
+            aimContainer.setLayoutX(651);
+            aimContainer.setLayoutY(448);
+            aimContainer.setViewOrder(-19);
+            background.getChildren().add(aimContainer);
+            setupWorkshops(continentData);
+
+            setupWell();
+            setupGrassField(continentData);
+            Pet.setGrassField(grassField);
+            setupTimer();
+            setupDepot(continentData, requirementsListener);
+            setupTransportation(continentData);
+            setupMoneyIndicator(continentData);
+            Cat.setDepot(depot);
+            setupZoom();
+            background.getStylesheets().add(getClass().getResource("../res/Map/Africa/Styles/style.css").toExternalForm());
+            collisionDetectionThread.start();
+            isSetup = true;
+            levelScene = background.getScene();
+            Platform.runLater(() -> stage = (Stage) levelScene.getWindow());
+            spawnStartingPets();
         }
-        map.terminateGraphics();
     }
 
-    private void saveGame(String jsonFileName) {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        SaveData data = new SaveData(map.cellsWidth, map.cellsHeight);
-        data.setWell(well);
-        map.fillSaveData(data);
-        data.setCoin(coin.get());
-        data.setHelicopter((Helicopter) helicopter);
-        data.setTruck((Truck) truck);
-        data.setLevelLog(levelLog.toString());
-        data.setTimePassed(timePassed);
-        data.setTimeRemainedToSpawnWild(timeRemainedToSpawnWild);
-        data.setWorkshops(new LinkedList<>(workshops.values()));
-        data.setGameElementsLevel(levelGameElementsLevel);
-        data.setPathToLevelJsonFile("Phase_1/DefaultGameData/LevelsInfo/level_" + levelData.getLevelId() + ".json");
-        data.setLevelRequirements(new HashMap<>(levelRequirements));
+    private void setupTransportation(JsonObject continentData) {
+        if (levelData.getHelicopterLevel() != null) {
+            helicopter = new Helicopter((byte) player.getGameElementLevel("Helicopter"), levelData.getHelicopterLevel());
+            helicopter.getViewGraphic().setLayoutX(continentData.getAsJsonObject("helicopter").get("layoutX").getAsInt());
+            helicopter.getViewGraphic().setLayoutY(continentData.getAsJsonObject("helicopter").get("layoutY").getAsInt());
+            helicopter.getViewGraphic().setViewOrder(-20);
+            helicopter.getView().setOnMouseClicked(event -> {
+                helicopterController.update();
+                stage.setScene(helicopterScene);
+                toggleMapElementsPause();
+            });
+            helicopter.getMiniMapGraphic().setLayoutX(continentData.getAsJsonObject("transportationService").
+                    getAsJsonObject("helicopter").get("layoutX").getAsInt());
+            helicopter.getMiniMapGraphic().setLayoutY(continentData.getAsJsonObject("transportationService").
+                    getAsJsonObject("helicopter").get("layoutY").getAsInt());
+            background.getChildren().add(helicopter.getMiniMapGraphic());
+            helicopter.getMiniMapGraphic().setViewOrder(-20);
+            background.getChildren().add(helicopter.getViewGraphic());
+            helicopter.setPlayerCoin(coin);
+            helicopter.statusProperty().addListener(helicopterStatusChangeListener);
+            Pane root;
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/res/FxmlFiles/helicopterMenu.fxml"));
+
+            try {
+                root = loader.load();
+            } catch (IOException e) {
+                e.printStackTrace();
+                root = new Pane();
+            }
+            helicopterScene = new Scene(root);
+            helicopterController = loader.getController();
+            helicopterController.setPlayerCoin(coin);
+            helicopterController.setup(this, helicopter);
+            Platform.runLater(() -> helicopterController.setLevelScene(levelScene));
+        } else {
+            helicopterController = null;
+            helicopter = null;
+            helicopterScene = null;
+        }
+        if (levelData.getTruckLevel() != null) {
+            truck = new Truck((byte) player.getGameElementLevel("Truck"), levelData.getTruckLevel());
+            truck.getViewGraphic().setLayoutX(continentData.getAsJsonObject("truck").get("layoutX").getAsInt());
+            truck.getViewGraphic().setLayoutY(continentData.getAsJsonObject("truck").get("layoutY").getAsInt());
+            truck.getView().setOnMouseClicked(event -> {
+                truckController.update();
+                stage.setScene(truckScene);
+                toggleMapElementsPause();
+            });
+            truck.getMiniMapGraphic().setLayoutX(continentData.getAsJsonObject("transportationService").
+                    getAsJsonObject("truck").get("layoutX").getAsInt());
+            truck.getMiniMapGraphic().setLayoutY(continentData.getAsJsonObject("transportationService").
+                    getAsJsonObject("truck").get("layoutY").getAsInt());
+            background.getChildren().add(truck.getMiniMapGraphic());
+            truck.getMiniMapGraphic().setViewOrder(-20);
+            truck.getViewGraphic().setViewOrder(-20);
+            background.getChildren().add(truck.getViewGraphic());
+            truck.setPlayerCoin(coin);
+            truck.statusProperty().addListener(new ChangeListener<Number>() {
+                @Override
+                public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                    if (((newValue.intValue() & (~oldValue.intValue())) & State.FinishedJob.value) != 0) {
+                        coin.set(coin.get() + truck.receiveSoldGoodsMoney());
+                        truck.clear();
+                        truck.statusProperty().set(newValue.intValue() & (~State.FinishedJob.value));
+                    }
+                }
+            });
+
+            Pane root;
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/res/FxmlFiles/truckMenu.fxml"));
+
+            try {
+                root = loader.load();
+            } catch (IOException e) {
+                e.printStackTrace();
+                root = new Pane();
+            }
+            truckScene = new Scene(root);
+            truckController = loader.getController();
+            truckController.setup(this, depot, pets, truck);
+            Platform.runLater(() -> truckController.setLevelScene(levelScene));
+        }
+        roadView = new ImageView(new Image(getClass().getResource(
+                "/res/Transportation/Road/Images/road" + levelData.getContinent() + ".png").toExternalForm()));
+        roadView.setLayoutX(continentData.getAsJsonObject("road").get("layoutX").getAsInt());
+        roadView.setLayoutY(continentData.getAsJsonObject("road").get("layoutY").getAsInt());
+        background.getChildren().add(roadView);
+    }
+
+
+    private Runnable wildSpawner = new Runnable() {
+        @Override
+        public void run() {
+            AnimalType[] types = AnimalType.getWilds().values().toArray(new AnimalType[0]);
+            AnimalType type = types[random.nextInt(types.length)];
+            Wild wild = (Wild) Animal.getInstance(type, levelData.getContinent());
+            wild.scale(0.7);
+            Platform.runLater(() -> {
+                addAnimal(wild);
+                wild.spawn(Animal.getMinX() + (Animal.getMaxX() - Animal.getMinX()) * random.nextDouble(),
+                        Animal.getMinY() + (Animal.getMaxY() - Animal.getMinY()) * random.nextDouble());
+                wild.statusProperty().addListener(wildStatusChangeListener);
+                wild.getGraphic().setOnMouseClicked(event -> {
+                    if (!wild.progressCaging()) {
+                        if (depot.addStorable(Item.ItemType.getType("Caged" + wild.getType()))) {
+                            wild.collect(Item.getDepotX(), Item.getDepotY());
+                        } else {
+                            Utility.FOOL_ACTION_SOUND.play();
+                            depot.spark();
+                        }
+                    }
+                });
+            });
+            wildSpawnTask = wildSpawnTimer.schedule(this, (long) (30_000 / GENERAL_TIME_MULTIPLIER.get()), TimeUnit.MILLISECONDS);
+        }
+    };
+
+    private void setupZoom() {
+        background.getScene().setOnScroll(event -> {
+            if (event.isControlDown()) {
+                scale = Math.max(1, scale + event.getDeltaY() / 200);
+                background.setScaleX(scale);
+                background.setScaleY(scale);
+                background.setLayoutX(0);
+                background.setLayoutY(0);
+            }
+        });
+        background.setOnMouseDragged(e -> {
+            if (e.isMiddleButtonDown()) {
+                background.setLayoutX(Math.max(background.getWidth() * (1 - scale) / 2,
+                        Math.min(-background.getWidth() * (1 - scale) / 2, e.getScreenX() - deltaX1)));
+                background.setLayoutY(Math.max(background.getHeight() * (1 - scale) / 2,
+                        Math.min(-background.getHeight() * (1 - scale) / 2, e.getScreenY() - deltaY1)));
+            }
+        });
+        background.setOnMousePressed(e -> {
+            if (e.getButton() == MouseButton.MIDDLE) {
+                deltaX1 = (-background.getLayoutX() + e.getScreenX());
+                deltaY1 = (-background.getLayoutY() + e.getScreenY());
+            }
+        });
+    }
+
+
+    private transient final ChangeListener<Number> itemStatusChangeListener = new ChangeListener<>() {
+        @Override
+        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+            Item item = (Item) ((IntegerProperty) observable).getBean();
+            if (((newValue.intValue() & (~oldValue.intValue())) & State.Collected.value) != 0) {
+                synchronized (items) {
+                    items.remove(item.id);
+                    background.getChildren().remove(item.getGraphic());
+                    item.statusProperty().removeListener(this);
+                }
+            } else if (((newValue.intValue() & (~oldValue.intValue())) & State.Crack.value) != 0) {
+                synchronized (items) {
+                    items.remove(item.id);
+                    background.getChildren().remove(item.getGraphic());
+                    item.statusProperty().removeListener(this);
+                }
+            }
+        }
+    };
+    private ChangeListener<? super Number> helicopterStatusChangeListener = new ChangeListener<Number>() {
+        @Override
+        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+            if (((newValue.intValue() & (~oldValue.intValue())) & State.FinishedJob.value) != 0) {
+                for (Object o : helicopter.getItemsInside().keySet()) {
+                    if (o instanceof Item.ItemType) {
+                        int i = 0;
+                        while (i < helicopter.getItemsInside().get(o)) {
+                            Item item = new Item((Item.ItemType) o);
+                            addItem(item);
+                            Platform.runLater(() -> {
+                                item.spawn(Animal.getMinX() + (Animal.getMaxX() - Animal.getMinX()) * random.nextDouble(),
+                                        Animal.getMinY() + (Animal.getMaxY() - Animal.getMinY()) * random.nextDouble());
+                                item.getView().setOnMouseClicked(event -> {
+                                    if (depot.addStorable(item.getType())) {
+                                        item.collect();
+                                    } else {
+                                        Utility.FOOL_ACTION_SOUND.play();
+                                        depot.spark();
+                                    }
+                                });
+                            });
+                            ++i;
+                        }
+                    }
+                }
+                helicopter.clear();
+                helicopter.statusProperty().set(newValue.intValue() & (~State.FinishedJob.value));
+            }
+        }
+    };
+    private AnimationTimer collisionDetectionThread = new AnimationTimer() {
+        long prev = -1;
+
+        @Override
+        public void handle(long now) {
+            if (prev == -1) {
+                prev = now;
+                return;
+            }
+            if ((now - prev) * GENERAL_TIME_MULTIPLIER.get() >= 250_000_000) {
+                synchronized (wilds) {
+                    if (wilds.size() > 0) {
+                        Iterator<Wild> wildIterator = wilds.values().iterator();
+                        while (wildIterator.hasNext()) {
+                            Wild wild = wildIterator.next();
+                            if (!wild.isCaged() && !wild.hasTossed()) {
+                                double x0 = wild.getX();
+                                double y0 = wild.getY();
+                                double w0 = wild.hitBox.getRadiusX();
+                                double h0 = wild.hitBox.getRadiusY();
+                                synchronized (pets) {
+                                    Iterator<Animal> petIterator = pets.values().iterator();
+                                    while (petIterator.hasNext()) {
+                                        Animal pet = petIterator.next();
+                                        if ((pet.getStatus() & (State.Spawning.value)) == 0) {
+                                            double x1 = pet.getX();
+                                            double y1 = pet.getY();
+                                            double w1 = pet.hitBox.getRadiusX();
+                                            double h1 = pet.hitBox.getRadiusY();
+                                            if (collisionTester.collide(x0, y0, w0, h0, x1, y1, w1, h1)) {
+                                                if (pet instanceof Cat && !wild.hasTossed()) {
+                                                    petIterator.remove();
+                                                    ((Cat) pet).toss();
+                                                    wild.setHasTossed(true);
+                                                } else if (pet instanceof Dog) {
+                                                    wildIterator.remove();
+                                                    animalsAmount.computeIfPresent(wild.getType(), (k, v) -> v - 1);
+                                                    wild.statusProperty().set(wild.getStatus() | State.MarkedToRemove.value);
+                                                    Utility.BATTLE_SOUND.play();
+                                                    petIterator.remove();
+                                                    ((Dog) pet).enterFight();
+                                                    break;
+                                                } else if (!wild.hasTossed()) {
+                                                    petIterator.remove();
+                                                    ((Pet) pet).toss();
+                                                    wild.setHasTossed(true);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (!wild.hasTossed()) {
+                                    synchronized (items) {
+                                        Iterator<Item> itemIterator = items.values().iterator();
+                                        while (itemIterator.hasNext()) {
+                                            Item item = itemIterator.next();
+                                            if ((item.getStatus() & State.Spawning.value) == 0) {
+                                                double x1 = item.getX();
+                                                double y1 = item.getY();
+                                                double w1 = item.hitBox.getRadiusX();
+                                                double h1 = item.hitBox.getRadiusY();
+                                                if (collisionTester.collide(x0, y0, w0, h0, x1, y1, w1, h1)) {
+                                                    itemIterator.remove();
+                                                    item.crack();
+                                                    wild.setHasTossed(true);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                prev = now;
+            }
+        }
+    };
+
+    private ChangeListener<Number> wildStatusChangeListener = new ChangeListener<>() {
+        @Override
+        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+            Wild wild = (Wild) ((IntegerProperty) observable).getBean();
+            if ((newValue.intValue() & (~oldValue.intValue()) & (State.Collected.value)) != 0) {
+                background.getChildren().remove(wild.getGraphic());
+                wild.statusProperty().removeListener(this);
+                synchronized (wilds) {
+                    wilds.remove(wild.id);
+                    animalsAmount.computeIfPresent(wild.getType(), (k, v) -> v + 1);
+                }
+                wild.destruct();
+            } else if ((newValue.intValue() & (~oldValue.intValue()) & (State.MarkedToRemove.value)) != 0) {
+                background.getChildren().remove(wild.getGraphic());
+                wild.statusProperty().removeListener(this);
+                wild.destruct();
+            }
+        }
+    };
+
+    private ChangeListener<Number> petStatusChangeListener = new ChangeListener<>() {
+        @Override
+        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+            Pet pet = (Pet) ((IntegerProperty) observable).getBean();
+            if ((newValue.intValue() & (~oldValue.intValue()) & (State.Death.value)) != 0) {
+                System.err.println("pet died.");
+                background.getChildren().remove(pet.getGraphic());
+                pet.statusProperty().removeListener(this);
+                synchronized (pets) {
+                    pets.remove(pet.id);
+                    animalsAmount.computeIfPresent(pet.getType(), (k, v) -> v - 1);
+                }
+            } else if ((newValue.intValue() & (~oldValue.intValue()) & State.Eat.value) != 0) {
+                System.err.println("pet is eating");
+            } else if ((newValue.intValue() & (~oldValue.intValue()) & State.MarkedToRemove.value) != 0) {
+                pet.destruct();
+                background.getChildren().remove(pet.getGraphic());
+                pet.statusProperty().removeListener(this);
+            } else if ((newValue.intValue() & (~oldValue.intValue()) & (State.Tossed.value)) != 0) {
+                System.err.println("Pet Was Tossed");
+                background.getChildren().remove(pet.getGraphic());
+                pet.statusProperty().removeListener(this);
+                synchronized (pets) {
+                    pets.remove(pet.id);
+                    animalsAmount.computeIfPresent(pet.getType(), (k, v) -> v - 1);
+                }
+            } else if ((newValue.intValue() & (~oldValue.intValue()) & (State.Produced.value)) != 0) {
+                Item item = pet.produce();
+                addItem(item);
+                pet.statusProperty().set(newValue.intValue() & (~State.Produced.value));
+                Platform.runLater(() -> {
+                    item.spawn(pet.getX(), pet.getY());
+                    item.getGraphic().setOnMouseClicked(event -> {
+                        if (depot.addStorable(item.getType())) {
+                            item.collect();
+                        } else {
+                            Utility.FOOL_ACTION_SOUND.play();
+                            depot.spark();
+                        }
+                    });
+                });
+            }
+        }
+    };
+
+    private synchronized void buyAnimal(AnimalType animalType) {
+        synchronized (coin) {
+            int price = Loader.getAnimalBuyCost(animalType);
+            if (coin.get() >= price) {
+                coin.set(coin.get() - price);
+                Animal animal = Animal.getInstance(animalType, levelData.getContinent());
+                animal.scale(0.7);
+                animal.spawn(getRandomX(), getRandomY());
+                if (animal instanceof Pet) {
+                    animal.statusProperty().addListener(petStatusChangeListener);
+                }
+                addAnimal(animal);
+            }
+        }
+    }
+
+    private double getRandomX() {
+        return Animal.getMinX() + (Animal.getMaxX() - Animal.getMinX()) * random.nextDouble();
+    }
+
+    private double getRandomY() {
+        return Animal.getMinY() + (Animal.getMaxY() - Animal.getMinY()) * random.nextDouble();
+    }
+
+    private void setupGrassField(JsonObject continentData) {
+        grassField = new GrassField(continentData.getAsJsonObject("grassField").get("centerX").getAsInt(),
+                continentData.getAsJsonObject("grassField").get("centerY").getAsInt(),
+                continentData.getAsJsonObject("grassField").get("radiusX").getAsDouble(),
+                continentData.getAsJsonObject("grassField").get("radiusY").getAsDouble(),
+                levelData.getContinent());
+        grassField.setWell(well);
+        for (int i = 0; i < grassField.getGrasses().length; ++i) {
+            for (int j = 0; j < grassField.getGrasses()[i].length; ++j) {
+                background.getChildren().add(grassField.getGrasses()[i][j].getGraphics());
+            }
+        }
+    }
+
+    private void spawnStartingPets() {
+        for (int i = 0; i < levelData.getStartingPets().length; ++i) {
+            AnimalType type = AnimalType.getType(levelData.getStartingPets()[i]);
+            animalsAmount.put(type, levelData.getStartingPetsAmount()[i]);
+            int j = 0;
+            while (j < levelData.getStartingPetsAmount()[i]) {
+                Animal animal = Animal.getInstance(type, levelData.getContinent());
+                animal.scale(0.7);
+                background.getChildren().add(animal.getGraphic());
+                animal.spawn(getRandomX(), getRandomY());
+                animal.statusProperty().addListener(petStatusChangeListener);
+                pets.put(animal.id, animal);
+                ++j;
+            }
+        }
+    }
+
+    private void setupWell() {
+        well = new Well((byte) player.getGameElementLevel("Well"));
+        background.getChildren().add(well.getGraphic());
+    }
+
+    private void setupTimer() {
+        timer = new GraphicalChronometer(GENERAL_TIME_MULTIPLIER);
+        timer.getGraphic().setViewOrder(-20);
+        background.getScene().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                toggleMapElementsPause();
+                toggleMenu();
+            }
+        });
+        Pane graphic = timer.getGraphic();
+        Platform.runLater(() -> {
+            graphic.setLayoutX(background.getWidth() - graphic.getWidth() + 2);
+            graphic.setLayoutY(background.getHeight() - graphic.getHeight() + 2);
+        });
+        background.getChildren().add(timer.getGraphic());
+        timer.start();
+    }
+
+    private boolean isPaused = false;
+    private long timeRemainedToSpawnWild = -1;
+
+    private Stage levelFinishedStage;
+    private Label prize;
+
+    {
+        Platform.runLater(() -> {
+            VBox levelFinishedRoot = new VBox(5);
+            levelFinishedRoot.getStylesheets().add("/CSSStyles/pauseMenu.css");
+            levelFinishedRoot.setId("back");
+            prize = new Label();
+            prize.setStyle("-fx-font-family: Orbitron;" +
+                    "-fx-font-size: 23;");
+            levelFinishedRoot.getChildren().add(prize);
+            HBox box = new HBox();
+            box.setSpacing(50);
+            Button restartButton = new Button("Restart");
+
+            box.getChildren().add(restartButton);
+            Button playerMenu = new Button("Player Menu");
+            box.getChildren().add(playerMenu);
+            levelFinishedRoot.getChildren().add(box);
+            playerMenu.setOnAction(new EventHandler<>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    levelFinishedStage.close();
+                    goToPrevScene();
+                    destruct();
+                }
+            });
+
+            levelFinishedStage = new Stage(StageStyle.TRANSPARENT);
+
+            levelFinishedStage.initOwner(stage);
+            Scene scene = new Scene(levelFinishedRoot, Color.TRANSPARENT);
+            levelFinishedStage.initModality(Modality.APPLICATION_MODAL);
+            levelFinishedStage.setScene(scene);
+
+            restartButton.setOnAction(event -> {
+                background.setEffect(null);
+                restart();
+                levelFinishedStage.close();
+            });
+        });
+    }
+
+    private void restart() {
+        destruct();
         try {
-            Writer writer = new BufferedWriter(new FileWriter("Phase_1/PlayersData/" + player.getName() + "/Player_Unfinished_Levels_Saves/" + jsonFileName));
-            gson.toJson(data, writer);
-            writer.flush();
-            writer.close();
-            System.out.println("Saved Game Successfully.");
+            setup(levelData.getLevelId(), player);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void handleCheatCommands(String input) {
-        if (input.matches(FILL_WELL_IMMEDIATELY)) {
-            well.refill();
-            well.update(well.getTimeRemainedToRefill() + 1);
-        } else if (input.matches(ADD_ELEMENT_TO_REGEX)) {
-            String[] s = input.split("\\s+");
-            int amount = Integer.parseInt(s[2]);
-            int x = Integer.parseInt(s[4]);
-            int y = Integer.parseInt(s[5]);
+    private Stage pauseStage;
 
-            if (amount == 0) {
-                return;
-            }
-            if (x >= map.cellsWidth || y >= map.cellsHeight) {
-                System.err.println("index out of Map Exception.");
-                return;
-            }
+    {
+        Platform.runLater(() -> {
+            VBox pauseRoot = new VBox(5);
+            pauseRoot.getStylesheets().add("/CSSStyles/pauseMenu.css");
+            pauseRoot.setId("back");
+            Button resume = new Button("Resume");
+            pauseRoot.getChildren().add(resume);
+            TextField textField = new TextField("rate = ");
+            textField.setId("rateText");
+            textField.setDisable(true);
+            TextField rate = new TextField("1");
+            rate.setTextFormatter(new TextFormatter<>(change -> {
+                if (!change.isContentChange()) {
+                    return change;
+                }
+                String s = change.getControlNewText();
+                if (s.matches("([0-9]*\\.)?[0-9]*")) {
+                    return change;
+                }
+                return null;
+            }));
+            rate.setOnKeyPressed(new EventHandler<>() {
+                @Override
+                public void handle(KeyEvent event) {
+                    if (event.getCode() == KeyCode.ENTER) {
+                        if (!rate.getText().matches("([0-9]+\\.)?[0-9]+"))
+                            rate.setText("1");
+                        GENERAL_TIME_MULTIPLIER.set(Double.parseDouble(rate.getText()));
+                        pauseRoot.requestFocus();
+                    } else if (event.getCode() == KeyCode.ESCAPE) {
+                        pauseRoot.requestFocus();
+                    }
+                }
+            });
+            HBox box = new HBox();
+            box.getChildren().addAll(textField, rate);
+            pauseRoot.getChildren().add(box);
+            Button playerMenu = new Button("Player Menu");
+            pauseRoot.getChildren().add(playerMenu);
+            playerMenu.setOnAction(new EventHandler<>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    pauseStage.close();
+                    goToPrevScene();
+                    destruct();
+                }
+            });
 
-            if (ItemType.getType(s[1]) != null) {
-                ItemType type = ItemType.getType(s[1]);
-                if (type == ItemType.Coin) {
-                    System.err.println("No Such Element In Existence.");
-                } else {
-                    int i = 0;
-                    while (i < amount) {
-                        if (type.IS_ANIMAL) {
-                            if (type.toString().startsWith("Caged")) {
-                                Wild wild = (Wild) getRandomlyLocatedAnimalInstance(type.toString().replaceFirst("Caged", ""));
-                                wild.setX(x);
-                                wild.setY(y);
-                                wild.setCaged(2 * cageLevel + 6);
-                                map.addAnimal(wild);
-                            } else {
-                                map.addItem(new Item(type, x, y));
+            pauseStage = new Stage(StageStyle.TRANSPARENT);
+
+            pauseStage.initOwner(stage);
+            Scene scene = new Scene(pauseRoot, Color.TRANSPARENT);
+            pauseStage.initModality(Modality.APPLICATION_MODAL);
+            pauseStage.setScene(scene);
+
+            scene.setOnKeyPressed(event -> {
+                if (event.getCode() == KeyCode.ESCAPE) {
+                    toggleMapElementsPause();
+                    toggleMenu();
+                }
+            });
+
+            resume.setOnAction(event -> {
+                toggleMapElementsPause();
+                toggleMenu();
+            });
+        });
+    }
+
+    @SuppressWarnings("Duplicates")
+    private void goToPrevScene() {
+        stage.setScene(prevScene);
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        stage.setX((screenBounds.getWidth() - stage.getWidth()) / 2);
+        stage.setY((screenBounds.getHeight() - stage.getHeight()) / 2);
+    }
+
+    void toggleMapElementsPause() {
+        timer.toggle();
+        well.togglePause();
+        for (Animal pet : pets.values()) {
+            pet.togglePause();
+        }
+        for (Wild wild : wilds.values()) {
+            wild.togglePause();
+        }
+        for (Workshop workshop : workshops.values()) {
+            workshop.togglePause();
+        }
+        if (helicopter != null) {
+            helicopter.togglePause();
+        }
+        if (truck != null) {
+            truck.togglePause();
+        }
+        if (isPaused) {
+            isPaused = false;
+            if (timeRemainedToSpawnWild > 0)
+                wildSpawnTask = wildSpawnTimer.schedule(wildSpawner, timeRemainedToSpawnWild, TimeUnit.MILLISECONDS);
+        } else {
+            isPaused = true;
+            if (!wildSpawnTask.isDone()) {
+                wildSpawnTask.cancel(true);
+                timeRemainedToSpawnWild = wildSpawnTask.getDelay(TimeUnit.MILLISECONDS);
+            } else {
+                timeRemainedToSpawnWild = -1;
+            }
+        }
+    }
+
+    private boolean menuShowing = false;
+
+    private void toggleMenu() {
+        if (menuShowing) {
+            menuShowing = false;
+            pauseStage.close();
+            background.setEffect(null);
+        } else {
+            menuShowing = true;
+            background.setEffect(new GaussianBlur());
+            pauseStage.showAndWait();
+        }
+    }
+
+    private void destruct() {
+        for (Animal animal : pets.values()) {
+            animal.destruct();
+            animal.statusProperty().removeListener(petStatusChangeListener);
+        }
+        pets.clear();
+        for (Wild wild : wilds.values()) {
+            wild.destruct();
+            wild.statusProperty().removeListener(wildStatusChangeListener);
+        }
+        wilds.clear();
+        for (Workshop workshop : workshops.values()) {
+            workshop.destruct();
+            workshop.statusProperty().removeListener(workshopChangeListener);
+        }
+        workshops.clear();
+
+        grassField.destruct();
+        well.destruct();
+        depot.destruct();
+        moneyIndicator.destruct();
+
+        wildSpawnTask.cancel(true);
+        wildSpawnTimer.shutdownNow();
+        animalsBuyButtons.getChildren().clear();
+        for (Node button : animalsBuyButtons.getChildren()) {
+            ((AnimalBuyButton) button).destruct();
+        }
+        background.getChildren().clear();
+        MUSIC.stop();
+        System.gc();
+        isSetup = false;
+    }
+
+    private void setupMoneyIndicator(JsonObject continentData) {
+        moneyIndicator = Utility.createMoneyIndicator();
+        moneyIndicator.getGraphic().setLayoutX(continentData.getAsJsonObject("moneyIndicator").get("layoutX").getAsInt());
+        moneyIndicator.getGraphic().setLayoutY(continentData.getAsJsonObject("moneyIndicator").get("layoutY").getAsInt());
+        background.getChildren().add(moneyIndicator.getGraphic());
+        moneyIndicator.setAmount(coin.get());
+        coin.addListener((observable, oldValue, newValue) -> moneyIndicator.setAmount(coin.get()));
+    }
+
+    private void setupWorkshops(JsonObject continentData) {
+        workshops = new HashMap<>();
+        for (int i = 0; i < levelData.getWorkshops().length; ++i) {
+            byte pos = levelData.getWorkshopsPosition()[i];
+            Workshop workshop = new Workshop(levelData.getWorkshops()[i], pos,
+                    levelData.getContinent(), player.getGameElementLevel(levelData.getWorkshops()[i] + "Workshop"), levelData.getWorkshopsLevel()[i]);
+            workshops.put(workshop.getRealName(), workshop);
+            background.getChildren().add(workshop.getGraphic());
+            workshop.statusProperty().addListener(workshopChangeListener);
+            workshop.getUpgradeButton().setLayoutX(continentData.getAsJsonObject("place" + (pos)).get("upgradeButtonX").getAsInt());
+            workshop.getUpgradeButton().setLayoutY(continentData.getAsJsonObject("place" + (pos)).get("upgradeButtonY").getAsInt());
+        }
+    }
+
+    private void setupDepot(JsonObject continentData, RequirementsListener requirementsListener) {
+        depot = new Depot((byte) player.getGameElementLevel("Depot"), requirementsListener.getMapChangeListener());
+        JsonObject depotData = continentData.getAsJsonObject("depot");
+        depot.getUpgradeButton().setLayoutX(depotData.get("upgradeButtonX").getAsInt());
+        depot.getUpgradeButton().setLayoutY(depotData.get("upgradeButtonY").getAsInt());
+        Item.setDepotX(depotData.get("itemCollectionX").getAsInt());
+        Item.setDepotY(depotData.get("itemCollectionY").getAsInt());
+        depot.getGraphic().setLayoutX(depotData.get("layoutX").getAsInt());
+        depot.getGraphic().setLayoutY(depotData.get("layoutY").getAsInt());
+
+        depot.addAllStorable(Item.ItemType.Egg, 10);
+
+        background.getChildren().add(depot.getGraphic());
+    }
+
+    private void addItem(Item item) {
+        item.statusProperty().addListener(itemStatusChangeListener);
+        synchronized (items) {
+            items.put(item.id, item);
+        }
+        Platform.runLater(() -> {
+            background.getChildren().add(item.getGraphic());
+        });
+    }
+
+    private void addAnimal(Animal animal) {
+        if (animal instanceof Wild) {
+            wilds.put(animal.id, (Wild) animal);
+        } else
+            pets.put(animal.id, animal);
+        if (animalsAmount.containsKey(animal.getType())) {
+            animalsAmount.computeIfPresent(animal.getType(), (k, v) -> v + 1);
+        } else {
+            animalsAmount.put(animal.getType(), 1);
+        }
+        background.getChildren().add(animal.getGraphic());
+    }
+
+    private void removeItem(Item item) {
+        items.remove(item.id);
+        background.getChildren().remove(item.getGraphic());
+    }
+
+    private transient final ChangeListener<Number> workshopChangeListener = new ChangeListener<>() {
+        @Override
+        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+            int changedBit = (newValue.intValue() & (~oldValue.intValue()));
+            IntegerProperty integerProperty = ((IntegerProperty) observable);
+            if ((changedBit & State.FinishedJob.value) != 0) {
+                Workshop workshop = (Workshop) integerProperty.getBean();
+                for (int i = 0; i < workshop.getOutputs().length; ++i) {
+                    Processable p = workshop.getOutputs()[i];
+                    if (p instanceof Item.ItemType) {
+                        int j = 0;
+                        while (j < workshop.getOutputsAmount()[i] * workshop.getProcessingMultiplier()) {
+                            Item item = new Item((Item.ItemType) p, workshop.itemProduceX, workshop.itemProduceY);
+                            addItem(item);
+                            item.getGraphic().setOnMouseClicked(e -> {
+                                if (depot.addStorable(item.getType())) {
+                                    item.collect();
+                                } else {
+                                    Utility.FOOL_ACTION_SOUND.play();
+                                    depot.spark();
+                                }
+                            });
+                            item.spawn(workshop.dropZoneX + (1 - 2 * random.nextDouble()) * 17,
+                                    workshop.dropZoneY + (1 - 2 * random.nextDouble()) * 17);
+
+                            integerProperty.set(newValue.intValue() & (~State.FinishedJob.value));
+                            ++j;
+                        }
+                    } else if (p instanceof AnimalType) {
+                        int j = 0;
+                        while (j < workshop.getOutputsAmount()[i] * workshop.getProcessingMultiplier()) {
+                            Animal animal = Animal.getInstance((AnimalType) p, levelData.getContinent());
+                            addAnimal(animal);
+                            if (animal instanceof Pet) {
+                                animal.statusProperty().addListener(petStatusChangeListener);
                             }
-                        } else {
-                            map.addItem(new Item(ItemType.getType(s[1]), x, y));
-                        }
-                        System.out.println(s[1] + " was added to (" + x + ", " + y + ")");
-                        ++i;
-                    }
-                }
-            } else if (Animal.AnimalType.getType(s[1]) != null) {
-                int i = 0;
-                while (i < amount) {
-                    Animal animal = getRandomlyLocatedAnimalInstance(s[1]);
-                    animal.setX(x);
-                    animal.setY(y);
-                    map.addAnimal(animal);
-                    ++i;
-                }
-                System.out.println(s[1] + " was added to (" + x + ", " + y + ")");
-            } else
-                System.err.println("No Such Element In Existence.");
-        } else if (input.matches(ADD_ELEMENT_REGEX)) {
-            String[] s = input.split("\\s+");
-            int amount = Integer.parseInt(s[2]);
-            ItemType type = ItemType.getType(s[1]);
-            if (type != null) {
-                if (s[1].equals("Coin")) {
-                    coin.set(coin.get() + amount);
-                    System.out.println(amount + " of Coin Added.");
-                } else {
-                    if(map.getDepot().addAllStorable(type, amount)) {
-                        System.out.println(amount + " of " + type + " was added to depot.");
-                    } else
-                        PRINT_DEPOT_FULL(type.toString());
-                }
-            }
-        } else if (input.matches(PLAYER_ADD_REGEX)) {
-            String s[] = input.split("\\s+");
-            int amount = Integer.parseInt(s[2]);
-            if (s[0].toLowerCase().equals("money")) {
-                player.addMoney(amount);
-            } else if (s[0].toLowerCase().equals("goldMoney")) {
-                player.addGoldMoney(amount);
-            } else
-                System.err.println("No Such Element In Existence");
-        } else
-            System.err.println("Invalid Command");
-    }
+                            animal.scale(0.7);
+                            animal.setX(workshop.itemProduceX);
+                            animal.setY(workshop.itemProduceY);
+                            Pane graphic = animal.getGraphic();
+                            ScaleTransition st = new ScaleTransition();
+                            st.setFromX(0.001);
+                            st.setFromY(0.001);
+                            st.setToX(0.7);
+                            st.setToY(0.7);
 
-    private void PRINT_HELP() {
-        String s = "Commands:\n" +
-                "\t\"exit level\" : exit current level into player menu\n" +
-                "\t\"[helicopter|truck] add [item_name] [count]\"\n" +
-                "\t\"[helicopter|truck] clear\"\n" +
-                "\t\"[helicopter|truck] go\"\n" +
-                "\t\"cage [x y]\"\n" +
-                "\t\"plant [x y]\"\n" +
-                "\t\"pickup [x y]\"\n" +
-                "\t\"buy [Animal_Name]\"\n" +
-                "\t\"save game [json_file_Name.json]\"\n" +
-                "\t\"upgrade [workshop_name|well|truck|helicopter|depot]\"\n" +
-                "\t\"print [info|map|depot|well|items|workshops|truck|helicopter|money]\"\n" +
-                "\t\"turn [n]\": turns game forward(not recommended for n -> Infinity)\n" +
-                "";
-        System.out.println(s);
-    }
+                            double toX = workshop.dropZoneX - workshop.itemProduceX;
+                            double toY = workshop.dropZoneY - workshop.itemProduceY;
+                            long duration = (long) Math.sqrt(toX * toX + toY * toY);
+                            st.setDuration(Duration.millis(duration));
+                            st.playFromStart();
+                            new AnimationTimer() {
+                                long prev = System.nanoTime();
 
-    private void update(int turns) {
-        for (int i = 0; i < turns; ++i) {
-            --timeRemainedToSpawnWild;
-            if (timeRemainedToSpawnWild <= 0) {
-                Wild wild1 = (Wild) getRandomlyLocatedAnimalInstance(Animal.AnimalType.BrownBear.toString());
-                Wild wild2 = (Wild) getRandomlyLocatedAnimalInstance(Animal.AnimalType.Lion.toString());
-                map.addAnimal(wild1);
-                map.addAnimal(wild2);
-                System.err.println(wild1.getType() + " was dropped on Map.");
-                System.err.println(wild2.getType() + " was dropped on Map.");
-                timeRemainedToSpawnWild = 10;
-            }
-            map.update();
-            well.update(1);
-            if (helicopter != null)
-                helicopter.update(1);
-            if (truck != null)
-                truck.update(1);
-            for (Workshop workshop : workshops.values())
-                workshop.update(1);
-        }
-    }
+                                @Override
+                                public void handle(long now) {
+                                    double deltaT = (now - prev) / 1_000_000_000D;
+                                    graphic.setLayoutY(graphic.getLayoutY() + 100 * deltaT);
+                                    graphic.setLayoutY(graphic.getLayoutY() + 100 * deltaT);
+                                    if (graphic.getLayoutY() >= workshop.dropZoneY - animal.hitBox.getCenterY()) {
+                                        stop();
+                                        animal.startMoving();
+                                        animal.moveTowardRandomLocation();
+                                    }
+                                }
+                            }.start();
 
-    private void PRINT_INFO() {
-        StringBuilder sb = new StringBuilder("Info:\n" +
-                "\tMoney : " + coin.get() + "\n" +
-                "\tTimePassed : " + timePassed + "\n" +
-                "\tLevel Requirements:\n");
-        HashMap<Processable, Integer> goals = levelData.getGoals();
-        for (Processable processable : goals.keySet()) {
-            sb.append("\t\t").append(processable).append(" : ").append(goals.get(processable));
-            if (levelRequirements.containsKey(processable)) {
-                sb.append(", Amount Accomplished : ").append(levelRequirements.get(processable));
-            } else
-                sb.append(", Goal Accomplished.");
-            sb.append("\n");
-        }
-        System.out.print(sb.toString());
-    }
-
-    /**
-     * @param type type of the animal selected to create
-     */
-    private Animal getRandomlyLocatedAnimalInstance(String type) {
-        int x = randomGenerator.nextInt(map.cellsWidth);
-        int y = randomGenerator.nextInt(map.cellsHeight);
-        switch (type.toLowerCase()) {
-            case "cat":
-                return new Cat(x, y, levelGameElementsLevel.get("Cat"));
-            case "dog":
-                return new Dog(x, y);
-        }
-
-        String animalClassPath = Constants.getAnimalClassPath(Animal.AnimalType.getType(type));
-        if (animalClassPath == null)
-            return null;
-        try {
-            Class clazz = Class.forName(animalClassPath);
-            Constructor constructor;
-            if (clazz.isAssignableFrom(Pet.class)) {
-                constructor = clazz.getDeclaredConstructor(int.class, int.class);
-            } else {
-                constructor = clazz.getDeclaredConstructor(int.class, int.class);
-            }
-            constructor.setAccessible(true);
-            Animal instance = (Animal) constructor.newInstance(x, y);
-            constructor.setAccessible(false);
-            return instance;
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
-                InstantiationException | InvocationTargetException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private void PRINT_NOT_ENOUGH_MONEY() {
-        System.err.println("Not Enough Money.");
-    }
-
-    private void well() {
-        int cost = well.getRefillPrice();
-        if (coin.get() >= cost) {
-            if (!well.isRefilling()) {
-                if (well.refill()) {
-                    System.out.println("Well is Refilling.");
-                    coin.set(coin.get() - cost);
-                } else
-                    System.err.println("Well is Full.");
-            } else
-                System.err.println("Well is Already Refilling.");
-        } else {
-            PRINT_NOT_ENOUGH_MONEY();
-        }
-    }
-
-    private synchronized void plant(int x, int y) {
-        if (well.getStoredWater() > 0) {
-            byte MAX_GRASS_AMOUNT = 10;
-            map.setGrassInCell(x, y, MAX_GRASS_AMOUNT);
-            well.decrementWaterLevel();
-        } else
-            System.err.println("Not Enough Water In Well.");
-    }
-
-    private void cage(int x, int y) {
-        map.cageWilds(x, y, cageLevel * 2 + 6);
-    }
-    //Todo
-
-    private boolean helicopterGo() {
-        int cost = helicopter.getItemsInsidePrice();
-        if (coin.get() >= cost) {
-            if (helicopter.go()) {
-                coin.set(coin.get() - cost);
-                System.out.println("Helicopter is going. will return in "
-                        + helicopter.getTurnsRemainedToFinishTask() + " turns.");
-                return true;
-            }
-            System.err.println("Nothing Set To Buy.\n");
-            return false;
-        }
-        PRINT_NOT_ENOUGH_MONEY();
-        return false;
-    }
-
-    private boolean truckGo() {
-        if (truck.go()) {
-
-            for (Object o : truck.getItemsInside().keySet()) {
-                Processable element = (Processable) o;
-                int count = truck.getItemsInside().get(element);
-                if (element instanceof Animal.AnimalType) {
-                    Iterator<Animal> it = map.getPets().iterator();
-                    Animal.AnimalType type = (Animal.AnimalType) element;
-                    int i = 0;
-                    while (it.hasNext() && i < count) {
-                        Animal animal = it.next();
-                        if (animal.getType() == type) {
-                            it.remove();
-                            map.removeAnimal(animal);
-                            ++i;
+                            integerProperty.set(newValue.intValue() & (~State.FinishedJob.value));
+                            ++j;
                         }
                     }
-                } else {
-                    ItemType type = (ItemType) element;
-                    map.getDepot().removeAllStorable(type, count);
                 }
-            }
-            System.out.println("Truck is going. will return in " +
-                    truck.getTurnsRemainedToFinishTask() + " turns.");
-            return true;
-        }
-        System.err.println("Nothing in Truck.");
-        return false;
-    }
-
-    private void clearHelicopter() {
-        helicopter.clear();
-    }
-
-    private void clearTruck() {
-        truck.clear();
-    }
-
-    private void upgradeWell() {
-        int cost = well.getUpgradePrice();
-        if (coin.get() >= cost) {
-            System.err.println();
-            if (well.upgrade()) {
-                coin.set(coin.get() - cost);
-                System.out.println("Well was upgraded to level " + well.getLevel());
-            } else {
-                System.err.println("Well is At Maximum Level.");
-            }
-        } else
-            PRINT_NOT_ENOUGH_MONEY();
-    }
-
-    private void upgradeTruck() {
-        int cost = truck.getUpgradeCost();
-        if (coin.get() >= cost) {
-            if (truck.upgrade()) {
-                coin.set(coin.get() - cost);
-                System.out.println("Truck was upgraded to level " + truck.getLevel());
-            } else {
-                System.err.println("Truck is At Maximum Level.");
-            }
-        } else
-            PRINT_NOT_ENOUGH_MONEY();
-    }
-
-    private void upgradeHelicopter() {
-        int cost = helicopter.getUpgradeCost();
-        if (coin.get() >= cost) {
-            if (helicopter.upgrade()) {
-                coin.set(coin.get() - cost);
-                System.out.println("Helicopter was upgraded to level " + helicopter.getLevel());
-            } else {
-                System.err.println("Helicopter is At Maximum Level.");
-            }
-        } else
-            PRINT_NOT_ENOUGH_MONEY();
-    }
-
-    private void upgradeDepot() {
-        Depot depot = map.getDepot();
-        int cost = depot.getUpgradeCost();
-        if (coin.get() >= cost) {
-            if (depot.upgrade()) {
-                coin.set(coin.get() - cost);
-                System.out.println("Depot was upgraded to level " + depot.getLevel());
-            } else {
-                System.err.println("Depot is At Maximum Level.");
-            }
-        } else
-            PRINT_NOT_ENOUGH_MONEY();
-    }
-
-    private boolean addElementsToTruck(ItemType type, int count) {
-        if (truck.hasCapacityFor(type, count)) {
-            if (map.getDepot().hasAll(type, count)) {
-                truck.addAll(type, count);
-                System.out.println(count + " of " + type + " was added to truck.");
-                return true;
-            }
-            System.err.println("Not Enough Item(s) in Depot.");
-            return false;
-        }
-        System.err.println("Not enough of space in truck.");
-        return false;
-    }
-
-    private boolean addElementsToTruck(Animal.AnimalType type, int count) {
-        if (type.IS_WILD) {
-            System.err.println("Can't Sell Wild Animals!");
-            return false;
-        }
-        if (truck.hasCapacityFor(type, count)) {
-            if (map.getAnimalsAmount().containsKey(type)) {
-                if (map.getAnimalsAmount().get(type) >= count) {
-                    ((Truck) truck).addAll(type, count);
-                    System.out.println(count + " of " + type + " was added to truck.");
-                    return true;
-                }
-            }
-            System.err.println("Not Enough Animals in Map.");
-            return false;
-        }
-        System.err.println("Not enough of space in truck.");
-        return false;
-    }
-
-    private boolean addItemsToHelicopter(ItemType type, int amount) {
-        if (helicopter.hasCapacityFor(type, amount)) {
-            if (coin.get() >= Constants.getProductBuyCost(type.toString()) * amount) {
-                helicopter.addAll(type, amount);
-                System.out.println(amount + " of " + type + " was added to helicopter buy list.");
-                return true;
-            }
-            PRINT_NOT_ENOUGH_MONEY();
-            return false;
-        }
-        System.err.println("Not enough of space in helicopter.");
-        return false;
-    }
-
-    private void PRINT_DEPOT_FULL(String item) {
-        System.err.println("can't store " + item + ", Depot is Full.");
-    }
-
-    private void pickup(int x, int y) {
-        boolean depotWasFilled = false;
-        Cell cell = map.getCell(x, y);
-        Iterator<Item> it = cell.getItems().values().iterator();
-        while (it.hasNext()) {
-            Item item = it.next();
-            if (!depotWasFilled) {
-                if (map.getDepot().addStorable(item.getType())) {
-                    it.remove();
-                    map.removeItem(item);
-                    System.out.println(item + " was picked up.");
-                } else {
-                    PRINT_DEPOT_FULL(item.toString());
-                    depotWasFilled = true;
-                }
-            } else {
-                PRINT_DEPOT_FULL(item.toString());
-            }
-        }
-        if (!depotWasFilled) {
-            Iterator<Wild> wilds = cell.getWilds().values().iterator();
-            while (wilds.hasNext()) {
-                Wild wild = wilds.next();
-                if (wild.isCaged()) {
-                    if (!depotWasFilled) {
-                        if (map.getDepot().addStorable((ItemType.getType("Caged" + wild.getType())))) {
-                            wilds.remove();
-                            map.removeAnimal(wild);
-                        } else {
-                            depotWasFilled = true;
-                            PRINT_DEPOT_FULL(wild.toString());
-                        }
-                    } else {
-                        PRINT_DEPOT_FULL(wild.toString());
+            } else if ((changedBit & State.Waiting.value) != 0) {
+                Workshop workshop = (Workshop) integerProperty.getBean();
+                synchronized (depot) {
+                    int val = workshop.calculateAmountNeeded(depot);
+                    if (val > 0) {
+                        depot.sendItemsToWorkshops(workshop, background, val);
                     }
                 }
             }
-        } else {
-            for (Wild wild : cell.getWilds().values()) {
-                if (wild.isCaged()) {
-                    PRINT_DEPOT_FULL("Caged" + wild.toString());
-                }
-            }
         }
+    };
+
+    public ObservableMap<Processable, Integer> getLevelRequirements() {
+        return levelRequirements;
+    }
+
+    public void setPrevScene(Scene prevScene) {
+        this.prevScene = prevScene;
     }
 
     public void setAchieved(Processable requirement) {
-        // requirement graphics -> setAchieved
+        int timePassed = timer.getSeconds();
         levelRequirements.remove(requirement);
         if (levelRequirements.size() == 0) {
             System.err.println("LEVEL IS FINISHED.");
@@ -1060,25 +1027,40 @@ public class LevelController extends Controller {
             if (timePassed > levelBestTime)
                 playerPrize = levelData.getPrize();
             else {
-                if (timePassed <= levelData.getBronzeTime() && levelBestTime > levelData.getBronzeTime()) {
+                if (levelBestTime == Integer.MAX_VALUE) {
+                    if (timePassed <= levelData.getGoldenTime()) {
+                        prize.setTextFill(Color.GOLD);
+                        prize.setText("Golden Prize : ");
+                        playerPrize = levelData.getGoldenPrize();
+                    } else if (timePassed <= levelData.getSilverTime()) {
+                        prize.setTextFill(Color.SILVER);
+                        prize.setText("Silver Prize : ");
+                        playerPrize = levelData.getSilverPrize();
+                    } else if (timePassed <= levelData.getBronzeTime()) {
+                        prize.setTextFill(Color.BROWN);
+                        prize.setText("Bronze Prize : ");
+                        playerPrize = levelData.getBronzePrize();
+                    } else {
+                        prize.setText("Prize : ");
+                        playerPrize = levelData.getPrize();
+                    }
+                } else if (timePassed <= levelData.getBronzeTime() && levelBestTime > levelData.getBronzeTime()) {
                     playerPrize = levelData.getBronzePrize();
                     System.out.print("Bronze Prize : ");
+                    prize.setText("Bronze Prize : ");
+                    prize.setTextFill(Color.BROWN);
                 } else if (timePassed <= levelData.getSilverTime() && levelBestTime > levelData.getSilverTime()) {
                     playerPrize = levelData.getSilverPrize();
                     System.out.print("Silver Prize : ");
+                    prize.setTextFill(Color.SILVER);
+                    prize.setText("Silver Prize : ");
                 } else if (timePassed <= levelData.getGoldenTime() && levelBestTime > levelData.getGoldenTime()) {
                     playerPrize = levelData.getGoldenPrize();
+                    prize.setTextFill(Color.GOLD);
+                    prize.setText("Golden Prize : ");
                     System.out.print("Golden Prize : ");
-                } else if (levelBestTime == Integer.MAX_VALUE) {
-                    if (timePassed <= levelData.getGoldenTime()) {
-                        playerPrize = levelData.getGoldenPrize();
-                    } else if (timePassed <= levelData.getSilverTime()) {
-                        playerPrize = levelData.getSilverPrize();
-                    } else if (timePassed <= levelData.getBronzeTime()) {
-                        playerPrize = levelData.getBronzePrize();
-                    } else
-                        playerPrize = levelData.getPrize();
                 } else {
+                    prize.setText("Prize : ");
                     playerPrize = levelData.getPrize();
                 }
             }
@@ -1090,7 +1072,25 @@ public class LevelController extends Controller {
                 e.printStackTrace();
                 System.err.println("Saving Player Data Failed.");
             }
+            prize.setText(prize.getText() + playerPrize + " ⬤");
             System.out.println("Prize : " + playerPrize + " Gold.");
+            Utility.LEVEL_FINISHED.play();
+            MUSIC.stop();
+            Thread t = new Thread(() -> {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                Platform.runLater(() -> {
+                    toggleMapElementsPause();
+                    wildSpawnTimer.shutdownNow();
+                    wildSpawnTask.cancel(true);
+                    background.setEffect(new GaussianBlur());
+                    levelFinishedStage.showAndWait();
+                });
+            });
+            t.start();
             levelIsFinished = true;
         }
     }

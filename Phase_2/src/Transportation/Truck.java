@@ -1,28 +1,31 @@
 package Transportation;
 
-import Interfaces.Processable;
 import Items.Item;
-import Levels.SaveData;
-import Utilities.Constants;
+import Utilities.AnimalType;
+import Utilities.Loader;
+import Utilities.Sprite;
+import Utilities.Utility;
 
-import static Animals.Animal.AnimalType;
+import java.util.HashMap;
 
 public class Truck extends TransportationTool {
 
     public Truck(byte maxLevel, byte level) {
         super(maxLevel, level);
         capacity = level == 0 ? 40 : (1 + 2 * level) * 20;
-    }
-
-    public Truck(SaveData saveData) {
-        this(saveData.getTruck().maxLevel, saveData.getTruck().level);
-        Truck it = (Truck) saveData.getTruck();
-        for (Object p : it.itemsInside.keySet())
-            itemsInside.put((Processable) p, it.itemsInside.get(p));
-        itemsInsidePrice = it.itemsInsidePrice;
-        itemsInsideVolume = it.itemsInsideVolume;
-        turnsRemainedToFinishTask = it.turnsRemainedToFinishTask;
-        isAtTaskProperty().set(turnsRemainedToFinishTask >= 0);
+        upgradeButton = Utility.createUpgradeButton();
+        upgradeButton.setOnAction(event -> {
+            int cost = getUpgradeCost();
+            if (cost >= 0 && playerCoin.get() >= cost) {
+                playerCoin.set(playerCoin.get() - cost);
+                upgrade();
+            }
+        });
+        upgradeButton.setLayoutX(35);
+        upgradeButton.setLayoutY(100);
+        upgradeButton.setViewOrder(-20);
+        updateUpgradeButton();
+        viewGraphic.getChildren().add(upgradeButton);
     }
 
     @Override
@@ -32,13 +35,22 @@ public class Truck extends TransportationTool {
 
     @Override
     public int getUpgradeCost() {
-        return level == maxLevel ? Integer.MIN_VALUE : Constants.getElementLevelUpgradeCost("Truck", level + 1);
+        return level == maxLevel ? -1 : Loader.getElementLevelUpgradeCost("Truck", level + 1);
     }
 
     @Override
     public boolean upgrade() {
         if (level < maxLevel) {
             ++level;
+            HashMap<Byte, Sprite> temp1 = miniMapTextures.get("Truck");
+            viewGraphic.getChildren().clear();
+            animation.clear();
+            animation.addTexture(temp1.get(level), miniMapViews.get(level));
+            miniMapGraphic.getChildren().add(miniMapViews.get(level));
+            view.setImage(images.get("Truck").get(level));
+            viewGraphic.getChildren().add(view);
+            viewGraphic.getChildren().add(upgradeButton);
+            updateUpgradeButton();
             capacity = (1 + 2 * level) * 20;
             return true;
         }
@@ -47,13 +59,13 @@ public class Truck extends TransportationTool {
 
     public boolean addAll(AnimalType type, int amount) {
         if (hasCapacityFor(type, amount)) {
-            itemsInsidePrice += Constants.getAnimalBuyCost(type) * amount / 2;
+            itemsInsidePrice.set(itemsInsidePrice.get() + Loader.getAnimalBuyCost(type) * amount / 2);
             if (itemsInside.containsKey(type)) {
                 itemsInside.compute(type, (k, v) -> v + amount);
             } else {
                 itemsInside.put(type, amount);
             }
-            itemsInsideVolume += Constants.getAnimalDepotSize(type) * amount;
+            itemsInsideVolume.set(itemsInsideVolume.get()+Loader.getAnimalDepotSize(type) * amount);
             return true;
         }
         return false;
@@ -67,13 +79,13 @@ public class Truck extends TransportationTool {
                 int amount = itemsInside.get(element);
                 if (element instanceof AnimalType) {
                     System.out.println("\t" + element + " : " + amount +
-                            ", Total Price : " + (Constants.getAnimalBuyCost((AnimalType) element) / 2) * amount +
-                            ", Total Volume : " + Constants.getAnimalDepotSize((AnimalType) element) * amount);
+                            ", Total Price : " + (Loader.getAnimalBuyCost((AnimalType) element) / 2) * amount +
+                            ", Total Volume : " + Loader.getAnimalDepotSize((AnimalType) element) * amount);
                 } else {
                     Item.ItemType type = (Item.ItemType) element;
                     System.out.println("\t" + type + " : " + amount +
-                            ", Total Price : " + Constants.getProductSaleCost(type.toString()) * amount +
-                            ", Total Volume : " + Constants.getProductSize(type.toString()) * amount);
+                            ", Total Price : " + Loader.getProductSaleCost(type.toString()) * amount +
+                            ", Total Volume : " + Loader.getProductSize(type.toString()) * amount);
                     System.out.println("\tItems Volume : " + itemsInsideVolume);
                     System.out.println("\tItems Price : " + itemsInsidePrice);
                 }
@@ -83,8 +95,8 @@ public class Truck extends TransportationTool {
     }
 
     public int receiveSoldGoodsMoney() {
-        int temp = itemsInsidePrice;
-        itemsInsidePrice = 0;
+        int temp = itemsInsidePrice.get();
+        itemsInsidePrice.set(0);
         return temp;
     }
 }

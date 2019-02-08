@@ -1,0 +1,19 @@
+{
+  "GuineaFowl": 100,
+  "Goose": 100,
+  "Turkey": 100,
+  "Chicken": 100,
+  "Penguin": 100,
+  "Ostrich": 1000,
+  "Sheep": 1000,
+  "Llama": 1000,
+  "KingPenguin": 1000,
+  "Yak": 1000,
+  "Cat": 2500,
+  "Dog": 2600,
+  "Goat":10000,
+  "Cow": 10000,
+  "Buffalo": 10000,
+  "BrownCow": 10000,
+  "Walrus": 10000
+}

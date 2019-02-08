@@ -1,0 +1,89 @@
+.button {
+    -fx-background-color: #3277f9;
+    -fx-text-fill: #74c9b8;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 19;
+}
+
+.button:hover {
+    -fx-background-color: #74c9b8;
+    -fx-text-fill: #3277f9;
+}
+
+#background {
+    -fx-background-color: #ff354b;
+}
+
+#levelButtonAfrica {
+    -fx-background-color: #f9bd49;
+    -fx-text-fill: #c90f51;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 22;
+    -fx-border-radius: 10;
+    -fx-background-radius: 9999;
+}
+
+#levelButtonAfrica:hover {
+    -fx-background-color: #c90f51;
+    -fx-text-fill: #f9bd49;
+}
+
+#levelButtonRussia {
+    -fx-background-color: #f2f9f1;
+    -fx-text-fill: #92c1c9;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 22;
+    -fx-border-radius: 10;
+    -fx-background-radius: 9999;
+}
+
+#levelButtonRussia:hover {
+    -fx-background-color: #92c1c9;
+    -fx-text-fill: #f2f9f1;
+}
+
+#levelButtonPrairie {
+    -fx-background-color: #2b9312;
+    -fx-text-fill: #74c965;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 19;
+    -fx-border-radius: 10;
+    -fx-background-radius: 9999;
+}
+
+#levelButtonPrairie:hover {
+    -fx-background-color: #74c965;
+    -fx-text-fill: #2b9312;
+}
+
+#levelButtonAntarctica {
+    -fx-background-color: #3277f9;
+    -fx-text-fill: #74c9b8;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 20;
+    -fx-border-radius: 10;
+    -fx-background-radius: 9999;
+}
+
+#levelButtonAntarctica:hover {
+    -fx-background-color: #74c9b8;
+    -fx-text-fill: #3277f9;
+}
+
+#levelButtonSouthAmerica {
+    -fx-background-color: #b3f928;
+    -fx-text-fill: #c97d23;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 20;
+    -fx-border-radius: 10;
+    -fx-background-radius: 9999;
+    /*-fx-min-width: 3px;
+    -fx-min-height: 3px;
+    -fx-max-width: 100px;
+    -fx-max-height: 100px;*/
+}
+
+#levelButtonSouthAmerica:hover {
+    -fx-background-color: #c97d23;
+    -fx-text-fill: #b3f928;
+}

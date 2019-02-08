@@ -1,0 +1,103 @@
+.button{
+    -fx-background-color: #3277f9;
+    -fx-text-fill: #74c9b8;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 19;
+}
+
+#background{
+    -fx-background-color: #ff354b;
+}
+
+.button:hover{
+    -fx-background-color: #74c9b8;
+    -fx-text-fill: #3277f9;
+}
+
+#playerNameIndicator{
+    -fx-background-color: #3277f9;
+    -fx-font-family: Orbitron;
+    -fx-text-fill: #74c9b8;
+    -fx-font-size: 17;
+    -fx-background-radius: 10 0 0 10;
+    -fx-alignment: center;
+}
+
+.text-field{
+    -fx-background-color: #3277f9;
+    -fx-font-family: Orbitron;
+    -fx-text-fill: #74c9b8;
+    -fx-alignment: center;
+    -fx-font-size: 17;
+    -fx-background-radius: 0 10 10 0;
+    -fx-prompt-text-fill: RED;
+    -fx-accent: red;
+}
+.text-field:focused{
+    -fx-background-color: #74c9b8;
+    -fx-text-fill: #3277f9;
+}
+.text-field:disabled{
+    -fx-opacity: 1;
+}
+
+#passwordField{
+    -fx-background-color: #3277f9;
+    -fx-font-family: Orbitron;
+    -fx-text-fill: #74c9b8;
+    -fx-border-width: 3;
+    -fx-alignment: center;
+    -fx-font-size: 17;
+    -fx-background-radius: 0 10 10 0;
+    -fx-prompt-text-fill: #0a3039;
+    -fx-accent: red;
+    -fx-border-color: #44c553;
+}
+
+#warningDialog{
+    -fx-graphic: none;
+    -fx-font-family: Orbitron;
+    -fx-background-color: #74c9b8;
+    -fx-border-width: 2;
+    -fx-border-color: #3277f9;
+}
+#warningDialog > .button-bar > .container{
+    -fx-graphic: none;
+    -fx-background-color: #74c9b8;
+}
+#warningDialog > .button-bar > .container > .button{
+    -fx-background-color: #74c9b8;
+    -fx-text-fill: #3277f9;
+    -fx-border-color: #3277f9;
+    -fx-background-radius: 0;
+    -fx-border-width: 2;
+}
+
+#warningDialog > .button-bar > .container > .button:hover{
+    -fx-background-color: #44c553;
+    -fx-text-fill: #74c9b8;
+    -fx-border-color: #44c553;
+    -fx-background-radius: 0;
+    -fx-border-width: 2;
+}
+
+#warningDialog > .label.content{
+    -fx-graphic: none;
+    -fx-text-fill: #3277f9;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+}
+#warningDialog:header .header-panel{
+    -fx-text-fill: #3277f9;
+    -fx-graphic: none;
+    -fx-background-color: #74c9b8;
+}
+#warningDialog:header .header-panel .label{
+    -fx-text-fill: #3277f9;
+    -fx-graphic: none;
+    -fx-alignment: center;
+    -fx-font-size: 21px;
+    -fx-font-style: italic;
+    -fx-fill: #292929;
+}

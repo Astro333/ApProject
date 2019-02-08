@@ -1,0 +1,24 @@
+{
+  "inputs": [
+    "Egg"
+  ],
+  "inputsAmount": [
+    1
+  ],
+  "outputs": [
+    "DriedEggs"
+  ],
+  "outputsAmount": [
+    1
+  ],
+  "demonstrativeName": "Egg Powder Plant",
+  "realName": "DriedEggsWorkshop",
+  "productionTime": [
+    15,
+    14,
+    13,
+    11,
+    8
+  ],
+  "maxMaxLevel": 4
+}

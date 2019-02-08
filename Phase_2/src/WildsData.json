@@ -1,0 +1,52 @@
+{
+  "BrownBear": {
+    "HITBOX_CENTER_X": 50,
+    "HITBOX_CENTER_Y": 96,
+    "HITBOX_RADIUS_X": 38,
+    "HITBOX_RADIUS_Y": 18,
+    "RUNNING_SPEED": 600,
+    "BASE_SPEED": 50,
+    "ShadowOffsetX":-25,
+    "ShadowOffsetY":0
+  },
+  "Lion": {
+    "HITBOX_CENTER_X": 51,
+    "HITBOX_CENTER_Y": 92,
+    "HITBOX_RADIUS_X": 43,
+    "HITBOX_RADIUS_Y": 22,
+    "RUNNING_SPEED": 600,
+    "BASE_SPEED": 50,
+    "ShadowOffsetX":-25,
+    "ShadowOffsetY":0
+  },
+  "WhiteBear":{
+    "HITBOX_CENTER_X": 41,
+    "HITBOX_CENTER_Y": 102,
+    "HITBOX_RADIUS_X": 41,
+    "HITBOX_RADIUS_Y": 23,
+    "RUNNING_SPEED": 600,
+    "BASE_SPEED": 50,
+    "ShadowOffsetX":-25,
+    "ShadowOffsetY":0
+  },
+  "Grizzly":{
+    "HITBOX_CENTER_X": 45,
+    "HITBOX_CENTER_Y": 95,
+    "HITBOX_RADIUS_X": 36,
+    "HITBOX_RADIUS_Y": 21,
+    "RUNNING_SPEED": 600,
+    "BASE_SPEED": 50,
+    "ShadowOffsetX":-25,
+    "ShadowOffsetY":0
+  },
+  "Jaguar":{
+    "HITBOX_CENTER_X": 50,
+    "HITBOX_CENTER_Y": 81,
+    "HITBOX_RADIUS_X": 41,
+    "HITBOX_RADIUS_Y": 25,
+    "RUNNING_SPEED": 600,
+    "BASE_SPEED": 50,
+    "ShadowOffsetX":-25,
+    "ShadowOffsetY":0
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "inputs" : ["Fabric", "Adornment"],
+  "inputsAmount":[1, 1],
+  "outputs":["CarnivalDress"],
+  "outputsAmount":[1],
+  "demonstrativeName":"Sewing Factory",
+  "realName":"CarnivalDressWorkshop",
+  "productionTime":[15, 14, 13, 11, 8],
+  "maxMaxLevel":4
+}

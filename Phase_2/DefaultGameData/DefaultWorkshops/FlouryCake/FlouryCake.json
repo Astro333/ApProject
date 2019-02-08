@@ -1,0 +1,10 @@
+{
+  "inputs" : ["Flour", "Cake"],
+  "inputsAmount":[1, 1],
+  "outputs":["FlouryCake"],
+  "outputsAmount":[1],
+  "demonstrativeName":"Cake Bakery",
+  "realName":"FlouryCakeWorkshop",
+  "productionTime":[15, 14, 13, 11, 8],
+  "maxMaxLevel":4
+}

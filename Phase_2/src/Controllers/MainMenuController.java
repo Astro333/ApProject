@@ -1,94 +1,257 @@
 package Controllers;
 
-import Exceptions.PlayerNotFoundException;
+import Player.Host;
+import Player.Client;
 import Player.Player;
+import Utilities.PasswordSkin;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import org.jasypt.util.password.BasicPasswordEncryptor;
 
-import java.io.IOException;
+import java.io.*;
+import java.lang.reflect.Type;
+import java.util.HashMap;
 
-public class MainMenuController extends Controller {
+public class MainMenuController {
 
-    private final String PLAY_AS_REGEX;
-    private final String SETTING_REGEX;
-    private final String EXIT_GAME_REGEX;
-    private final String NEW_PLAYER_REGEX;
-    private final String PLAYER_NAME_REGEX;
+    private Gson gson;
+    private BasicPasswordEncryptor passwordEncryptor = new BasicPasswordEncryptor();
+    private Reader reader;
+    private HashMap<String, String> players;
 
+    private Stage stage = null;
+    private Scene mainMenuScene = null;
+
+    private Player currentPlayer;
+
+    private final TextInputDialog passGetter = new TextInputDialog();
+    private final TextInputDialog passSetter = new TextInputDialog();
+    private final Alert playerNotFound = new Alert(Alert.AlertType.CONFIRMATION, "Create New Player?", ButtonType.YES, ButtonType.NO);
+    private final DialogPane dialogPane1 = playerNotFound.getDialogPane();
+    private final Alert wrongPassword = new Alert(Alert.AlertType.ERROR, null, ButtonType.OK);
+    private final DialogPane dialogPane2 = wrongPassword.getDialogPane();
+    private final Alert multiPlayerAlert = new Alert(Alert.AlertType.CONFIRMATION, "Play As Host?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+    private final DialogPane dialogPane3 = multiPlayerAlert.getDialogPane();
     {
-        PLAY_AS_REGEX = "(?i:play\\s+as)\\s+[a-zA-Z0-9_]+";
-        SETTING_REGEX = "(?i:show\\s+setting)";
-        EXIT_GAME_REGEX = "(?i:exit\\s+game)";
-        NEW_PLAYER_REGEX = "(?i:new\\s+player)";
-        PLAYER_NAME_REGEX = "[a-zA-Z0-9_]+";
-        String s = "a";
-        s.matches(NEW_PLAYER_REGEX);
+        dialogPane1.lookupButton(ButtonType.NO).setTranslateX(-230);
+        dialogPane1.lookupButton(ButtonType.NO).setTranslateY(5);
+
+        dialogPane1.lookupButton(ButtonType.YES).setTranslateX(50);
+        dialogPane1.lookupButton(ButtonType.YES).setTranslateY(5);
+
+        dialogPane1.getStylesheets().add("CSSStyles/mainMenuStyle.css");
+        dialogPane2.getStylesheets().add("CSSStyles/mainMenuStyle.css");
+        dialogPane3.getStylesheets().add("CSSStyles/mainMenuStyle.css");
+
+        dialogPane1.setId("warningDialog");
+        dialogPane2.setId("warningDialog");
+        dialogPane3.setId("warningDialog");
+
+        playerNotFound.initStyle(StageStyle.UNDECORATED);
+        wrongPassword.initStyle(StageStyle.UNDECORATED);
+        dialogPane1.setHeaderText("Player Not Found!");
+        dialogPane2.setHeaderText("Wrong Password!");
     }
 
-    public MainMenuController() {
-        super();
+    @FXML
+    private TextField playerName;
+
+    @FXML
+    private Button soloButton, multiPlayerButton, switchPlayerButton, settingButton, exitButton;
+
+    @FXML
+    private void multiPlayerButtonAction(){
+
+        Pane root;
+        FXMLLoader loader = new FXMLLoader();
+
+        multiPlayerAlert.showAndWait();
+        Client client;
+        if(multiPlayerAlert.getResult() == ButtonType.YES){
+            Host host = new Host(1234);
+            return;
+        } else if(multiPlayerAlert.getResult() == ButtonType.NO){
+            client = new Client(currentPlayer, 1234, "localHost");
+        } else
+            return;
+        ChatGUIController controller;
+        try {
+            loader.setLocation(getClass().getResource("/res/FxmlFiles/ChatGUI.fxml"));
+            root = loader.load();
+            controller = loader.getController();
+            controller.setPlayer(client);
+            controller.setPrevScene(mainMenuScene);
+            client.setChatGuiController(controller);
+        } catch (IOException e) {
+            e.printStackTrace();
+            root = new Pane();
+        }
+        Scene playerMenuScene = new Scene(root);
+        stage.setScene(playerMenuScene);
+
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        stage.setX((screenBounds.getWidth() - stage.getWidth()) / 2);
+        stage.setY((screenBounds.getHeight() - stage.getHeight()) / 2);
     }
 
-    public void startProcessing() {
-        String input = scanner.nextLine().trim();
-        while (!input.matches(EXIT_GAME_REGEX)) {
-            if (input.matches(PLAY_AS_REGEX)) {
-                String playerName = input.split("\\s+")[2];
-                playAs(playerName);
-            } else if (input.matches(NEW_PLAYER_REGEX)) {
-                System.out.println("Enter Your Name:");
-                input = scanner.nextLine().trim();
-                boolean wasCanceled = false;
-                while (true) {
-                    if (input.equals("cancel process")) {
-                        wasCanceled = true;
-                        break;
-                    } else if (Player.exists(input)) {
-                        System.err.println("A player with this name already exists.");
-                    } else if (!input.matches(PLAYER_NAME_REGEX)) {
-                        System.err.println("Invalid Player Name, Try Again or write \"cancel process\".\nEnter Your Name:");
-                        input = scanner.nextLine().trim();
-                    } else
-                        break;
+    @FXML
+    private void soloButtonAction() {
+        Pane root;
+        FXMLLoader loader = new FXMLLoader();
+
+        PlayerMenuController controller;
+        try {
+            loader.setLocation(getClass().getResource("/res/FxmlFiles/playerMenu.fxml"));
+            root = loader.load();
+            controller = loader.getController();
+            controller.setPlayer(playerName.getText());
+            controller.setMainMenuScene(mainMenuScene);
+        } catch (IOException e) {
+            e.printStackTrace();
+            root = new Pane();
+        }
+        Scene playerMenuScene = new Scene(root);
+        stage.setScene(playerMenuScene);
+
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        stage.setX((screenBounds.getWidth() - stage.getWidth()) / 2);
+        stage.setY((screenBounds.getHeight() - stage.getHeight()) / 2);
+    }
+
+    @FXML
+    private void exitButtonAction() {
+        Platform.exit();
+        System.exit(0);
+    }
+
+    private final EventHandler<KeyEvent> textFieldEnterPressed = new EventHandler<>() {
+        @Override
+        public void handle(KeyEvent event) {
+            if (event.getCode() == KeyCode.ENTER) {
+                String name = playerName.getText();
+                if (name.length() >= 3) {
+                    if (!players.containsKey(name)) {
+                        playerNotFound.showAndWait();
+                        if (playerNotFound.getResult() == ButtonType.YES) {
+                            passSetter.showAndWait();
+                            passSetter.getEditor().setText("");
+                            if(passSetter.getResult() == null){
+                                playerName.setText("");
+                                return;
+                            }
+                            String pass = passSetter.getResult();
+                            players.put(name, passwordEncryptor.encryptPassword(pass));
+                            try {
+                                Writer writer = new FileWriter(new File("PlayersData/players.json"));
+                                gson.toJson(players, writer);
+                                writer.close();
+                                currentPlayer = Player.create(name);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            exitButton.requestFocus();
+                        } else {
+                            playerName.setText("");
+                            return;
+                        }
+                    } else {
+                        passGetter.showAndWait();
+                        passGetter.getEditor().setText("");
+                        if (passGetter.getResult() == null) {
+                            playerName.setText("");
+                            return;
+                        }
+                        try {
+                            currentPlayer = Player.loadPlayer(name);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                        exitButton.requestFocus();
+                    }
+                    soloButton.setDisable(false);
+                    multiPlayerButton.setDisable(false);
+                    exitButton.requestFocus();
                 }
-                if (!wasCanceled) {
-                    try {
-                        Player.create(input);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        System.err.println("HAppened HeRE");
+            }
+        }
+    };
+
+    @FXML
+    public void initialize() {
+        gson = new GsonBuilder().setPrettyPrinting().create();
+        try {
+            reader = new FileReader(new File("PlayersData/players.json"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        Type type = new TypeToken<HashMap<String, String>>() {
+        }.getType();
+        players = gson.fromJson(reader, type);
+        try {
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        playerName.textProperty().addListener((observable, oldValue, newValue) -> {
+            multiPlayerButton.setDisable(true);
+            soloButton.setDisable(true);
+        });
+        playerName.setOnKeyPressed(textFieldEnterPressed);
+        playerName.setTextFormatter(new TextFormatter<>(change -> {
+            if (!change.isContentChange()) {
+                return change;
+            }
+            String text = change.getControlNewText();
+            if (text.matches("[a-zA-Z0-9\\-_]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        setupTextInputDialog(passGetter);
+        setupTextInputDialog(passSetter);
+        passGetter.getEditor().setSkin(new PasswordSkin(passGetter.getEditor()));
+        passSetter.getEditor().setSkin(new PasswordSkin(passSetter.getEditor()));
+        passGetter.getDialogPane().lookupButton(ButtonType.OK).addEventFilter(ActionEvent.ACTION,
+                event -> {
+                    if (!passwordEncryptor.checkPassword(passGetter.getEditor().getText(), players.get(playerName.getText()))) {
+                        wrongPassword.showAndWait();
+                        passGetter.getEditor().setText("");
+                        event.consume();
                     }
                 }
-            } else if (input.matches(SETTING_REGEX)) {
-                /*
-                 *
-                 * */
-            } else if (input.matches("help")) {
-                System.out.println("Commands:");
-                System.out.println("\t\"new player\": create a new player");
-                System.out.println("\t\"play as [User_Name]\"");
-                System.out.println("\t\"show shop\"");
-                System.out.println("\t\"exit game\"");
-            } else {
-                System.err.println("Invalid Command");
-            }
-            input = scanner.nextLine().trim();
-        }
+        );
+        Platform.runLater(() -> {
+            mainMenuScene = exitButton.getScene();
+            stage = (Stage) mainMenuScene.getWindow();
+            mainMenuScene.getRoot().setOnMouseClicked(event -> exitButton.requestFocus());
+        });
     }
 
-    /**
-     * @param playerName this parameter with pathToPlayersInfoDirectory specifies
-     *                   the directory in which player saved files exist.
-     */
-    private void playAs(String playerName) {
-        try {
-            PlayerMenuController playerMenuController = new PlayerMenuController(playerName);
-            playerMenuController.startProcessing();
-        } catch (PlayerNotFoundException e) {
-            System.err.println("No Such Player In Existence.");
-        }
-    }
-
-    private void playAs(Player player) {
-        PlayerMenuController playerMenuController = new PlayerMenuController(player);
-        playerMenuController.startProcessing();
+    private void setupTextInputDialog(TextInputDialog dialog) {
+        dialog.initStyle(StageStyle.UNDECORATED);
+        dialog.getDialogPane().getStylesheets().add("CSSStyles/mainMenuStyle.css");
+        dialog.getDialogPane().setId("warningDialog");
+        dialog.getDialogPane().setHeaderText("Enter Your Password");
+        dialog.getEditor().setPromptText("Password");
+        dialog.getEditor().setId("passwordField");
+        dialog.getDialogPane().lookupButton(ButtonType.OK).setTranslateX(-55);
+        dialog.getDialogPane().lookupButton(ButtonType.OK).disableProperty().bind(
+                dialog.getEditor().textProperty().length().lessThan(3));
     }
 }

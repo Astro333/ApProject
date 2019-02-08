@@ -1,0 +1,17 @@
+{
+  "inputs" : ["CagedLion", "CarnivalDress"],
+  "inputsAmount":[1, 1],
+  "outputs":["SpruceLion"],
+  "outputsAmount":[1],
+  "demonstrativeName":"Fitting Room",
+  "realName":"FittingRoomWorkshopAfrica",
+  "productionTime": [
+    15,
+    14,
+    13,
+    11,
+    8
+  ],
+  "pathToGraphicsFolder" : null,
+  "maxMaxLevel":4
+}

@@ -1,0 +1,111 @@
+#background{
+    -fx-background-image: url("../res/Transportation/Truck/Textures/Menu/Images/back.png");
+}
+#mainText{
+    -fx-text-alignment: center;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 23;
+    -fx-fill: gold;
+}
+#orderText{
+    -fx-text-alignment: center;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 17;
+    -fx-fill: white;
+}
+.button{
+    -fx-background-color: #3277f9;
+    -fx-text-fill: #74c9b8;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 19;
+}
+.button:hover{
+    -fx-background-color: #74c9b8;
+    -fx-text-fill: #3277f9;
+}
+#volumeIndicator{
+    -fx-text-fill: #3277f9;
+    -fx-background-color: gold;
+    -fx-font-family: Orbitron;
+    -fx-font-size: 19;
+    -fx-alignment: center;
+}
+#money{
+    -fx-text-alignment: center;
+    -fx-alignment: center;
+    -fx-font-family: IONA-U1;
+    -fx-font-size: 23;
+    -fx-text-fill: gold;
+}
+#amountIndicator{
+    -fx-font-family: IONA-U1;
+    -fx-font-size: 11;
+    -fx-background-color: #74c9b8;
+    -fx-text-fill: #3277f9;
+    -fx-alignment: center;
+    -fx-pref-width: 40;
+}
+
+#incrementButton{
+    -fx-font-size: 11;
+    -fx-font-family: Orbitron;
+    -fx-text-fill: gold;
+    -fx-background-color: #3277f9;
+}
+#incrementButton:hover{
+    -fx-text-fill: #3277f9;
+    -fx-background-color: gold;
+}
+#resetButton{
+    -fx-font-size: 11;
+    -fx-font-family: Orbitron;
+    -fx-background-color: #74c9b8;
+    -fx-text-fill: red;
+}
+
+#resetButton:hover{
+    -fx-background-color: red;
+    -fx-text-fill: #74c9b8;
+}
+#itemContainer{
+    -fx-background-color: radial-gradient(radius 200%, #3277f9, derive(#de8c62, -30%), derive(burlywood, 30%));
+    -fx-background-radius: 3 3 3 3;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-fill: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 10 10 10 10;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .scroll-bar {
+    -fx-background-color: #74c9b8;
+}
+
+.scroll-pane > .scroll-bar > .increment-button > .increment-arrow,
+.scroll-pane > .scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: #3277f9;
+}
+
+.scroll-pane > .scroll-bar > .increment-button,
+.scroll-pane > .scroll-bar > .decrement-button {
+    -fx-background-color: #74c9b8;
+}
+
+.scroll-pane > .corner {
+    -fx-background-color: blue;
+    -fx-background-insets: 0 1 1 0;
+}
+.scroll-pane > .scroll-bar > .increment-button:hover > .increment-arrow,
+.scroll-pane > .scroll-bar > .decrement-button:hover > .decrement-arrow {
+    -fx-background-color: blue;
+}
+
+.scroll-pane > .scroll-bar > .thumb {
+    -fx-background-color: #3277f9;
+}

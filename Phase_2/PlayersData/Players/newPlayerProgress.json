@@ -1,0 +1,31 @@
+{
+  "goldMoney": 0,
+  "money": 0,
+  "levelsTime": {},
+  "gameElementsLevel": {
+    "Helicopter": 0,
+    "Cage": 0,
+    "Truck": 0,
+    "Cat": 0,
+    "Depot": 0,
+    "Dog": 0,
+    "Well": 0,
+    "CakeWorkshop": 0,
+    "CurdWorkshop": 0,
+    "CheeseWorkshop": 0,
+    "CarnivalDressWorkshop": 0,
+    "AdornmentWorkshop": 0,
+    "DriedEggsWorkshop": 0,
+    "FittingRoomWorkshop": 0,
+    "FlouryCakeWorkshop": 0,
+    "GrindingWorkshop": 0,
+    "IncubatorWorkshop": 0,
+    "MegaPieWorkshop": 0,
+    "PlumeWorkshop": 0,
+    "ProcessingWorkshop": 0,
+    "SourCreamWorkshop": 0,
+    "SouvenirWorkshop": 0,
+    "SpinneryWorkshop": 0,
+    "WeavingWorkshop": 0
+  }
+}
