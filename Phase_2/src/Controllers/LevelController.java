@@ -431,7 +431,7 @@ public class LevelController {
                         Iterator<Wild> wildIterator = wilds.values().iterator();
                         while (wildIterator.hasNext()) {
                             Wild wild = wildIterator.next();
-                            if (!wild.isCaged() && !wild.hasTossed()) {
+                            if (!wild.isCaged() && !wild.isSpawning()) {
                                 double x0 = wild.getX();
                                 double y0 = wild.getY();
                                 double w0 = wild.hitBox.getRadiusX();
@@ -440,7 +440,7 @@ public class LevelController {
                                     Iterator<Animal> petIterator = pets.values().iterator();
                                     while (petIterator.hasNext()) {
                                         Animal pet = petIterator.next();
-                                        if ((pet.getStatus() & (State.Spawning.value)) == 0) {
+                                        if (!pet.isSpawning()) {
                                             double x1 = pet.getX();
                                             double y1 = pet.getY();
                                             double w1 = pet.hitBox.getRadiusX();
@@ -453,10 +453,10 @@ public class LevelController {
                                                 } else if (pet instanceof Dog) {
                                                     wildIterator.remove();
                                                     animalsAmount.computeIfPresent(wild.getType(), (k, v) -> v - 1);
+                                                    ((Dog) pet).enterFight();
                                                     wild.statusProperty().set(wild.getStatus() | State.MarkedToRemove.value);
                                                     Utility.BATTLE_SOUND.play();
                                                     petIterator.remove();
-                                                    ((Dog) pet).enterFight();
                                                     break;
                                                 } else if (!wild.hasTossed()) {
                                                     petIterator.remove();
@@ -496,6 +496,8 @@ public class LevelController {
             }
         }
     };
+
+
 
     private ChangeListener<Number> wildStatusChangeListener = new ChangeListener<>() {
         @Override
@@ -1024,8 +1026,10 @@ public class LevelController {
             player.addMoney(coin.get());
             int playerPrize;
             int levelBestTime = levelTime == null ? Integer.MAX_VALUE : levelTime.get(0);
-            if (timePassed > levelBestTime)
+            if (timePassed > levelBestTime) {
                 playerPrize = levelData.getPrize();
+                prize.setText("Prize : ");
+            }
             else {
                 if (levelBestTime == Integer.MAX_VALUE) {
                     if (timePassed <= levelData.getGoldenTime()) {

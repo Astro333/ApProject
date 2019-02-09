@@ -193,12 +193,18 @@ public class Dog extends Animal {
 
     public void enterFight() {
         if (!inFight) {
+            wildSeekerThread.stop();
+            stopMoving();
             inFight = true;
             BARK_SOUND.play();
-            stopMoving();
             animation.stop();
             animation.clear();
             ImageView view = new ImageView(battleTexture.getImage());
+
+            // magic number, to be added in texture json
+            view.setLayoutX(-100);
+            view.setLayoutY(-100);
+
             animation.addTexture(battleTexture, view);
             graphic.getChildren().clear();
             graphic.getChildren().add(view);

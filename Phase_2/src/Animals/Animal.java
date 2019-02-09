@@ -269,4 +269,8 @@ public abstract class Animal implements Scalable, Spawnable, Destructible {
     public IntegerProperty statusProperty() {
         return status;
     }
+
+    public boolean isSpawning() {
+        return ((status.get() & State.Spawning.value) != 0);
+    }
 }
